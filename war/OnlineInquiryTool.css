@@ -1,0 +1,872 @@
+/**
+ * Copyright (c) 2014, Jari Hämäläinen, Carita Kiili and Julie Coiro
+ * All rights reserved.
+ * 
+ * See LICENSE for full license text.
+ * 
+ * @author Jari Hämäläinen
+ */
+/** CSS rules */
+
+/* Font definitions */
+.font-m,
+.nav, .nav-manual-hover, .file-disabled,
+.site-title,
+.argedit-source-text, .argedit-popup-prompt,
+.cap-add-source, .cap-add-perspective, .cap-claim-header, .cap-claim-text, .cap-summary-header, .cap-header, .cap-header-arg, .cap-remove-perspective,
+.help-text-wrap, .fail-label,
+.save-label, .save-name, .save-suffix,
+body, input, textarea, h3 {
+    font-family: arial, helvetica, "nimbus sans l", "liberation sans", freesans, sans-serif;
+    font-size: 13px;
+    line-height: 15px;
+}
+h3 {
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
+}
+.font-l,
+.cap-claim-header, .cap-claim-text, .cap-header, .cap-header-arg,
+.app-info-header {
+    font-size: 15px;
+    line-height: 17px;
+}
+.font-xl,
+.site-title {
+    font-size: 32px;
+    line-height: 34px;
+}
+.font-bold,
+.site-title,
+.argedit-popup-prompt,
+.cap-add-source, .cap-add-perspective, .cap-claim-header, .cap-claim-text, .cap-summary-header, .cap-header, .cap-header-arg,
+.pedit-title-text,
+.app-info-header {
+	font-weight: bold;
+}
+
+/* Body */
+.mbody {
+	margin: 2px;
+}
+
+/* Basic wrapper without borders and stuff */
+.clear-wrap {
+    margin: 0px;
+	padding: 0px;
+    border: 0px none;
+}
+
+/* This should be calculated based on argument count */
+/* Also: there should be some absolute min so layout doesn't get totally screwed */
+.page-wrap {
+	min-width: 1025px;
+	width: 1030px;
+}
+
+.blue-border, .site-title {
+    border: 1px solid #385d8a;	
+}
+.black-border, .help-popup-wrap, .info-popup-wrap, .app-info-header {
+    border: 2px solid black;	
+}
+
+/* Navigation panel and links TODO: Solve problem with underlined text! */
+.page-nav {
+    padding: 10px 16px 10px 10px;
+    width: 290px;
+	height: 63px;
+    margin: 0px;
+	float: left;
+}
+.nav-wrap {
+	width: 140px;
+	float: left;
+}
+.rmargin10 {
+	margin-right: 10px;
+}
+.nav, .nav-spacer, .nav-manual-hover {
+	background: #eeeeff;
+	width: 100%;
+	text-decoration: none;
+	display: block;
+	cursor: pointer;
+	color: rgb(0, 102, 204);
+	padding: 3px;
+}
+.nav-spacer {
+	cursor: default;
+	height: 15px;
+}
+.nav-manual-hover {
+	background: #ccccff;
+	text-decoration: underline;
+	color: rgb(0, 102, 204);
+}
+.nav:hover {
+	background: #ccccff;
+	text-decoration: underline;
+	color: rgb(0, 102, 204);
+}
+.nav:active {
+	background: #ccccff;
+	text-decoration: underline;
+	color: rgb(0, 102, 204);
+}
+.file-wrap {
+	position: relative;
+	overflow: hidden;
+	width: 146px;
+	display: block;
+}
+.file-open {
+	position: absolute;
+	top: 0px;
+	right: -6px;
+	font-size: 100px;
+	opacity: 0;
+	margin: 0px;
+	padding: 0px;
+	border: none;
+	cursor: pointer;
+}
+.file-open-disabled {
+	cursor: default;
+}
+.file-disabled {
+	background: #eeeeff;
+	width: 100%;
+	text-decoration: none;
+	display: block;
+	color: #ddddee;
+	cursor: default;
+	padding: 3px;
+}
+.file-disabled:hover {
+	background: #eeeeff;
+	text-decoration: none;
+	color: #ddddee;
+}
+.file-disabled:active {
+	background: #eeeeff;
+	text-decoration: none;
+	color: #ddddee;
+}
+
+
+/* Huge site title. Note the margin left for navigation! */
+.site-title {
+    padding: 25px;
+    margin: 0;
+	margin-left: 317px;
+	height: 33px;
+	vertical-align: middle;
+}
+
+/* Main content (the deck). Position -1 to align with nav and pageTitle borders. */
+.page-main-content {
+    padding: 5px;
+    position: relative;
+    top: -1px;
+}
+
+/* Argument editor. Position relative to get absolute position working in lights container. */
+.argedit-main-container, .argedit-main-container-disabled {
+    margin: 0px 0px 5px 5px;
+    border-width: 2px;
+    border-color: black;
+	border-top-style: none;
+	border-right-style: solid;
+	border-bottom-style: none;
+	border-left-style: none;
+	background: white;
+    min-width: 240px; /* Keep this same as in .cap-add-source. Remember .argedit-arg-text-wrapper too! */
+    position: relative;
+    padding: 0px 2px 0px 0px;
+    float: left;
+}
+.argedit-main-container-disabled {
+	background-color: #eeeeee;
+}
+.argedit-arg-text-wrapper {
+    border-width: 2px;
+    border-color: black;
+	border-top-style: solid;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: solid;
+    padding: 1px 1px 1px 1px;
+    min-width: 218px; /* Change this if you change width in .argedit-main-container and .cap-add-source */
+    height: 75px;
+    position: relative;
+}
+.argedit-arg-text, .argedit-popup-prompt-text {
+    border: none;
+    padding: 0px;
+    resize: none;
+    width: 100%;
+    height: 100%;
+    box-shadow: none;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    outline:none;
+}
+.argedit-arg-text:disabled {
+	background-color: transparent;
+	color: #111111;
+}
+.argedit-source-text-wrapper {
+    border-width: 2px;
+    border-color: black;
+	border-top-style: solid;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+	padding: 1px 0px;
+    position: relative;
+}
+.argedit-source-text {
+    border: none;
+    padding: 0px;
+    resize: none;
+    width: 100%;
+    box-shadow: none;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    outline:none;
+}
+.argedit-source-text:disabled {
+	background-color: transparent;
+	color: #111111;
+}
+.argedit-lights-container, .argedit-lights-container-disabled{
+    border-width: 2px;
+    border-color: black;
+	border-top-style: solid;
+	border-right-style: solid;
+	border-bottom-style: none;
+	border-left-style: solid;
+    margin: 0px 0px 0px 0px;
+	padding: 0px;
+    float: right;
+    position: absolute;
+	height: 77px;
+}
+.argedit-lights-pad-wrapper {
+    border: none;
+    padding: 1px;
+    position: relative;
+	height: 100%;
+}
+.argedit-light-red, .argedit-light-red-dark,
+.argedit-light-yellow, .argedit-light-yellow-dark,
+.argedit-light-green, .argedit-light-green-dark {
+    width: 18px;
+    height: 18px;
+    padding: 0px;
+	border-radius: 50%;
+	border: none;
+    position: relative;
+	cursor: pointer;
+}
+.argedit-light-red {
+    background-color: #ff0000;
+    top: 15px;
+}
+.argedit-light-red-dark {
+    background-color: #7f0000;
+    top: 15px;
+}
+.argedit-light-yellow {
+    background-color: #ffdf00;
+    top: 17px;
+}
+.argedit-light-yellow-dark {
+    background-color: #7f6000;
+    top: 17px;
+}
+.argedit-light-green {
+    background-color: #08f170;
+    top: 19px;
+}
+.argedit-light-green-dark {
+    background-color: #005828;
+    top: 19px;
+}
+.argedit-popup-button-holder {
+	padding: 2px;
+	border-width: 2px;
+    border-color: black;
+	border-top-style: solid;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+	text-align: center;
+}
+.argedit-popup-wrapper {
+    min-width: 175px;
+}
+.argedit-popup-prompt {
+	/*margin: 0px 0px 5px 0px;*/
+    border-width: 2px;
+    border-color: black;
+	border-top-style: none;
+	border-right-style: none;
+	border-bottom-style: solid;
+	border-left-style: none;
+	background-color: #ffffff;
+    padding: 2px;
+    margin: 0px;
+    resize: none;
+    height: 15px;
+    /*position: relative;*/
+    text-align: center;
+    /*vertical-align: middle;*/
+}
+.argedit-popup-prompt-text-wrapper {
+    border-width: 2px;
+    border-color: black;
+    padding: 2px;
+	height: 60px;
+}
+
+/* Cleaner */
+.clearer {
+	clear: both; line-height: 0; height: 0;
+}
+
+/* ClaimAnalysisPanel */
+.cap-vertical-grouping {
+    padding: 0px;
+	border-radius: 10px;
+	background-color: #efefef;
+	border: 1px solid #404040;
+	position: absolute;
+	height: 100%;
+	z-index: -2;
+}
+.cap-horizontal-grouping-even, .cap-horizontal-grouping-odd, .cap-horizontal-grouping-header, .cap-add-perspective {
+    padding: 5px 5px 0px 0px; /* Left and right space is increased by cap-group-subcontainer margin! */
+    margin: 10px 5px 10px 5px;
+	border-radius: 10px;
+	background-color: rgba(180,180,205,0.50);
+	border: 4px solid #404040;
+	position: relative;
+	min-height: 20px;
+	resize: none;
+}
+.cap-horizontal-grouping-odd {
+	background-color: rgba(217,217,185,0.50);
+}
+.cap-horizontal-grouping-header {
+	border: 4px none #404040; /* Invisible Border */
+    padding: 5px 5px 0px 4px; /* Add padding to left because border is missing */
+    margin: 5px 5px -5px 5px; /* Adjust margins too to get perspectives closer */
+	background-color: rgba(217,217,217,0); /* Invisible BG */
+}
+.cap-group-subcontainer, .cap-group-subcontainer-first, .cap-group-subcontainer-last {
+    margin: 0px 10px;
+	padding: 0px;
+    border: none;
+    position: relative;
+    float: left;
+}
+.cap-group-subcontainer-first {
+    margin: 0px 10px 0px 15px;
+    height: 100%;
+}
+.cap-group-subcontainer-last {
+    margin: 0px 10px;
+}
+.cap-group-wrapper {
+    margin: 0px;
+	padding: 0px 0px;
+    border: none;
+}
+.cap-group-wrapper-fill {
+    margin: 0px;
+	padding: 0px 0px;
+    border: none;
+    background-color: tranparent;
+    height: 5px;
+    min-width: 600px;
+}
+.cap-add-source, .cap-add-source:hover {
+	margin: 0px 0px 5px 5px;
+    padding: 0px;
+	border-radius: 5px;
+	background-color: #a9f6bd;
+	border: 2px solid #9f9f9f;
+	position: relative;
+    min-width: 240px; /* Keep this same as in .argedit-main-container. Remember .argedit-arg-text-wrapper too! */
+    min-height: 20px;
+	vertical-align: middle;
+    text-align: center;
+    float: left;
+	cursor: pointer;
+}
+.cap-add-source {
+	text-decoration: none;
+}
+.cap-add-source:hover {
+	text-decoration: underline;
+}
+.cap-add-perspective, .cap-add-perspective:hover {
+	background-color: #a9f6bd;
+	border: 1px solid #9f9f9f;
+	position: relative;
+    min-height: 20px;
+    line-height: 15px;
+	vertical-align: middle;
+    text-align: center;
+	cursor: pointer;
+}
+.cap-add-perspective {
+	text-decoration: none;
+}
+.cap-add-perspective:hover {
+	text-decoration: underline;
+}
+.cap-claim-header, .cap-summary-header {
+    border-width: 2px;
+    border-color: black;
+	border-top-style: solid;
+	border-right-style: solid;
+	border-bottom-style: none;
+	border-left-style: solid;
+    padding: 2px 0px 2px 2px;
+    margin: 10px 0px -20px 20px;
+    background-color: #ffffff;
+    min-width: 100px;
+    width: 150px;
+	height: 17px;
+    position: relative;
+    text-align: center;
+}
+.cap-summary-header {
+	height: 15px;
+}
+.cap-claim-text-wrapper {
+    border-width: 2px;
+    border-color: black;
+	border-top-style: solid;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+    padding: 1px 4px 7px 0px;
+    margin: 20px 20px 5px 20px;
+    background-color: #ffffff;
+    min-width: 200px;
+    height: 36px;
+    position: relative;
+}
+.cap-claim-text {
+    border: none;
+    padding: 2px 2px 2px 2px;
+    resize: none;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    box-shadow: none;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    outline:none;
+}
+.cap-summary-text-wrapper {
+    border-width: 2px;
+    border-color: black;
+	border-top-style: solid;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+    padding: 0px 4px 0px 0px;
+    margin: 20px 20px 5px 20px;
+    background-color: #ffffff;
+    min-width: 200px;
+    height: 100%;
+    position: relative;
+}
+.cap-summary-text {
+    border: none;
+    padding: 2px;
+    resize: vertical;
+    width: 100%;
+    height: 150px;
+    background-color: transparent;
+    box-shadow: none;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    outline:none;
+}
+.cap-header, .cap-header-arg {
+	margin: 0px 0px 5px 0px;
+    border-width: 2px;
+    border-color: black;
+	border-top-style: solid;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+	background-color: #ffffff;
+    padding: 5px 0px;
+    margin: 0px;
+    resize: none;
+    min-width: 200px;
+    height: 17px;
+    position: relative;
+    text-align: center;
+    vertical-align: middle;
+}
+.cap-header-arg {
+	margin: 0px 0px 5px 5px;
+}
+
+/* Perspective editor */
+.pedit-main-container, .pedit-main-container-disabled, .pedit-summary-text-wrap {
+    margin: 0px 0px 0px 0px;
+    border-width: 2px;
+    border-color: black;
+	border-top-style: solid;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+	background: white;
+    min-width: 198px;
+    height: 100%;
+	position: relative;
+    padding: 0px 2px 0px 0px;
+}
+.pedit-main-container-disabled {
+	background-color: #eeeeee;
+}
+.pedit-title-text-wrap {
+    border-width: 2px;
+    border-color: black;
+	border-top-style: none;
+	border-right-style: none;
+	border-bottom-style: solid;
+	border-left-style: none;
+    padding: 2px 0px 2px 2px;
+    width: 100%;
+    height: 31px;
+    position: relative;
+}
+.pedit-title-text {
+    border: none;
+    padding: 0px;
+    margin: 0px 0px 1px 0px;
+	resize: none;
+    width: 100%;
+    height: 100%;
+    box-shadow: none;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    outline:none;
+    box-sizing:border-box;
+	-moz-box-sizing:border-box; /* Firefox */
+	-webkit-box-sizing:border-box; /* Safari */
+    position: relative;
+}
+.pedit-question-text-wrap {
+    border: none;
+    margin: 0px 0px 0px 0px;
+    padding: 1px 0px 1px 2px;
+    width: 100%;
+    height: 100%;
+    height: 76px; /* TODO: auto height adjust to max */
+    position: relative;
+}
+.pedit-question-text, .pedit-summary-text {
+    border: none;
+    padding: 0px;
+    resize: none;
+    width: 100%;
+    height: 100%;
+    box-shadow: none;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-sizing:border-box;
+	-moz-box-sizing:border-box; /* Firefox */
+	-webkit-box-sizing:border-box; /* Safari */
+	outline:none;
+    position: relative;
+}
+.pedit-summary-text-wrap {
+    margin: 0px 0px 0px 5px;
+    border-width: 2px;
+    border-color: black;
+	border-top-style: solid;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+	background: white;
+    min-width: 198px;
+    height: 120px;
+	position: relative;
+    padding: 1px 2px 1px 1px;
+}
+.popup-z {
+	z-index: 3;
+}
+.popup-trans-glass {
+	/* Same as GWT default, but 0 opacity. Hack to get add argument/perspective button working when clicking them while pop-up is show. */
+	background-color: #000;
+	opacity: 0.0;
+	filter: literal("alpha(opacity=0)");
+	z-index: 2;
+}
+.popup-button-holder {
+	padding: 2px;
+	border-width: 2px;
+    border-color: black;
+	border-top-style: solid;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+	text-align: center;
+}
+.help-popup-wrap {
+	width: 700px;
+}
+.help-text-wrap {
+	padding: 0px 5px 0px 5px;
+	max-height: 500px;
+	min-width: 650px;
+}
+.loading-text {
+	padding: 10px 15px 10px 15px;
+    border-width: 2px;
+    border-color: black;
+	border-top-style: solid;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+}
+.fail-label {
+	padding: 25px 25px 25px 25px;
+	background-color: red;
+	color: black;
+}
+.app-info {
+	display: none;
+}
+.app-info-header {
+    padding: 5px;
+    margin: 5px;
+    text-align: center;
+    vertical-align: middle;
+}
+.app-info-text, .license-text {
+    font-family: "courier new", "liberation mono", "dejavu sans mono", "nimbus mono l", monospace;
+    font-size: 11px;
+    line-height: 13px;
+    padding: 5px;
+}
+.license-text {
+	text-align: left;
+}
+.copyright-wrap {
+    height: 16px;
+    margin: 6px 0px 0px 0px;
+    vertical-align: middle;
+    width: 100%;
+    padding-right: 0px;
+    line-height: 11px;
+}
+.copyright-wrap td {
+    text-align: center;
+    padding: 0px;
+}
+.copyright-text, .copyright-text:ACTIVE, .copyright-text:HOVER {
+    font-family: arial, helvetica, "nimbus sans l", "liberation sans", freesans, sans-serif;
+    font-size: 10px;
+    line-height: 12px;
+	color: silver;
+	text-decoration: none;
+	cursor: pointer;
+}
+.info-popup-wrap {
+	width: 325px;
+}
+
+.close-button-box {
+	position: absolute;
+	top: 0px;
+	float: right;
+	opacity: 0.3;
+	padding: 0px;
+	width: 13px;
+	height: 13px;
+	border: 1px solid #d00;
+	border-radius: 2px;
+	background: #f33;
+	z-index: 2;
+}
+.close-button-box::-moz-focus-inner {border:0;padding:0}
+.close-button-box:active:hover {
+	opacity: 1;
+}
+.close-button-box:active {
+	opacity: 0.3;
+}
+.close-button-box:hover {
+	opacity: 1;
+}
+.close-button-box[disabled=disabled], .close-button-box[disabled=disabled]:active, .close-button-box:disabled, .close-button-box:disabled:active {
+	opacity: 0.5;
+	border-color: #555;
+	background: #aaa;
+}
+.close-button-box:after {
+	content: '';
+	display: block;
+	position: relative;
+	top: -9px;
+	left: 4px;
+	width: 10px;
+	height: 10px;
+	border: 2px solid #fff;
+	border-left: none;
+	border-right: none;
+	border-bottom: none;
+	-webkit-transform: rotate(-45deg);
+	-moz-transform: rotate(-45deg);
+	-o-transform: rotate(-45deg);
+	-ms-transform: rotate(-45deg);
+	transform: rotate(-45deg);	
+}
+.close-button-box:before {
+	content: '';
+	display: block;
+	position: relative;
+	width: 10px;
+	height: 10px;
+	top: 3px;
+	left: -3px;
+	border: 2px solid #fff;
+	border-left: none;
+	border-right: none;
+	border-bottom: none;
+	-webkit-transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-o-transform: rotate(45deg);
+	-ms-transform: rotate(45deg);
+	transform: rotate(45deg);	
+}
+.close-button-round {
+	position: absolute;
+	top: 0px;
+	float: right;
+	opacity: 0.3;
+	padding: 0px;
+	width: 13px;
+	height: 13px;
+	border: 1px solid #d00;
+	border-radius: 8px;
+	background: #f33;
+}
+.close-button-round::-moz-focus-inner {border:0;padding:0}
+.close-button-round:active:hover {
+	opacity: 1;
+}
+.close-button-round:active {
+	opacity: 0.3;
+}
+.close-button-round:hover {
+	opacity: 1;
+}
+.close-button-round[disabled=disabled], .close-button-round[disabled=disabled]:active, .close-button-round:disabled, .close-button-round:disabled:active {
+	opacity: 0.5;
+	border-color: #555;
+	background: #aaa;
+}
+.close-button-round:after {
+	content: '';
+	display: block;
+	position: relative;
+	top: -9px;
+	left: 4px;
+	width: 10px;
+	height: 10px;
+	border: 2px solid #fff;
+	border-left: none;
+	border-right: none;
+	border-bottom: none;
+	-webkit-transform: rotate(-45deg);
+	-moz-transform: rotate(-45deg);
+	-o-transform: rotate(-45deg);
+	-ms-transform: rotate(-45deg);
+	transform: rotate(-45deg);	
+}
+.close-button-round:before {
+	content: '';
+	display: block;
+	position: relative;
+	width: 10px;
+	height: 10px;
+	top: 3px;
+	left: -3px;
+	border: 2px solid #fff;
+	border-left: none;
+	border-right: none;
+	border-bottom: none;
+	-webkit-transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-o-transform: rotate(45deg);
+	-ms-transform: rotate(45deg);
+	transform: rotate(45deg);	
+}
+.no-display {
+	display: none;
+}
+.save-popup, .dirty-popup, .confirm-popup {
+	z-index: 4;
+	background: #fff;
+	border: 2px solid black;
+	border-radius: 2px;
+	padding: 5px;
+}
+.dirty-popup, .confirm-popup {
+	z-index: 3;
+}
+.save-wrap, .dirty-wrap, .confirm-wrap {
+	
+}
+.save-label, .dirty-label, .dirty-header, .confirm-label, .confirm-header {
+	font-weight: bold;
+	padding: 3px;
+	border: 0px solid #000;
+	border-radius: 3px;
+	background: #cfc;
+	margin: 2px 0px 4px 0px;
+}
+.dirty-label, .confirm-label {
+	background: #fff;
+	padding-bottom: 6px;
+}
+.dirty-header, .confirm-header {
+	background: #fcc;
+}
+.save-name-wrap {
+	padding: 2px 0px 6px 0px;
+}
+.save-name {
+	min-width: 250px;
+}
+.save-suffix {
+	padding: 4px 0px 0px 0px;
+}
+.save-button-wrap, .dirty-button-wrap, .confirm-button-wrap {
+	width: 100%;
+}
+.save-button-wrap td, .dirty-button-wrap td, .confirm-button-wrap td {
+    text-align: right;
+}
+.save-glass, .dirty-glass, .confirm-glass {
+	/* Same as GWT default, but 0 opacity. Hack to get add argument/perspective button working when clicking them while pop-up is show. */
+	background-color: #000;
+	opacity: 0.1;
+	filter: literal("alpha(opacity=0.1)");
+	z-index: 2;
+}

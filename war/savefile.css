@@ -1,0 +1,89 @@
+/**
+ * Copyright (c) 2014, Jari Hämäläinen, Carita Kiili and Julie Coiro
+ * All rights reserved.
+ * 
+ * See LICENSE for full license text.
+ * 
+ * @author Jari Hämäläinen
+ */
+body, pre, div {
+    font-family: arial, helvetica, "nimbus sans l", "liberation sans", freesans, sans-serif;
+    font-size: 13px;
+    line-height: 15px;
+}
+table { border-collapse:collapse }
+.ch, .c, .hp, .ha, .hc, .hs, .csh, .pt {
+	font-weight: bold;
+}
+.ch, .c, .hp, .ha, .hc, .hs {
+    font-size: 15px;
+    line-height: 17px;
+}
+.pr {
+	border: 2px solid black;
+}
+td {
+	padding: 0;
+	vertical-align: top;
+}
+pre, div {
+	border: 1px solid black;
+	padding: 2px;
+	margin: 0;
+}
+pre {
+	min-width: 155px;
+}
+.pw {
+	border-top-style: none;
+	border-left-style: none;
+}
+.ps {
+	border-top-style: none;
+	border-right-style: none;
+}
+.pt, .ps, .pq {
+	min-width: 198px;
+}
+.aw, .caw {
+	margin-top: -1px;
+	margin-bottom: -1px;
+}
+.ch, .pt, .at, .ast, .asad, .asrt, .csh {
+	border-bottom: none;
+}
+.asrqc {
+	display: inline-block;
+	height:100%;
+}
+.at {
+	min-width: 218px;
+}
+.at, .asrq, .asr {
+	min-height: 45px;
+}
+.asr {
+	border-left: none;
+}
+.hp, .ha, .hc, .hs {
+	margin-bottom: 5px;
+}
+.hp, .ha, .hc, .pw, .aw, .caw {
+	margin-right: 5px;
+}
+.asrq {
+	width: 70px;
+}
+.sr {
+	height: 10px;
+}
+.asp {
+	height: 5px;
+	border: 0;
+}
+.asrn {
+	display: none;
+}
+.ast {
+	text-align: center;
+}

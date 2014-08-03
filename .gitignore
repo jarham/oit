@@ -1,0 +1,15 @@
+/gwt-unitCache
+/war/onlineinquirytool
+/war/users.dat
+/war/templates.dat
+/war/WEB-INF/classes
+/war/WEB-INF/deploy
+/war/WEB-INF/lib
+/.gwt
+/onlineinquirytool.war
+/oit.war
+/oit.zip
+*.bak
+*~
+/src/fi/jyu/student/jatahama/onlineinquirytool/public/buildinfo.js
+/tools/bin
