@@ -16,7 +16,7 @@ import java.util.Map;
 public class GitInfoToJs {
 
 	public static final String defaultGit = "git";
-	public static final String gitDescribe[] = {"describe"};
+	public static final String gitDescribe[] = {"describe", "--tags"};
 	public static final String gitModifiedFiles[] = {"ls-files", "-m"};
 	public static final String gitCurrentBranch[] = {"rev-parse", "--abbrev-ref", "HEAD"};
 	public static final String gitLastCommit[] = {"rev-parse", "HEAD"};
