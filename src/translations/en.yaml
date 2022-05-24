@@ -12,6 +12,8 @@ component:
         text: Open chart
       chart-save:
         text: Save chart
+      about:
+        text: About
       instructions:
         text: Instructions
     text:
@@ -24,6 +26,15 @@ component:
         aria-label: Close language selection
       cancel:
         text: Cancel
+  modal-about:
+    heading:
+      license: License (BSD 2-Clause "Simplified")
+    text:
+      title: About Online inquiry tool
+    btn:
+      close:
+        aria-label: Close about dialog
+        text: Close
 
 # Languages are always read from en.yaml. No need to
 # add them to other translation files. Add languages

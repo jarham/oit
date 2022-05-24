@@ -3,8 +3,11 @@
 <template lang="pug">
 .d-flex.top-bar
   .d-flex.flex-column
-    .d-block.toolbar.mb-1
+    .d-flex.toolbar.mb-1
       button.btn.btn-outline-primary.btn-sm.me-1 {{ tc('btn.chart-new.text') }}
+      button.btn.btn-outline-primary.btn-sm.me-1(
+        @click='$emit("show-about")'
+      ) {{ tc('btn.about.text') }}
     .d-block.toolbar.mb-1
       button.btn.btn-outline-primary.btn-sm.me-1 {{ tc('btn.chart-open.text') }}
     .d-flex.toolbar.mb-1
@@ -19,6 +22,11 @@
 
 <script setup lang="ts">
 import {useI18n} from 'vue-i18n';
+
+defineEmits<{
+  (event: 'show-languages'): void;
+  (event: 'show-about'): void;
+}>();
 
 const {t} = useI18n();
 const tc = (s: string) => t(`component.top-bar.${s}`);

@@ -12,6 +12,8 @@ component:
         text: Avaa kaavio
       chart-save:
         text: Tallenna kaavio
+      about:
+        text: Tietoja sovelluksesta
       instructions:
         text: Ohjeet
     text:
@@ -24,3 +26,12 @@ component:
         aria-label: Sulje kielivalinta
       cancel:
         text: Peruuta
+  modal-about:
+    heading:
+      license: Lisenssi (BSD 2-Clause "Simplified")
+    text:
+      title: Tietoja Pohtimiskaaviosta
+    btn:
+      close:
+        aria-label: Sulje tietoikkuna
+        text: Sulje

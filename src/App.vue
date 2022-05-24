@@ -5,6 +5,7 @@
   //- TODO: For some reason .mb-3 in TopBar is not showing in generated code, bug in Vite?
   TopBar.mb-3(
     @show-languages='showLanguages'
+    @show-about='showAbout'
   )
   MainView
   ModalLanguages(
@@ -12,15 +13,19 @@
     @set-language='onSetLanguage'
     ref='mdlLanguages'
   )
+  ModalAbout(
+    ref='mdlAbout'
+  )
 </template>
 
 <script setup lang="ts">
 import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
-import TopBar from '@/components/TopBar.vue';
-import ModalLanguages from '@/components/ModalLanguages.vue';
 import type {OitLanguage} from '@/composition/ModalLanguages';
 import useModalLanguages from '@/composition/ModalLanguages';
+import TopBar from '@/components/TopBar.vue';
+import ModalAbout from '@/components/ModalAbout.vue';
+import ModalLanguages from '@/components/ModalLanguages.vue';
 import MainView from '@/views/MainView.vue';
 
 const {availableLocales, locale, t} = useI18n();
@@ -35,6 +40,7 @@ const {languages} = useModalLanguages(
 );
 
 const mdlLanguages = ref<InstanceType<typeof ModalLanguages>>();
+const mdlAbout = ref<InstanceType<typeof ModalAbout>>();
 
 const setPageTitle = () => {
   document.title = t('page.title');
@@ -48,6 +54,9 @@ const onSetLanguage = (l: OitLanguage) => {
 };
 const showLanguages = () => {
   mdlLanguages.value?.show();
+};
+const showAbout = () => {
+  mdlAbout.value?.show();
 };
 </script>
 
