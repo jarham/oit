@@ -36,6 +36,7 @@ specifiers:
   vue: ^3.2.36
   vue-i18n: ^9.1.10
   vue-tsc: ^0.34.16
+  vuedraggable: 4.1.0
 
 dependencies:
   '@popperjs/core': 2.11.5
@@ -46,6 +47,7 @@ dependencies:
   sass: 1.52.1
   vue: 3.2.36
   vue-i18n: 9.1.10_vue@3.2.36
+  vuedraggable: 4.1.0_vue@3.2.36
 
 devDependencies:
   '@commitlint/cli': 17.0.0
@@ -3982,6 +3984,10 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
+  /sortablejs/1.14.0:
+    resolution: {integrity: sha512-pBXvQCs5/33fdN1/39pPL0NZF20LeRbLQ5jtnheIPN9JQAaufGjKdWduZn4U7wCtVuzKhmRkI0DFYHYRbB2H1w==}
+    dev: false
+
   /source-map-js/1.0.2:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
     engines: {node: '>=0.10.0'}
@@ -4494,6 +4500,15 @@ packages:
       '@vue/runtime-dom': 3.2.36
       '@vue/server-renderer': 3.2.36_vue@3.2.36
       '@vue/shared': 3.2.36
+
+  /vuedraggable/4.1.0_vue@3.2.36:
+    resolution: {integrity: sha512-FU5HCWBmsf20GpP3eudURW3WdWTKIbEIQxh9/8GE806hydR9qZqRRxRE3RjqX7PkuLuMQG/A7n3cfj9rCEchww==}
+    peerDependencies:
+      vue: ^3.0.1
+    dependencies:
+      sortablejs: 1.14.0
+      vue: 3.2.36
+    dev: false
 
   /webidl-conversions/3.0.1:
     resolution: {integrity: sha1-JFNCdeKnvGvnvIZhHMFq4KVlSHE=}

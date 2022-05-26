@@ -35,3 +35,56 @@ component:
       close:
         aria-label: Sulje tietoikkuna
         text: Sulje
+  inquiry-editor:
+    btn:
+      perspective-add:
+        text: Lisää näkökulma
+    claim:
+      title: Teesi
+      placeholder: Kirjoita teesi tähän
+    conclusion:
+      title: Yhteenveto asiasta
+      placeholder: Kirjoita yhteenvetosi asiasta tähän
+  perspective-editor:
+    text:
+      heading:
+        perspective: Näkökulma
+        arguments-for: Teesiä puoltava perustelu
+        arguments-against: Teesiä kumoava perustelu
+        synthesis: Synteesi
+    btn:
+      perspective-remove:
+        aria-label: Poista näkökulma
+        title: Poista näkökulma
+      argument-for-add:
+        text: Lisää puoltava perustelu
+      argument-against-add:
+        text: Lisää kumoava perustelu
+    placeholder:
+      perspective: Kirjoita näkökulma tähän
+      questions: Tähän voit kirjoittaa apukysymyksiä itsellesi
+      synthesis: Kirjoita synteesi näkökulmasta tähän
+  argument-editor:
+    btn:
+      argument-for-remove:
+        aria-label: Poista teesiä puoltava perustelu
+        title: Poista teesiä puoltava perustelu
+      argument-against-remove:
+        aria-label: Poista teesiä kumoava perustelu
+        title: Poista teesiä kumoava perustelu
+    placeholder:
+      argument-for: Kirjoita teesiä puoltava perustelu puolesta tähän
+      argument-against: Kirjoita teesiä kumoava perustelu vastaan tähän
+      source-for: Laita lähde tähän
+      source-against: Laita lähde tähän
+  traffic-lights:
+    btn:
+      source-evaluation-questionable:
+        aria-label: Lähteen luotettavuus on kyseenalainen.
+        title: Lähteen luotettavuus on kyseenalainen.
+      source-evaluation-somewhat-reliable:
+        aria-label: Lähde on melko luotettava.
+        title: Lähde on melko luotettava.
+      source-evaluation-reliable:
+        aria-label: Lähteeseen voi luottaa.
+        title: Lähteeseen voi luottaa.

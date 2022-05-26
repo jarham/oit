@@ -63,4 +63,15 @@ const showAbout = () => {
 <style lang="scss">
 @use '../node_modules/bootstrap' as bs;
 @use '../node_modules/bootstrap-icons' as bsi;
+
+.me-2-last-0 {
+  @extend .me-2;
+  &:last-child {
+    @extend .me-0;
+  }
+}
+
+.drag-handle {
+  cursor: grab;
+}
 </style>
