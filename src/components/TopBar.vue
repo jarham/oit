@@ -4,7 +4,9 @@
 .d-flex.top-bar
   .d-flex.flex-column
     .d-flex.toolbar.mb-1
-      button.btn.btn-outline-primary.btn-sm.me-1 {{ tc('btn.chart-new.text') }}
+      button.btn.btn-outline-primary.btn-sm.me-1(
+        @click='$emit("chart-new")'
+      ) {{ tc('btn.chart-new.text') }}
       button.btn.btn-outline-primary.btn-sm.me-1(
         @click='$emit("show-about")'
       ) {{ tc('btn.about.text') }}
@@ -26,6 +28,7 @@
 import {useI18n} from 'vue-i18n';
 
 defineEmits<{
+  (event: 'chart-new'): void;
   (event: 'show-languages'): void;
   (event: 'show-about'): void;
   (event: 'show-instructions'): void;

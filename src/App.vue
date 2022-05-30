@@ -7,6 +7,7 @@
     @show-languages='showLanguages'
     @show-about='showAbout'
     @show-instructions='showInstructions'
+    @chart-new='onChartNew'
   )
   MainView
   ModalLanguages(
@@ -32,6 +33,14 @@ import ModalLanguages from '@/components/ModalLanguages.vue';
 import ModalInstructions from '@/components/ModalInstructions.vue';
 import ModalConfirm from '@/components/ModalConfirm.vue';
 import MainView from '@/views/MainView.vue';
+import {useStore} from '@/stores/main';
+import {storeToRefs} from 'pinia';
+import {useConfirmDialog} from '@/vue-plugins/plugin-confirm-dialog';
+
+const store = useStore();
+const {dirty} = storeToRefs(store);
+
+const dlgConfirm = useConfirmDialog();
 
 const {availableLocales, locale, t} = useI18n();
 const {languages} = useModalLanguages(
@@ -65,6 +74,14 @@ const showAbout = () => {
 };
 const showInstructions = () => {
   mdlInstructions.value?.show();
+};
+
+const onChartNew = async () => {
+  if (dirty.value) {
+    const confirmed = await dlgConfirm.confirm('chart-new-unsaved');
+    if (!confirmed) return;
+  }
+  store.newModel();
 };
 </script>
 
