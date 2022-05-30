@@ -114,6 +114,71 @@ component:
       close:
         aria-label: Close instructions dialog
         text: Close
+  modal-confirm:
+    # Translations action confirmations
+    # Body texts supports Markdown format.
+    chart-new-unsaved:
+      # Shown when user tries to create a new chart but
+      # existing one has unsaved changes.
+      text:
+        title: Unsaved changes
+        body: You have unsaved changes. Do you want to create a new chart anyway?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Cancel
+        close:
+          aria-label: Close confirmation dialog
+    chart-open-unsaved:
+      # Shown when user tries to open a chart but
+      # existing one has unsaved changes.
+      text:
+        title: Unsaved changes
+        body: You have unsaved changes. Do you want to open a chart anyway?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Cancel
+        close:
+          aria-label: Close confirmation dialog
+    perspective-remove:
+      # Shown when user tries to remove a perspective.
+      text:
+        title: Remove perspective
+        body: Do you want to remove a perspective?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Cancel
+        close:
+          aria-label: Close confirmation dialog
+    argument-for-remove:
+      # Shown when user tries to remove an argument for the clain.
+      text:
+        title: Remove argument for the claim
+        body: Do you want to remove an argument for the claim?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Cancel
+        close:
+          aria-label: Close confirmation dialog
+    argument-against-remove:
+      # Shown when user tries to remove an argument against the clain.
+      text:
+        title: Remove argument against the claim
+        body: Do you want to remove an argument against the claim?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Cancel
+        close:
+          aria-label: Close confirmation dialog
   #
   # Editor components are below
   #

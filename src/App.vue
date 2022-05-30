@@ -18,6 +18,7 @@
     ref='mdlAbout'
   )
   ModalInstructions(ref='mdlInstructions')
+  ModalConfirm
 </template>
 
 <script setup lang="ts">
@@ -29,6 +30,7 @@ import TopBar from '@/components/TopBar.vue';
 import ModalAbout from '@/components/ModalAbout.vue';
 import ModalLanguages from '@/components/ModalLanguages.vue';
 import ModalInstructions from '@/components/ModalInstructions.vue';
+import ModalConfirm from '@/components/ModalConfirm.vue';
 import MainView from '@/views/MainView.vue';
 
 const {availableLocales, locale, t} = useI18n();

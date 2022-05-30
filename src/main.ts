@@ -3,6 +3,9 @@
 import {createApp} from 'vue';
 import {createI18n} from 'vue-i18n';
 import {createPinia} from 'pinia';
+import PluginConfirmDialog, {
+  ConfirmDialog,
+} from './vue-plugins/plugin-confirm-dialog';
 import App from './App.vue';
 import messages from '@intlify/vite-plugin-vue-i18n/messages';
 
@@ -51,4 +54,8 @@ const i18n = createI18n({
 const pinia = createPinia();
 
 const app = createApp(App);
-app.use(i18n).use(pinia).mount('#app');
+app
+  .use(i18n)
+  .use(pinia)
+  .use(PluginConfirmDialog, new ConfirmDialog())
+  .mount('#app');

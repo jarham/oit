@@ -21,11 +21,11 @@ section.view-main
           :key='p.id'
           @add-argument-for='store.addArgument(p, "for")'
           @add-argument-against='store.addArgument(p, "against")'
-          @remove-argument-for='store.removeArgument(p, "for", $event)'
-          @remove-argument-against='store.removeArgument(p, "against", $event)'
-          @remove='store.removePerspective(p)'
-          @edit-argument-for='onEditArgument(p, "for", $event)'
-          @edit-argument-against='onEditArgument(p, "against", $event)'
+          @remove-argument-for='onRemoveArgument(p, "for", $event)'
+          @remove-argument-against='onRemoveArgument(p, "against", $event)'
+          @remove='onRemovePerspective(p)'
+          @edit-argument-for='onEditArgument("for", $event)'
+          @edit-argument-against='onEditArgument("against", $event)'
           @modified='dirty = true'
         )
   button.btn.btn-sm.btn-success.w-100.mb-2(
@@ -56,6 +56,7 @@ import TitledNotes from '@/components/TitledNotes.vue';
 import ModalArgumentEditor from '@/components/ModalArgumentEditor.vue';
 import {ref} from 'vue';
 import type {Argument, ArgumentKind, Perspective} from '@/model';
+import {useConfirmDialog} from '@/vue-plugins/plugin-confirm-dialog';
 
 const {t} = useI18n();
 const tc = (s: string) => t(`component.inquiry-editor.${s}`);
@@ -64,6 +65,8 @@ const store = useStore();
 const {data, dirty} = storeToRefs(store);
 
 const mdlArgEditor = ref<InstanceType<typeof ModalArgumentEditor>>();
+
+const dlgConfirm = useConfirmDialog();
 
 const emptyArgument = {
   argument: '',
@@ -75,14 +78,25 @@ const emptyArgument = {
 const jstArgument = ref<Argument>(emptyArgument);
 const jstKind = ref<ArgumentKind>('against');
 
-const onEditArgument = (
-  perspective: Perspective,
-  kind: ArgumentKind,
-  argument: Argument,
-) => {
-  console.log('onEditArgument', perspective, kind, argument);
+const onEditArgument = (kind: ArgumentKind, argument: Argument) => {
   jstArgument.value = argument;
   jstKind.value = kind;
   mdlArgEditor.value?.show();
+};
+
+const onRemovePerspective = async (p: Perspective) => {
+  const confirmed = await dlgConfirm.confirm('perspective-remove');
+  if (!confirmed) return;
+  store.removePerspective(p);
+};
+
+const onRemoveArgument = async (
+  target: Perspective,
+  kind: ArgumentKind,
+  arg: Argument,
+) => {
+  const confirmed = await dlgConfirm.confirm(`argument-${kind}-remove`);
+  if (!confirmed) return;
+  store.removeArgument(target, kind, arg);
 };
 </script>

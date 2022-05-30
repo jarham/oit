@@ -86,6 +86,71 @@ component:
       close:
         aria-label: Sulje ohjeet
         text: Sulje
+  modal-confirm:
+    # Translations action confirmations
+    # Body texts supports Markdown format.
+    chart-new-unsaved:
+      # Shown when user tries to create a new chart but
+      # existing one has unsaved changes.
+      text:
+        title: Tallentamattomia muutoksia
+        body: Sinulla on tallentamattomia muutoksia. Haluatko silti luoda uuden kaavion?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Peruuta
+        close:
+          aria-label: Sulje vahvistusdialogi
+    chart-open-unsaved:
+      # Shown when user tries to open a chart but
+      # existing one has unsaved changes.
+      text:
+        title: Tallentamattomia muutoksia
+        body: Sinulla on tallentamattomia muutoksia. Haluatko silti avata kaavion?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Peruuta
+        close:
+          aria-label: Sulje vahvistusdialogi
+    perspective-remove:
+      # Shown when user tries to remove a perspective.
+      text:
+        title: Poista näkökulma
+        body: Haluatko poistaa näkökulman?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Peruuta
+        close:
+          aria-label: Sulje vahvistusdialogi
+    argument-for-remove:
+      # Shown when user tries to remove an argument for the clain.
+      text:
+        title: Poista puoltava perustelu
+        body: Haluatko poistaa puoltavan perustelun?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Peruuta
+        close:
+          aria-label: Sulje vahvistusdialogi
+    argument-against-remove:
+      # Shown when user tries to remove an argument against the clain.
+      text:
+        title: Poista vastustava perustelu
+        body: Haluatko poistaa vastustavan perustelun?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Peruuta
+        close:
+          aria-label: Sulje vahvistusdialogi
   #
   # Editor components are below
   #
