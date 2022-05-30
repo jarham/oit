@@ -51,7 +51,6 @@ const setPageTitle = () => {
 };
 
 const onSetLanguage = (l: OitLanguage) => {
-  console.log('set', l);
   locale.value = l.locale;
   mdlLanguages.value?.hide();
   setPageTitle();
