@@ -74,4 +74,31 @@ const showAbout = () => {
 .drag-handle {
   cursor: grab;
 }
+
+.tabbed-box {
+  .tabbed-box-tab {
+    @extend .border;
+    @extend .border-dark;
+    @extend .border-bottom-0;
+    @extend .rounded-top;
+    @extend .bg-white;
+    position: relative;
+    // margin-bottom: -1px !important;
+    &::after {
+      @extend .bg-white;
+      @extend .rounded-top;
+      position: absolute;
+      content: '\00a0';
+      height: 4px;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+    }
+  }
+  .tabbed-box-body {
+    @extend .border;
+    @extend .border-dark;
+    @extend .rounded;
+  }
+}
 </style>

@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: BSD-2-Clause
      Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
 <template lang="pug">
-.titled-notes
-  .d-inline-block.rounded-top.border.border-bottom-0.p-1.ms-3.title {{ title }}
-  .rounded.border.p-1
+.titled-notes.tabbed-box
+  .d-inline-block.tabbed-box-tab.p-1.ms-3.title {{ title }}
+  .tabbed-box-body.p-1
     textarea.form-control.notes(
       :value='modelValue'
       :class='{"notes-resizable": resizable}'

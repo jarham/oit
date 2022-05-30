@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: BSD-2-Clause
      Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
 <template lang="pug">
-.d-flex.flex-column.claim-perspective.mb-2
+.d-flex.flex-column.claim-perspective.mb-2.tabbed-box
   .d-flex.justify-content-between.claim-perspective-titles.px-2
-    .d-block.rounded-top.border.border-bottom-0.p-1.claim-perspective-title.flex-grow-1.w-100.me-2-last-0.position-relative(
+    .d-block.tabbed-box-tab.p-1.claim-perspective-title.flex-grow-1.w-100.me-2-last-0.position-relative(
       v-for='(title, i) in titles'
     )
       .d-block(
@@ -16,8 +16,8 @@
         :title='tc("btn.perspective-remove.title")'
         @click='$emit("remove")'
       )
-  .d-flex.justify-content-between.claim-perspective-body.rounded.border.px-2.py-1
-    .d-flex.flex-column.w-100.me-1
+  .d-flex.justify-content-between.claim-perspective-body.tabbed-box-body.px-2
+    .d-flex.flex-column.claim-perspective-column
       textarea.form-control.mb-1(
         v-model='perspective.name'
         rows='2'
@@ -30,7 +30,7 @@
         :placeholder='tc("placeholder.questions")'
         @input='$emit("modified")'
       )
-    .d-flex.flex-column.w-100.me-1
+    .d-flex.flex-column.claim-perspective-column
       Draggable(
         v-model='perspective.argumentsFor'
         group='arguments'
@@ -47,7 +47,7 @@
       button.btn.btn-sm.btn-success.w-100(
         @click='$emit("add-argument-for")'
       ) {{ tc('btn.argument-for-add.text') }}
-    .d-flex.flex-column.w-100.me-1
+    .d-flex.flex-column.claim-perspective-column
       Draggable(
         v-model='perspective.argumentsAgainst'
         group='arguments'
@@ -64,7 +64,7 @@
       button.btn.btn-sm.btn-success.w-100(
         @click='$emit("add-argument-against")'
       ) {{ tc('btn.argument-against-add.text') }}
-    .d-flex.flex-column.w-100
+    .d-flex.flex-column.claim-perspective-column
       textarea.form-control(
         v-model='perspective.synthesis'
         rows='8'
@@ -103,8 +103,23 @@ const titles = computed(() =>
 );
 </script>
 
-<style>
+<style lang="scss">
+@use '../../node_modules/bootstrap' as bs;
 .claim-perspective textarea {
   resize: none;
+}
+.claim-perspective-column {
+  width: 100% !important;
+  padding-top: map-get(bs.$spacers, 1);
+  padding-bottom: map-get(bs.$spacers, 1);
+  &:not(:first-child) {
+    padding-left: map-get(bs.$spacers, 1);
+    border-left-color: bs.$dark;
+    border-left-width: 1px;
+    border-left-style: solid;
+  }
+  &:not(:last-child) {
+    padding-right: calc(map-get(bs.$spacers, 1) + 1px);
+  }
 }
 </style>
