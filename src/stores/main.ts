@@ -35,7 +35,7 @@ export const useStore = defineStore('main', {
     addPerspective() {
       this.$patch((state) => {
         state.data.perspectives.push(getDefaultPerspective());
-        state.dirty = false;
+        state.dirty = true;
       });
     },
     removePerspective(p: Perspective) {
