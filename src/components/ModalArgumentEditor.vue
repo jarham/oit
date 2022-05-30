@@ -20,6 +20,7 @@
           :placeholder='tc("placeholder.justification")'
           rows='6'
           @input='$emit("modified")'
+          ref='txtJustify'
         )
       .modal-footer
         button.btn.btn-outline-primary(data-bs-dismiss='modal') {{ tc('btn.done.text') }}
@@ -41,6 +42,8 @@ defineEmits<{
   (event: 'modified'): void;
 }>();
 
+const txtJustify = ref<HTMLTextAreaElement>();
+
 const {t} = useI18n();
 const tc = (s: string) => t(`component.modal-argument-editor.${s}`);
 
@@ -50,13 +53,21 @@ let modal: Modal | null = null;
 onMounted(() => {
   if (!elModal.value) return;
   modal = new Modal(elModal.value);
+  elModal.value.addEventListener('shown.bs.modal', onShown);
 });
 onBeforeUnmount(() => {
   if (modal) {
     modal.dispose();
   }
+  if (elModal.value) {
+    elModal.value.removeEventListener('shown.bs.modal', onShown);
+  }
   modal = null;
 });
+const onShown = () => {
+  if (!txtJustify.value) return;
+  txtJustify.value.focus();
+};
 
 const show = () => modal?.show();
 const hide = () => modal?.hide();

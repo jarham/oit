@@ -13,7 +13,10 @@
             :markdown='tc("text.instructions")'
           )
       .modal-footer
-        button.btn.btn-outline-secondary(data-bs-dismiss='modal') {{ tc('btn.close.text') }}
+        button.btn.btn-outline-secondary(
+          data-bs-dismiss='modal'
+          ref='btnClose'
+        ) {{ tc('btn.close.text') }}
 </template>
 
 <script setup lang="ts">
@@ -28,16 +31,26 @@ const tc = (s: string) => t(`component.modal-instructions.${s}`);
 const elModal = ref<HTMLDivElement>();
 let modal: Modal | null = null;
 
+const btnClose = ref<HTMLButtonElement>();
+
 onMounted(() => {
   if (!elModal.value) return;
   modal = new Modal(elModal.value);
+  elModal.value.addEventListener('shown.bs.modal', onShown);
 });
 onBeforeUnmount(() => {
   if (modal) {
     modal.dispose();
   }
+  if (elModal.value) {
+    elModal.value.removeEventListener('shown.bs.modal', onShown);
+  }
   modal = null;
 });
+const onShown = () => {
+  if (!btnClose.value) return;
+  btnClose.value.focus();
+};
 
 const show = () => modal?.show();
 const hide = () => modal?.hide();

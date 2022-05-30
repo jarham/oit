@@ -14,7 +14,10 @@
             @click='$emit("set-language", l)'
           ) {{ l.name }}
       .modal-footer
-        button.btn.btn-outline-secondary(data-bs-dismiss='modal') {{ tc('btn.cancel.text') }}
+        button.btn.btn-outline-secondary(
+          data-bs-dismiss='modal'
+          ref='btnCancel'
+        ) {{ tc('btn.cancel.text') }}
 </template>
 
 <script setup lang="ts">
@@ -31,6 +34,8 @@ defineEmits<{
   (event: 'set-language', lang: OitLanguage): void;
 }>();
 
+const btnCancel = ref<HTMLButtonElement>();
+
 const {t} = useI18n();
 const tc = (s: string) => t(`component.modal-languages.${s}`);
 
@@ -40,13 +45,21 @@ let modal: Modal | null = null;
 onMounted(() => {
   if (!elModal.value) return;
   modal = new Modal(elModal.value);
+  elModal.value.addEventListener('shown.bs.modal', onShown);
 });
 onBeforeUnmount(() => {
   if (modal) {
     modal.dispose();
   }
+  if (elModal.value) {
+    elModal.value.removeEventListener('shown.bs.modal', onShown);
+  }
   modal = null;
 });
+const onShown = () => {
+  if (!btnCancel.value) return;
+  btnCancel.value.focus();
+};
 
 const show = () => modal?.show();
 const hide = () => modal?.hide();
