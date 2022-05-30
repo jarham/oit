@@ -35,6 +35,17 @@ component:
       close:
         aria-label: Close about dialog
         text: Close
+  modal-argument-editor:
+    text:
+      title-argument-for: Edit argument for the claim
+      title-argument-against: Edit argument against the claim
+    placeholder:
+      justification: Write your justifications here
+    btn:
+      close:
+        aria-label: Close argument editor dialog
+      done:
+        text: Done
   inquiry-editor:
     btn:
       perspective-add:

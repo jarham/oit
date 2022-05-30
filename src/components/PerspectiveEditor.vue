@@ -43,6 +43,7 @@
             kind='for'
             @remove-argument-for='$emit("remove-argument-for", $event)'
             @modified='$emit("modified")'
+            @reliability-set='$emit("edit-argument-for", argument)'
           )
       button.btn.btn-sm.btn-success.w-100(
         @click='$emit("add-argument-for")'
@@ -60,6 +61,7 @@
             kind='against'
             @remove-argument-against='$emit("remove-argument-against", $event)'
             @modified='$emit("modified")'
+            @reliability-set='$emit("edit-argument-against", argument)'
           )
       button.btn.btn-sm.btn-success.w-100(
         @click='$emit("add-argument-against")'
@@ -89,6 +91,8 @@ defineEmits<{
   (event: 'add-argument-against'): void;
   (event: 'remove-argument-for', argument: Argument): void;
   (event: 'remove-argument-against', argument: Argument): void;
+  (event: 'edit-argument-for', argument: Argument): void;
+  (event: 'edit-argument-against', argument: Argument): void;
   (event: 'remove'): void;
   (event: 'modified'): void;
 }>();

@@ -35,6 +35,17 @@ component:
       close:
         aria-label: Sulje tietoikkuna
         text: Sulje
+  modal-argument-editor:
+    text:
+      title-argument-for: Muokaa teesiä puoltavaa perustelua
+      title-argument-against: Muokka teesiä kumoavaa perustelua
+    placeholder:
+      justification: Kirjoita tähän perustelu luotettavuusvalinnallesi
+    btn:
+      close:
+        aria-label: Sulje perusteludialogi
+      done:
+        text: Valmis
   inquiry-editor:
     btn:
       perspective-add:
