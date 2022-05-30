@@ -6,6 +6,7 @@
   TopBar.mb-3(
     @show-languages='showLanguages'
     @show-about='showAbout'
+    @show-instructions='showInstructions'
   )
   MainView
   ModalLanguages(
@@ -16,6 +17,7 @@
   ModalAbout(
     ref='mdlAbout'
   )
+  ModalInstructions(ref='mdlInstructions')
 </template>
 
 <script setup lang="ts">
@@ -26,6 +28,7 @@ import useModalLanguages from '@/composition/ModalLanguages';
 import TopBar from '@/components/TopBar.vue';
 import ModalAbout from '@/components/ModalAbout.vue';
 import ModalLanguages from '@/components/ModalLanguages.vue';
+import ModalInstructions from '@/components/ModalInstructions.vue';
 import MainView from '@/views/MainView.vue';
 
 const {availableLocales, locale, t} = useI18n();
@@ -41,6 +44,7 @@ const {languages} = useModalLanguages(
 
 const mdlLanguages = ref<InstanceType<typeof ModalLanguages>>();
 const mdlAbout = ref<InstanceType<typeof ModalAbout>>();
+const mdlInstructions = ref<InstanceType<typeof ModalInstructions>>();
 
 const setPageTitle = () => {
   document.title = t('page.title');
@@ -57,6 +61,9 @@ const showLanguages = () => {
 };
 const showAbout = () => {
   mdlAbout.value?.show();
+};
+const showInstructions = () => {
+  mdlInstructions.value?.show();
 };
 </script>
 

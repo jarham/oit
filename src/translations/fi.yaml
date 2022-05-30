@@ -4,6 +4,9 @@ page:
   # Translations affect the HTML page directly go here
   title: Pohtimiskaavio
 component:
+  #
+  # Elements on the top bar (buttons, app title) are below
+  #
   top-bar:
     btn:
       chart-new:
@@ -18,6 +21,9 @@ component:
         text: Ohjeet
     text:
       title: Pohtimiskaavio
+  #
+  # Modal dialogs are below (language selection, about, etc...)
+  #
   modal-languages:
     text:
       title: Valitse kieli
@@ -46,6 +52,43 @@ component:
         aria-label: Sulje perusteludialogi
       done:
         text: Valmis
+  modal-instructions:
+    text:
+      title: Ohjeet
+      # Instructions are in Markdown format: see https://www.markdownguide.org/cheat-sheet/
+      instructions: |
+        **POHTIMISKAAVIO**
+
+        MUODOSTA TEESI TUTKITTAVASTA AIHEESTA
+
+        Kun olet valinnut tutkittavan aiheen, kirjoita kaavioon siitä jokin teesi (esim. energiajuomat pitää kieltää).
+
+        MISTÄ NÄKÖKULMISTA AIHETTA VOISI TARKASTELLA?
+
+        Mieti sen jälkeen, mistä näkökulmista aihetta voisi tarkastella (esim. terveydellinen näkökulma, kaupallinen näkökulma). Kirjoita näkökulmat niille varattuihin laatikoihin. Voit lisätä kaavioon niin monta näkökulmaa kuin haluat painamalla "lisää näkökulma" -laatikkoa)
+
+        PERUSTELUIDEN ETSIMINEN
+
+        Etsi sitten Internetistä sekä teesiä puoltavia että sitä kumoavia perusteluita. Kirjaa löytämäsi perustelut niille tarkoitettuihin laatikoihin lähdetietoineen. Lähdetiedon voit merkitä kopioimalla internetsivun osoitteen kunkin perustelun alapuolelle.
+
+        LÄHTEIDEN ARVIOINTI
+
+        Arvioi, kuinka luotettavana pidät Internetsivua, jolta löysit perustelun. Rastita liikennevaloista joko a) punainen, jos pidät lähteen luotettavuutta kyseenalaisena, b) oranssi, jos lähde on mielestäsi melko luotettava tai c) vihreä, jos lähteeseen voi mielestäsi luottaa. Kirjoita myös liikennevalon kohdalle ilmestyvään laatikkoon, miksi ajattelet luotettavuudesta näin.
+
+        SYNTEESIN TEKEMINEN NÄKÖKULMASTA
+
+        Tarkastele näkökulmaa koskevia perusteluja puolesta ja vastaan ja tee niistä synteesi sille varattuun laatikkoon.
+
+        YHTEENVEDON LAATIMINEN
+
+        Kirjoita lopuksi alimmaiseen laatikkoon yhteenvetosi asiasta opettajan antamien ohjeiden mukaisesti.
+    btn:
+      close:
+        aria-label: Sulje ohjeet
+        text: Sulje
+  #
+  # Editor components are below
+  #
   inquiry-editor:
     btn:
       perspective-add:

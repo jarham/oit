@@ -12,7 +12,9 @@
       button.btn.btn-outline-primary.btn-sm.me-1 {{ tc('btn.chart-open.text') }}
     .d-flex.toolbar.mb-1
       button.btn.btn-outline-primary.btn-sm.me-1 {{ tc('btn.chart-save.text') }}
-      button.btn.btn-outline-primary.btn-sm {{ tc('btn.instructions.text') }}
+      button.btn.btn-outline-primary.btn-sm(
+        @click='$emit("show-instructions")'
+      ) {{ tc('btn.instructions.text') }}
   .d-flex.justify-content-center.align-items-center.flex-grow-1
     h1 {{ tc('text.title') }}
   .d-flex.align-items-start
@@ -26,6 +28,7 @@ import {useI18n} from 'vue-i18n';
 defineEmits<{
   (event: 'show-languages'): void;
   (event: 'show-about'): void;
+  (event: 'show-instructions'): void;
 }>();
 
 const {t} = useI18n();
