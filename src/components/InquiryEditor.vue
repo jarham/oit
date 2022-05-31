@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: BSD-2-Clause
      Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
 <template lang="pug">
-section.view-main
+section.inquiry-editor
   TitledNotes.mb-3(
     :title='tc("claim.title")'
     :model-value='data.claim'
