@@ -108,14 +108,13 @@ const onChartNew = async () => {
     @extend .rounded-top;
     @extend .bg-white;
     position: relative;
-    // margin-bottom: -1px !important;
     &::after {
       @extend .bg-white;
       @extend .rounded-top;
       position: absolute;
       content: '\00a0';
-      height: 4px;
-      bottom: -2px;
+      height: 1px;
+      bottom: -1px;
       left: 0;
       right: 0;
     }
