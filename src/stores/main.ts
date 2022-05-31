@@ -76,9 +76,9 @@ export const useStore = defineStore('main', {
         state.dirty = true;
       });
     },
-    updateNotes(notes: string) {
+    updateConclusion(conclusion: string) {
       this.$patch((state) => {
-        state.data.notes = notes;
+        state.data.conclusion = conclusion;
         state.dirty = true;
       });
     },

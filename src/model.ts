@@ -29,7 +29,7 @@ export interface Perspective {
 export interface Model {
   claim: string;
   perspectives: Perspective[];
-  notes: string;
+  conclusion: string;
 }
 
 let perspectiveId = 0;
@@ -60,7 +60,7 @@ export function getDefaultModel(): Model {
   return {
     claim: '',
     perspectives: [getDefaultPerspective()],
-    notes: '',
+    conclusion: '',
   };
 }
 

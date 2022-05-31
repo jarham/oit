@@ -33,10 +33,10 @@ section.inquiry-editor
   ) {{ tc('btn.perspective-add.text') }}
   TitledNotes(
     :title='tc("conclusion.title")'
-    :model-value='data.notes'
+    :model-value='data.conclusion'
     :placeholder='tc("conclusion.placeholder")'
     :rows='10'
-    @update:model-value='store.updateNotes($event)'
+    @update:model-value='store.updateConclusion($event)'
   )
   ModalArgumentEditor(
     :argument='jstArgument'
