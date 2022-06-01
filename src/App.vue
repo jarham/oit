@@ -23,10 +23,14 @@ section.app
     )
     ModalInstructions(ref='mdlInstructions')
     ModalConfirm
+    ModalChartSave(
+      ref='mdlSave'
+      @chart-save-as='onChartSaveAs'
+    )
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue';
+import {onMounted, ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 import {storeToRefs} from 'pinia';
 import {saveAs} from 'file-saver';
@@ -37,6 +41,7 @@ import ModalAbout from '@/components/ModalAbout.vue';
 import ModalLanguages from '@/components/ModalLanguages.vue';
 import ModalInstructions from '@/components/ModalInstructions.vue';
 import ModalConfirm from '@/components/ModalConfirm.vue';
+import ModalChartSave from '@/components/ModalChartSave.vue';
 import MainView from '@/views/MainView.vue';
 import {useStore} from '@/stores/main';
 import {useConfirmDialog} from '@/vue-plugins/plugin-confirm-dialog';
@@ -61,6 +66,11 @@ const {languages} = useModalLanguages(
 const mdlLanguages = ref<InstanceType<typeof ModalLanguages>>();
 const mdlAbout = ref<InstanceType<typeof ModalAbout>>();
 const mdlInstructions = ref<InstanceType<typeof ModalInstructions>>();
+const mdlSave = ref<InstanceType<typeof ModalChartSave>>();
+
+onMounted(() => {
+  resetModel();
+});
 
 const setPageTitle = () => {
   document.title = t('page.title');
@@ -86,13 +96,21 @@ const onChartNew = async () => {
     const confirmed = await dlgConfirm.confirm('chart-new-unsaved');
     if (!confirmed) return;
   }
-  store.newModel();
+  resetModel();
+};
+
+const resetModel = () => {
+  const filename = t('misc.default-filename');
+  store.newModel(filename);
 };
 
 const onChartSave = () => {
+  mdlSave.value?.show();
+};
+const onChartSaveAs = (filename: string) => {
   const doc = printToHtml(data.value);
   const blob = new Blob([doc], {type: 'text/html;charset=utf-8'});
-  saveAs(blob, 'chart.html');
+  saveAs(blob, filename);
 };
 
 const onChartOpen = (hmtlSource: string) => {

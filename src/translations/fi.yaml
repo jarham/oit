@@ -3,6 +3,9 @@
 page:
   # Translations affect the HTML page directly go here
   title: Pohtimiskaavio
+misc:
+  # The name suggested when saving new char the first time.
+  default-filename: kaavio
 component:
   #
   # Elements on the top bar (buttons, app title) are below
@@ -151,6 +154,20 @@ component:
           text: Peruuta
         close:
           aria-label: Sulje vahvistusdialogi
+  modal-chart-save:
+    text:
+      title: Tallenna kaavio
+    input:
+      filename:
+        prompt: Tiedostonimi
+        placeholder: Anna tiedostonimi
+    btn:
+      close:
+        aria-label: Sulje tallennusdialogi
+      cancel:
+        text: Peru
+      save:
+        text: Tallenna
   #
   # Editor components are below
   #

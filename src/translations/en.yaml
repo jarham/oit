@@ -3,6 +3,9 @@
 page:
   # Translations affect the HTML page directly go here
   title: Online inquiry tool
+misc:
+  # The name suggested when saving new char the first time.
+  default-filename: chart
 component:
   #
   # Elements on the top bar (buttons, app title) are here
@@ -179,6 +182,20 @@ component:
           text: Cancel
         close:
           aria-label: Close confirmation dialog
+  modal-chart-save:
+    text:
+      title: Save chart
+    input:
+      filename:
+        prompt: Filename
+        placeholder: Please enter a filename
+    btn:
+      close:
+        aria-label: Close save dialog
+      cancel:
+        text: Cancel
+      save:
+        text: Save
   #
   # Editor components are below
   #

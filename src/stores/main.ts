@@ -17,6 +17,7 @@ import {
 interface StoreState {
   data: Model;
   dirty: boolean;
+  filename: string;
 }
 
 export const useStore = defineStore('main', {
@@ -24,14 +25,16 @@ export const useStore = defineStore('main', {
     return {
       data: getDefaultModel(),
       dirty: false,
+      filename: '',
     };
   },
   actions: {
-    newModel() {
+    newModel(filename: string) {
       resetIds();
       this.$patch((state) => {
         state.data = getDefaultModel();
         state.dirty = false;
+        state.filename = filename;
       });
     },
     loadHtmlAsModel(htmlSource: string) {
