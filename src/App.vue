@@ -111,6 +111,7 @@ const onChartSaveAs = (filename: string) => {
   const doc = printToHtml(data.value);
   const blob = new Blob([doc], {type: 'text/html;charset=utf-8'});
   saveAs(blob, filename);
+  dirty.value = false;
 };
 
 const onChartOpen = (hmtlSource: string) => {
