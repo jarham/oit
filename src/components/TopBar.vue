@@ -11,9 +11,21 @@
         @click='$emit("show-about")'
       ) {{ tc('btn.about.text') }}
     .d-block.toolbar.mb-1
-      button.btn.btn-outline-primary.btn-sm.me-1 {{ tc('btn.chart-open.text') }}
+      button.btn.btn-outline-primary.btn-sm.me-1(
+        @click='onOpenChart'
+      ) {{ tc('btn.chart-open.text') }}
+      .d-none.position-relative
+        input.d-none.position-absolute(
+          type='file'
+          ref='elFileInput'
+          style='top: -1000px; left: -1000px'
+          accept='.html,.htm'
+          @change='onFileChange'
+        )
     .d-flex.toolbar.mb-1
-      button.btn.btn-outline-primary.btn-sm.me-1 {{ tc('btn.chart-save.text') }}
+      button.btn.btn-outline-primary.btn-sm.me-1(
+        @click='$emit("chart-save")'
+      ) {{ tc('btn.chart-save.text') }}
       button.btn.btn-outline-primary.btn-sm(
         @click='$emit("show-instructions")'
       ) {{ tc('btn.instructions.text') }}
@@ -25,10 +37,13 @@
 </template>
 
 <script setup lang="ts">
+import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 
-defineEmits<{
+const emit = defineEmits<{
   (event: 'chart-new'): void;
+  (event: 'chart-save'): void;
+  (event: 'chart-open', htmlSource: string): void;
   (event: 'show-languages'): void;
   (event: 'show-about'): void;
   (event: 'show-instructions'): void;
@@ -36,6 +51,35 @@ defineEmits<{
 
 const {t} = useI18n();
 const tc = (s: string) => t(`component.top-bar.${s}`);
+
+const elFileInput = ref<HTMLInputElement>();
+
+const onOpenChart = () => {
+  if (!elFileInput.value) return;
+  elFileInput.value.click();
+};
+const onFileChange = () => {
+  if (!elFileInput.value) return;
+  const fileInput = elFileInput.value;
+  if (!fileInput.files || !fileInput.files[0]) return;
+  const file = fileInput.files[0];
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const contents = e.target?.result;
+      if (typeof contents === 'string') {
+        emit('chart-open', contents);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  reader.onloadend = () => {
+    fileInput.value = '';
+  };
+  reader.readAsText(file, 'utf-8');
+};
 </script>
 
 <style lang="scss">

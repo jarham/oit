@@ -32,27 +32,39 @@ export interface Model {
   conclusion: string;
 }
 
-let perspectiveId = 0;
-let argumentId = 0;
+export interface IdStore {
+  perspectiveId: number;
+  argumentId: number;
+}
 
-export function getDefaultArgument(): Argument {
+const idStore: IdStore = {
+  perspectiveId: 0,
+  argumentId: 0,
+};
+
+export function getDefaultArgument(store?: IdStore): Argument {
+  const is = store || idStore;
   return {
     argument: '',
     source: '',
     reliability: null,
     justification: '',
-    id: `arg-${argumentId++}`,
+    id: `arg-${is.argumentId++}`,
   };
 }
 
-export function getDefaultPerspective(): Perspective {
+export function getDefaultPerspective(
+  store?: IdStore,
+  empty?: boolean,
+): Perspective {
+  const is = store || idStore;
   return {
     name: '',
     questions: '',
-    argumentsFor: [getDefaultArgument()],
-    argumentsAgainst: [getDefaultArgument()],
+    argumentsFor: empty ? [] : [getDefaultArgument(store)],
+    argumentsAgainst: empty ? [] : [getDefaultArgument(store)],
     synthesis: '',
-    id: `prs-${perspectiveId++}`,
+    id: `prs-${is.perspectiveId++}`,
   };
 }
 
@@ -72,20 +84,20 @@ function getIdNumber(id: string): number {
 }
 
 export function resetIds(data?: Model) {
-  perspectiveId = 0;
-  argumentId = 0;
+  idStore.perspectiveId = 0;
+  idStore.argumentId = 0;
   if (!data) return;
   data.perspectives.forEach((p) => {
     try {
       const n = getIdNumber(p.id);
-      if (n > perspectiveId) perspectiveId = n;
+      if (n > idStore.perspectiveId) idStore.perspectiveId = n;
     } catch (_) {
       // Ignore
     }
     p.argumentsFor.forEach((r) => {
       try {
         const n = getIdNumber(r.id);
-        if (n > argumentId) argumentId = n;
+        if (n > idStore.argumentId) idStore.argumentId = n;
       } catch (_) {
         // Ignore
       }
@@ -93,10 +105,26 @@ export function resetIds(data?: Model) {
     p.argumentsAgainst.forEach((r) => {
       try {
         const n = getIdNumber(r.id);
-        if (n > argumentId) argumentId = n;
+        if (n > idStore.argumentId) idStore.argumentId = n;
       } catch (_) {
         // Ignore
       }
     });
   });
+}
+
+export function argumentIsEmpty(a: Argument) {
+  return (
+    !a.argument.trim() &&
+    !a.justification.trim() &&
+    !a.reliability &&
+    !a.source.trim()
+  );
+}
+
+export function stringToReliability(t: string): Reliability | null {
+  if (t === 'questionable') return t;
+  else if (t === 'somewhat-reliable') return t;
+  else if (t === 'reliable') return t;
+  return null;
 }

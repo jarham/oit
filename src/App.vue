@@ -1,30 +1,35 @@
 <!-- SPDX-License-Identifier: BSD-2-Clause
      Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
 <template lang="pug">
-.container.mt-1
-  //- TODO: For some reason .mb-3 in TopBar is not showing in generated code, bug in Vite?
-  TopBar.mb-3(
-    @show-languages='showLanguages'
-    @show-about='showAbout'
-    @show-instructions='showInstructions'
-    @chart-new='onChartNew'
-  )
-  MainView
-  ModalLanguages(
-    :languages='languages'
-    @set-language='onSetLanguage'
-    ref='mdlLanguages'
-  )
-  ModalAbout(
-    ref='mdlAbout'
-  )
-  ModalInstructions(ref='mdlInstructions')
-  ModalConfirm
+section.app
+  .container.mt-1
+    //- TODO: For some reason .mb-3 in TopBar is not showing in generated code, bug in Vite?
+    TopBar.mb-3(
+      @show-languages='showLanguages'
+      @show-about='showAbout'
+      @show-instructions='showInstructions'
+      @chart-new='onChartNew'
+      @chart-save='onChartSave'
+      @chart-open='onChartOpen'
+    )
+    MainView
+    ModalLanguages(
+      :languages='languages'
+      @set-language='onSetLanguage'
+      ref='mdlLanguages'
+    )
+    ModalAbout(
+      ref='mdlAbout'
+    )
+    ModalInstructions(ref='mdlInstructions')
+    ModalConfirm
 </template>
 
 <script setup lang="ts">
 import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
+import {storeToRefs} from 'pinia';
+import {saveAs} from 'file-saver';
 import type {OitLanguage} from '@/composition/ModalLanguages';
 import useModalLanguages from '@/composition/ModalLanguages';
 import TopBar from '@/components/TopBar.vue';
@@ -34,11 +39,11 @@ import ModalInstructions from '@/components/ModalInstructions.vue';
 import ModalConfirm from '@/components/ModalConfirm.vue';
 import MainView from '@/views/MainView.vue';
 import {useStore} from '@/stores/main';
-import {storeToRefs} from 'pinia';
 import {useConfirmDialog} from '@/vue-plugins/plugin-confirm-dialog';
+import printToHtml from '@/print/print';
 
 const store = useStore();
-const {dirty} = storeToRefs(store);
+const {data, dirty} = storeToRefs(store);
 
 const dlgConfirm = useConfirmDialog();
 
@@ -82,6 +87,16 @@ const onChartNew = async () => {
     if (!confirmed) return;
   }
   store.newModel();
+};
+
+const onChartSave = () => {
+  const doc = printToHtml(data.value);
+  const blob = new Blob([doc], {type: 'text/html;charset=utf-8'});
+  saveAs(blob, 'chart.html');
+};
+
+const onChartOpen = (hmtlSource: string) => {
+  store.loadHtmlAsModel(hmtlSource);
 };
 </script>
 

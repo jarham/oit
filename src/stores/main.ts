@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro
+import {parseHtmlAsModel} from '@/utils';
 import {defineStore} from 'pinia';
 import {
   getDefaultModel,
@@ -10,6 +11,7 @@ import {
   Argument,
   resetIds,
   ArgumentKind,
+  IdStore,
 } from '../model';
 
 interface StoreState {
@@ -31,6 +33,24 @@ export const useStore = defineStore('main', {
         state.data = getDefaultModel();
         state.dirty = false;
       });
+    },
+    loadHtmlAsModel(htmlSource: string) {
+      try {
+        // Start ids from 0 for loaded doc
+        const idStore: IdStore = {
+          perspectiveId: 0,
+          argumentId: 0,
+        };
+        const data = parseHtmlAsModel(htmlSource, idStore);
+        // Reset ids taking parsed data into account
+        resetIds(data);
+        this.$patch((state) => {
+          state.data = {...data};
+          state.dirty = false;
+        });
+      } catch (e) {
+        console.error(e);
+      }
     },
     addPerspective() {
       this.$patch((state) => {
