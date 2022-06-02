@@ -3,3 +3,24 @@
 page:
   # Translations affect the HTML page directly go here
   title: Pohtimiskaavio
+component:
+  top-bar:
+    btn:
+      chart-new:
+        text: Luo uusi kaavio
+      chart-open:
+        text: Avaa kaavio
+      chart-save:
+        text: Tallenna kaavio
+      instructions:
+        text: Ohjeet
+    text:
+      title: Pohtimiskaavio
+  modal-languages:
+    text:
+      title: Valitse kieli
+    btn:
+      close:
+        aria-label: Sulje kielivalinta
+      cancel:
+        text: Peruuta

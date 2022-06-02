@@ -3,6 +3,27 @@
 page:
   # Translations affect the HTML page directly go here
   title: Online inquiry tool
+component:
+  top-bar:
+    btn:
+      chart-new:
+        text: Create new chart
+      chart-open:
+        text: Open chart
+      chart-save:
+        text: Save chart
+      instructions:
+        text: Instructions
+    text:
+      title: Online inquiry tool
+  modal-languages:
+    text:
+      title: Select language
+    btn:
+      close:
+        aria-label: Close language selection
+      cancel:
+        text: Cancel
 
 # Languages are always read from en.yaml. No need to
 # add them to other translation files. Add languages
