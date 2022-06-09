@@ -258,7 +258,5 @@ component:
 # here keyed by their locales and set values to their
 # native names.
 language:
-  en-gb: English (GB)
-  en-us: English (US)
   en: English
   fi: Suomi
