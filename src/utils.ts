@@ -178,7 +178,6 @@ export function parseHtmlAsModel(source: string, idStore?: IdStore): Model {
   const parser = new Parser(new OitHtmlParserContext(data, idStore));
   parser.write(source);
   parser.end();
-  console.log('parsed:', data);
 
   return data;
 }
