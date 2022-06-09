@@ -1,0 +1,132 @@
+name: Build, release and deploy releases & rcs
+on:
+  push:
+    branches:
+      - main
+      - next
+env:
+  # The server is used in public Github release
+  # notes so it's fine to have it here.
+  APP_SERVER: https://d3bavttkp9gkki.cloudfront.net
+jobs:
+  release:
+    name: Build, release and deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        with:
+          fetch-depth: 0
+          # Don't persist credentials or semantic-release will use them
+          # and fail with protected branches. For discussion and other
+          # possible solutions, see: https://github.com/semantic-release/git/issues/196.
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd
+        with:
+          node-version: lts/*
+      - name: Install pnpm
+        uses: pnpm/action-setup@10693b3829bf86eb2572aef5f3571dcf5ca9287d
+        with:
+          version: latest
+      - name: Install bsdtar (and friends)
+        # Just because it so nicely handles multiple formats, including zip
+        run: |
+          sudo apt-get install -y libarchive-tools
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Get release version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_RELEASE_BOT }}
+        # semantic-release:dry-run generates .version.local file
+        # See .releaserc.yaml for semantic-release configuration
+        run: pnpm run semantic-release:dry-run
+      - name: Make sure .version.local exists
+        run: |
+          test -f .version.local
+          cat .version.local
+      - name: Build
+        run: |
+          REL_NAME="v$(cat .version.local)"
+          echo "APP_VERSION=${REL_NAME}" >> .env.production.local
+          echo "APP_LINK=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${REL_NAME}" >> .env.production.local
+          echo "APP_IS_RELEASE=true" >> .env.production.local
+          cat .env.production.local
+          pnpm run build
+      - name: Package
+        # semantic-release in next step will upload everything in
+        # release.local directory as release assets. See: .releaserc.yaml
+        run: |
+          mkdir -p release.local
+          REL_NAME="v$(cat .version.local)"
+          bsdtar -acf "release.local/oit-${REL_NAME}.tar.gz" -C dist .
+          bsdtar -acf "release.local/oit-${REL_NAME}.zip" -C dist .
+      - name: Semantic release
+        # See .releaserc.yaml for semantic-release configuration
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_RELEASE_BOT }}
+        run: pnpm run semantic-release
+      - name: Push next on par with main
+        # Only if main branch was the trigger, ie. a release was made
+        if: ${{ github.ref_name == 'main' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_RELEASE_BOT }}
+        run: |
+          # Log few commits to help with debugging in case something goes wrong
+          git log --decorate=short -10
+          # Insert token to REPO_URL
+          REPO_URL="${GITHUB_SERVER_URL/:\/\//:\/\/$GITHUB_TOKEN@}/${GITHUB_REPOSITORY}.git"
+          git push "${REPO_URL}" HEAD:next || git push -f "${REPO_URL}" HEAD:next
+      - name: Configure AWS credentials for S3 deployment
+        uses: aws-actions/configure-aws-credentials@05b148adc31e091bafbaf404f745055d4d3bc9d2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      # aws cli is available already in GH image
+      # see: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-software
+      #      https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-Readme.md
+      - name: Deploy to S3
+        # Always deploy to "release or rc path". Deploy releases to latest too.
+        # Use sync with --delete to deploy latest. It'll delete old unused files.
+        # BE CAREFUL WITH SYNC + --delete option! Don't target it to S3 root because
+        # you'll EASILY DELETE EVERYTHING ELSE except new files.
+        run: |
+          DPATH="$(if [ "${GITHUB_REF_NAME}" == "main" ]; then echo release; else echo rc; fi)"
+          REL_NAME="v$(cat .version.local)"
+          aws s3 cp --recursive dist/ "s3://${{ secrets.AWS_BUCKET_NAME }}/${DPATH}/${REL_NAME}/"
+          if [ "${GITHUB_REF_NAME}" == "main" ]; then
+            aws s3 sync --delete dist/ "s3://${{ secrets.AWS_BUCKET_NAME }}/latest/"
+          fi
+      - name: Edit Github release
+        # Tried to figure how to add a custom piece of text to release note
+        # to add links to the app but failed. Editing the release body text
+        # instead.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_RELEASE_BOT }}
+          GITHUB_USER: ${{ secrets.GH_USER_RELEASE_BOT }}
+        run: |
+          DPATH="$(if [ "${GITHUB_REF_NAME}" == "main" ]; then echo release; else echo rc; fi)"
+          REL_NAME="v$(cat .version.local)"
+
+          # https://docs.github.com/en/rest/releases/releases#list-releases
+          # List releases doesn't mention anything about sort order. Get 100
+          # and hope this one is on the list.
+          curl -s \
+            -H "Accept: application/vnd.github.v3+json" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
+            | jq -r "[.[] | select(.tag_name == \"${REL_NAME}\")][0]" > release.local/current.json
+          REL_ID=$(jq -r .id release.local/current.json)
+          REL_BODY=$(jq -r .body release.local/current.json)
+
+          LATEST="**The latest release** can always be found here: <${APP_SERVER}/latest/>"
+          CURRENT="**This release** (${REL_NAME}) can be found here: <${APP_SERVER}/${DPATH}/${REL_NAME}/>"
+          REL_BODY=$(echo "${REL_BODY}" | sed -e "3i ${CURRENT}\n\n${LATEST}" | jq -Rsa .)
+
+          # https://docs.github.com/en/rest/releases/releases#update-a-release
+          curl \
+            -u "${GITHUB_USER}:${GITHUB_TOKEN}" \
+            -X PATCH \
+            -H "Accept: application/vnd.github.v3+json" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/${REL_ID}" \
+            -d "{\"body\":${REL_BODY}}"
