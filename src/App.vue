@@ -30,7 +30,7 @@ section.app
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref} from 'vue';
+import {onMounted, ref, watch} from 'vue';
 import {useI18n} from 'vue-i18n';
 import {storeToRefs} from 'pinia';
 import {saveAs} from 'file-saver';
@@ -117,6 +117,17 @@ const onChartSaveAs = (filename: string) => {
 const onChartOpen = (hmtlSource: string) => {
   store.loadHtmlAsModel(hmtlSource);
 };
+
+const beforeUnloadHandler = (evt: Event) => {
+  if (dirty.value) {
+    evt.preventDefault();
+    return (evt.returnValue = t('misc.leaving-unsaved') as any);
+  }
+};
+watch(dirty, (dirty) => {
+  if (dirty) addEventListener('beforeunload', beforeUnloadHandler);
+  else removeEventListener('beforeunload', beforeUnloadHandler);
+});
 </script>
 
 <style lang="scss">

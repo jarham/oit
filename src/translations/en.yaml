@@ -6,6 +6,9 @@ page:
 misc:
   # The name suggested when saving new char the first time.
   default-filename: chart
+  # Unsaved changes note when leaving the page. Most modern
+  # browsers won't show this though, they use their own text.
+  leaving-unsaved: Your chart is not saved.
 component:
   #
   # Elements on the top bar (buttons, app title) are here
