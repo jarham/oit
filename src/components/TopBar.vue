@@ -42,6 +42,9 @@
 <script setup lang="ts">
 import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
+import {useStore} from '@/stores/main';
+import {storeToRefs} from 'pinia';
+import {useConfirmDialog} from '@/vue-plugins/plugin-confirm-dialog';
 
 const emit = defineEmits<{
   (event: 'chart-new'): void;
@@ -55,13 +58,23 @@ const emit = defineEmits<{
 const {t} = useI18n();
 const tc = (s: string) => t(`component.top-bar.${s}`);
 
+const store = useStore();
+const {dirty} = storeToRefs(store);
+const dlgConfirm = useConfirmDialog();
+
 const elFileInput = ref<HTMLInputElement>();
 
 const version = ref(__APP_VERSION__);
 const appLink = ref(__APP_LINK__);
 
-const onOpenChart = () => {
+const onOpenChart = async () => {
   if (!elFileInput.value) return;
+
+  if (dirty.value) {
+    const confirmed = await dlgConfirm.confirm('chart-open-unsaved');
+    if (!confirmed) return;
+  }
+
   elFileInput.value.click();
 };
 const onFileChange = () => {
