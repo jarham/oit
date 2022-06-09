@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="{{lang}}">
+  <head>
+    <title>{{title}}</title>
+    <meta charset="UTF-8" />
+    <style>
+      {{css}}
+    </style>
+  </head>
+  <body>
+    <div class="oit">
+      <div>
+        <h2>Claim:</h2>
+        <span class="oit-claim oit-text" data-text="{{claimOrig}}">{{claim}}</span>
+      </div>
+      <div class="oit-perspectives">
+        <ul>
+          {{#perspectives}}
+            <li>
+              <h2>Perspective</h2>
+              <div class="oit-perspective">
+                <div class="hi">
+                  <strong>Name:</strong>
+                  <span class="oit-perspective-name oit-text" data-text="{{nameOrig}}">{{name}}</span>
+                </div>
+                <div class="hi">
+                  <strong>Questions:</strong>
+                  <span class="oit-perspective-questions oit-text" data-text="{{questionsOrig}}">{{questions}}</span>
+                </div>
+                <div>
+                  <table>
+                    <thead>
+                      <tr><th scope="col">Arguments for</th><th scope="col">Arguments against</th></tr>
+                    </thead>
+                    <tbody>
+                    {{#arguments}}
+                      <tr class="oit-arguments">
+                        <td class="oit-argument oit-argument-for oit-empty-{{for.empty}}">
+                          <div class="hi">
+                            <strong>Argument:</strong>
+                            <span class="oit-argument-for-argument oit-text" data-text="{{for.argumentOrig}}">{{for.argument}}</span>
+                          </div>
+                          <div class="hi">
+                            <strong>Source:</strong>
+                            <span class="oit-argument-for-source oit-text" data-text="{{for.sourceOrig}}">{{for.source}}</span>
+                          </div>
+                          <div class="hi">
+                            <strong>Reliability:</strong>
+                            <span class="oit-argument-for-reliability oit-text">{{for.reliability}}</span>
+                          </div>
+                          <div class="hi">
+                            <strong>Justification:</strong>
+                            <span class="oit-argument-for-justification oit-text" data-text="{{for.justificationOrig}}">{{for.justification}}</span>
+                          </div>
+                        </td>
+                        <td class="oit-argument oit-argument-against oit-empty-{{against.empty}}">
+                          <div class="hi">
+                            <strong>Argument:</strong>
+                            <span class="oit-argument-against-argument oit-text" data-text="{{against.argumentOrig}}">{{against.argument}}</span>
+                          </div>
+                          <div class="hi">
+                            <strong>Source:</strong>
+                            <span class="oit-argument-against-source oit-text" data-text="{{against.sourceOrig}}">{{against.source}}</span>
+                          </div>
+                          <div class="hi">
+                            <strong>Reliability:</strong>
+                            <span class="oit-argument-against-reliability oit-text">{{against.reliability}}</span>
+                          </div>
+                          <div class="hi">
+                            <strong>Justification:</strong>
+                            <span class="oit-argument-against-justification oit-text" data-text="{{against.justificationOrig}}">{{against.justification}}</span>
+                          </div>
+                        </td>
+                      <tr>
+                    {{/arguments}}
+                    </tbody>
+                  </table>
+                </div>
+                <div class="hi">
+                  <strong>Synthesis:</strong>
+                  <span class="oit-perspective-synthesis oit-text" data-text="{{synthesisOrig}}">{{synthesis}}</span>
+                </div>
+              </div>
+            </li>
+          {{/perspectives}}
+        </ul>
+      </div>
+      <div>
+        <h2>Conclusion:</h2>
+        <span class="oit-conclusion oit-text" data-text="{{conclusionOrig}}">{{conclusion}}</span>
+      </div>
+    </div>
+  </body>
+</html>

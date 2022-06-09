@@ -1,0 +1,265 @@
+# SPDX-License-Identifier: BSD-2-Clause
+# Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro
+page:
+  # Translations affect the HTML page directly go here
+  title: Online inquiry tool
+misc:
+  # The name suggested when saving new char the first time.
+  default-filename: chart
+  # Unsaved changes note when leaving the page. Most modern
+  # browsers won't show this though, they use their own text.
+  leaving-unsaved: Your chart is not saved.
+component:
+  #
+  # Elements on the top bar (buttons, app title) are here
+  #
+  top-bar:
+    btn:
+      chart-new:
+        text: Create new chart
+      chart-open:
+        text: Open chart
+      chart-save:
+        text: Save chart
+      about:
+        text: About
+      instructions:
+        text: Instructions
+    text:
+      title: Online inquiry tool
+  #
+  # Modal dialogs are below (language selection, about, etc...)
+  #
+  modal-languages:
+    text:
+      title: Select language
+    btn:
+      close:
+        aria-label: Close language selection
+      cancel:
+        text: Cancel
+  modal-about:
+    heading:
+      license: License (BSD 2-Clause "Simplified")
+    text:
+      title: About Online inquiry tool
+    btn:
+      close:
+        aria-label: Close about dialog
+        text: Close
+  modal-argument-editor:
+    text:
+      title-argument-for: Edit argument for the claim
+      title-argument-against: Edit argument against the claim
+    placeholder:
+      justification: Write your justifications here
+    btn:
+      close:
+        aria-label: Close argument editor dialog
+      done:
+        text: Done
+  modal-instructions:
+    text:
+      title: Instructions
+      # Instructions are in Markdown format: see https://www.markdownguide.org/cheat-sheet/
+      instructions: |
+        ### INSTRUCTIONS FOR ONLINE INQUIRY TOOL FOR CONTROVERSIAL ISSUES
+
+        **FORMULATE A CLAIM**
+
+        When you have chosen the controversial topic that you would like to explore, formulate a claim about the issue and type it in the box intended for it.
+
+        The _claim_ is a statement that asserts that a) something is true or not true, b) something is more or less desirable or c) that one course of action is superior to another.
+
+        **PONDER FROM WHAT PERSPECTIVE YOU COULD EXPLORE THE ISSUE**
+
+        After you have formulated a claim, ponder from what perspectives you could approach the issue at hand. Fill in the perspective in the box intended for it. You can add as many perspectives into your graph as you wish - just press the button "Add perspective".
+
+        _Perspective_ is a lens through which you can look at or observe the issue, such as a financial perspective, an ethical perspective or an educational perspective.
+
+        **SEARCH FOR ARGUMENTS FOR AND AGAINST THE CLAIM**
+
+        Use the Internet to search for arguments for and against the issue. Fill in the arguments in the boxes intended for them and also add the source where you found the argument. You can add the source by copying the address of the web page into the space meant for it.
+
+        An _"argument for"_ is an idea or evidence that supports the claim. It presents an idea about why a person should accept the claim whereas an _"argument against"_ presents an idea about why a person should not accept the claim.
+
+        **EVALUATE RELIABILITY OF THE SOURCE**
+
+        Next, evaluate the credibility of the web site where you found the argument(s) with the help of the traffic lights:
+
+        Click on the green light if you think that you can trust the information on the Web site. Click on the yellow light if you think that information on the Web site is somewhat reliable. Click on the red light if you question the reliability of information on the Web site.
+
+        Type the reasons why you think that the source is reliable, somewhat reliable or questionable in the box that will appear beside the traffic lights. Type OK when you are done and the box will be hidden. You can see your comments again later by clicking on the traffic light.
+
+        **SYNTHESIS WITHIN THE PERSPECTIVE**
+
+        After you have written down the arguments for and against the issue, ponder them and sum up the key ideas in the synthesis box. You can also add your own thoughts to your synthesis.
+
+        A _synthesis_ ties both arguments for and against and your own thoughts together. You can use relevant connector words (e.g. In contrast, in addition) to indicate how you think the ideas are related.
+
+        **CONCLUSIONS**
+
+        Finally, type your conclusion in the box below the argument graph according to your teacher’s instructions.
+
+        **SAVING AND PRINTING YOUR GRAPH**
+
+        Follow these steps to save your argument graph file for later use.
+
+        1.  From the menu located on the top left corner of the graph, click "SAVE CHART"
+        2.  Name your chart in the box that appears below the menu.
+        3.  Click SAVE. The bar that appears in the bottom of the page will ask you whether you would like to save your chart.
+        4.  Click the arrow beside the save button and **choose SAVE AS**. Then choose the location for saving the file on your computer. Once you have clicked Save, your file is saved in that location on your computer.
+
+        **OPENING YOUR GRAPH**
+
+        There are two ways to open your saved argument graph later:
+
+        1.  If your argument graph is finished and you want to print a summary of it, double-click the file name in the location where you saved your graph and it will open.
+        2.  If you want to continue filling in your graph, go to the argument graph website at [http://pohtimiskaavio-demo.appspot.com/](http://pohtimiskaavio-demo.appspot.com/). Then, go to the menu bar on the upper left corner of the graph and click OPEN CHART. Go to the location where you saved your graph and click the file to open it.
+    btn:
+      close:
+        aria-label: Close instructions dialog
+        text: Close
+  modal-confirm:
+    # Translations action confirmations
+    # Body texts supports Markdown format.
+    chart-new-unsaved:
+      # Shown when user tries to create a new chart but
+      # existing one has unsaved changes.
+      text:
+        title: Unsaved changes
+        body: You have unsaved changes. Do you want to create a new chart anyway?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Cancel
+        close:
+          aria-label: Close confirmation dialog
+    chart-open-unsaved:
+      # Shown when user tries to open a chart but
+      # existing one has unsaved changes.
+      text:
+        title: Unsaved changes
+        body: You have unsaved changes. Do you want to open a chart anyway?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Cancel
+        close:
+          aria-label: Close confirmation dialog
+    perspective-remove:
+      # Shown when user tries to remove a perspective.
+      text:
+        title: Remove perspective
+        body: Do you want to remove a perspective?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Cancel
+        close:
+          aria-label: Close confirmation dialog
+    argument-for-remove:
+      # Shown when user tries to remove an argument for the clain.
+      text:
+        title: Remove argument for the claim
+        body: Do you want to remove an argument for the claim?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Cancel
+        close:
+          aria-label: Close confirmation dialog
+    argument-against-remove:
+      # Shown when user tries to remove an argument against the clain.
+      text:
+        title: Remove argument against the claim
+        body: Do you want to remove an argument against the claim?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Cancel
+        close:
+          aria-label: Close confirmation dialog
+  modal-chart-save:
+    text:
+      title: Save chart
+    input:
+      filename:
+        prompt: Filename
+        placeholder: Please enter a filename
+    btn:
+      close:
+        aria-label: Close save dialog
+      cancel:
+        text: Cancel
+      save:
+        text: Save
+  #
+  # Editor components are below
+  #
+  inquiry-editor:
+    btn:
+      perspective-add:
+        text: Add perspective
+    claim:
+      title: Claim
+      placeholder: Add claim here
+    conclusion:
+      title: Conclusion
+      placeholder: Write your conclusion here
+  perspective-editor:
+    text:
+      heading:
+        perspective: Perspective
+        arguments-for: Arguments for the claim
+        arguments-against: Arguments against the claim
+        synthesis: Synthesis
+    btn:
+      perspective-remove:
+        aria-label: Remove perspective
+        title: Remove perspective
+      argument-for-add:
+        text: Add argument for the claim
+      argument-against-add:
+        text: Add argument against the claim
+    placeholder:
+      perspective: Add perspective here
+      questions: Add questions that may help you to explore the issue
+      synthesis: Write synthesis on the perspective here
+  argument-editor:
+    btn:
+      argument-for-remove:
+        aria-label: Remove argument for the claim
+        title: Remove argument for the claim
+      argument-against-remove:
+        aria-label: Remove argument against the claim
+        title: Remove argument against the claim
+    placeholder:
+      argument-for: Add argument for the claim here
+      argument-against: Add argument against the claim here
+      source-for: Insert source information here
+      source-against: Insert source information here
+  traffic-lights:
+    btn:
+      source-evaluation-questionable:
+        aria-label: Source reliability is questionable.
+        title: Source reliability is questionable.
+      source-evaluation-somewhat-reliable:
+        aria-label: Source is somewhat reliable.
+        title: Source is somewhat reliable.
+      source-evaluation-reliable:
+        aria-label: Source is reliable.
+        title: Source is reliable.
+
+# Languages are always read from en.yaml. No need to
+# add them to other translation files. Add languages
+# here keyed by their locales and set values to their
+# native names.
+language:
+  en: English
+  fi: Suomi

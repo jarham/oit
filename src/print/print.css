@@ -1,0 +1,43 @@
+body {
+  margin: 0;
+}
+.oit-perspectives ul {
+  padding-inline-start: 0;
+  list-style-type: none;
+}
+.oit-perspectives li {
+  padding-inline-start: 0;
+}
+.oit-text {
+  white-space: pre;
+}
+.oit-perspective {
+  margin-left: 1.5rem;
+}
+.oit-perspective table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.oit-argument.oit-empty-true {
+  visibility: hidden;
+}
+.hi {
+  padding-left: 1rem;
+  text-indent: -1rem;
+}
+td,th {
+  padding: 2px 0;
+  vertical-align: top;
+}
+.oit-arguments {
+  border-top: 1px dotted black;
+}
+.oit-arguments td {
+  padding-left: 1rem;
+  padding-right: 0.5rem;
+}
+h2 {
+  margin-bottom: 0.5rem;
+}

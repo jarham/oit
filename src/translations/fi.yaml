@@ -1,0 +1,229 @@
+# SPDX-License-Identifier: BSD-2-Clause
+# Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro
+page:
+  # Translations affect the HTML page directly go here
+  title: Pohtimiskaavio
+misc:
+  # The name suggested when saving new char the first time.
+  default-filename: kaavio
+  # Unsaved changes note when leaving the page. Most modern
+  # browsers won't show this though, they use their own text.
+  leaving-unsaved: Kaaviosi on tallentamatta.
+component:
+  #
+  # Elements on the top bar (buttons, app title) are below
+  #
+  top-bar:
+    btn:
+      chart-new:
+        text: Luo uusi kaavio
+      chart-open:
+        text: Avaa kaavio
+      chart-save:
+        text: Tallenna kaavio
+      about:
+        text: Tietoja sovelluksesta
+      instructions:
+        text: Ohjeet
+    text:
+      title: Pohtimiskaavio
+  #
+  # Modal dialogs are below (language selection, about, etc...)
+  #
+  modal-languages:
+    text:
+      title: Valitse kieli
+    btn:
+      close:
+        aria-label: Sulje kielivalinta
+      cancel:
+        text: Peruuta
+  modal-about:
+    heading:
+      license: Lisenssi (BSD 2-Clause "Simplified")
+    text:
+      title: Tietoja Pohtimiskaaviosta
+    btn:
+      close:
+        aria-label: Sulje tietoikkuna
+        text: Sulje
+  modal-argument-editor:
+    text:
+      title-argument-for: Muokaa teesiä puoltavaa perustelua
+      title-argument-against: Muokka teesiä kumoavaa perustelua
+    placeholder:
+      justification: Kirjoita tähän perustelu luotettavuusvalinnallesi
+    btn:
+      close:
+        aria-label: Sulje perusteludialogi
+      done:
+        text: Valmis
+  modal-instructions:
+    text:
+      title: Ohjeet
+      # Instructions are in Markdown format: see https://www.markdownguide.org/cheat-sheet/
+      instructions: |
+        **POHTIMISKAAVIO**
+
+        MUODOSTA TEESI TUTKITTAVASTA AIHEESTA
+
+        Kun olet valinnut tutkittavan aiheen, kirjoita kaavioon siitä jokin teesi (esim. energiajuomat pitää kieltää).
+
+        MISTÄ NÄKÖKULMISTA AIHETTA VOISI TARKASTELLA?
+
+        Mieti sen jälkeen, mistä näkökulmista aihetta voisi tarkastella (esim. terveydellinen näkökulma, kaupallinen näkökulma). Kirjoita näkökulmat niille varattuihin laatikoihin. Voit lisätä kaavioon niin monta näkökulmaa kuin haluat painamalla "lisää näkökulma" -laatikkoa)
+
+        PERUSTELUIDEN ETSIMINEN
+
+        Etsi sitten Internetistä sekä teesiä puoltavia että sitä kumoavia perusteluita. Kirjaa löytämäsi perustelut niille tarkoitettuihin laatikoihin lähdetietoineen. Lähdetiedon voit merkitä kopioimalla internetsivun osoitteen kunkin perustelun alapuolelle.
+
+        LÄHTEIDEN ARVIOINTI
+
+        Arvioi, kuinka luotettavana pidät Internetsivua, jolta löysit perustelun. Rastita liikennevaloista joko a) punainen, jos pidät lähteen luotettavuutta kyseenalaisena, b) oranssi, jos lähde on mielestäsi melko luotettava tai c) vihreä, jos lähteeseen voi mielestäsi luottaa. Kirjoita myös liikennevalon kohdalle ilmestyvään laatikkoon, miksi ajattelet luotettavuudesta näin.
+
+        SYNTEESIN TEKEMINEN NÄKÖKULMASTA
+
+        Tarkastele näkökulmaa koskevia perusteluja puolesta ja vastaan ja tee niistä synteesi sille varattuun laatikkoon.
+
+        YHTEENVEDON LAATIMINEN
+
+        Kirjoita lopuksi alimmaiseen laatikkoon yhteenvetosi asiasta opettajan antamien ohjeiden mukaisesti.
+    btn:
+      close:
+        aria-label: Sulje ohjeet
+        text: Sulje
+  modal-confirm:
+    # Translations action confirmations
+    # Body texts supports Markdown format.
+    chart-new-unsaved:
+      # Shown when user tries to create a new chart but
+      # existing one has unsaved changes.
+      text:
+        title: Tallentamattomia muutoksia
+        body: Sinulla on tallentamattomia muutoksia. Haluatko silti luoda uuden kaavion?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Peruuta
+        close:
+          aria-label: Sulje vahvistusdialogi
+    chart-open-unsaved:
+      # Shown when user tries to open a chart but
+      # existing one has unsaved changes.
+      text:
+        title: Tallentamattomia muutoksia
+        body: Sinulla on tallentamattomia muutoksia. Haluatko silti avata kaavion?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Peruuta
+        close:
+          aria-label: Sulje vahvistusdialogi
+    perspective-remove:
+      # Shown when user tries to remove a perspective.
+      text:
+        title: Poista näkökulma
+        body: Haluatko poistaa näkökulman?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Peruuta
+        close:
+          aria-label: Sulje vahvistusdialogi
+    argument-for-remove:
+      # Shown when user tries to remove an argument for the clain.
+      text:
+        title: Poista puoltava perustelu
+        body: Haluatko poistaa puoltavan perustelun?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Peruuta
+        close:
+          aria-label: Sulje vahvistusdialogi
+    argument-against-remove:
+      # Shown when user tries to remove an argument against the clain.
+      text:
+        title: Poista vastustava perustelu
+        body: Haluatko poistaa vastustavan perustelun?
+      btn:
+        confirm:
+          text: Ok
+        cancel:
+          text: Peruuta
+        close:
+          aria-label: Sulje vahvistusdialogi
+  modal-chart-save:
+    text:
+      title: Tallenna kaavio
+    input:
+      filename:
+        prompt: Tiedostonimi
+        placeholder: Anna tiedostonimi
+    btn:
+      close:
+        aria-label: Sulje tallennusdialogi
+      cancel:
+        text: Peru
+      save:
+        text: Tallenna
+  #
+  # Editor components are below
+  #
+  inquiry-editor:
+    btn:
+      perspective-add:
+        text: Lisää näkökulma
+    claim:
+      title: Teesi
+      placeholder: Kirjoita teesi tähän
+    conclusion:
+      title: Yhteenveto asiasta
+      placeholder: Kirjoita yhteenvetosi asiasta tähän
+  perspective-editor:
+    text:
+      heading:
+        perspective: Näkökulma
+        arguments-for: Teesiä puoltava perustelu
+        arguments-against: Teesiä kumoava perustelu
+        synthesis: Synteesi
+    btn:
+      perspective-remove:
+        aria-label: Poista näkökulma
+        title: Poista näkökulma
+      argument-for-add:
+        text: Lisää puoltava perustelu
+      argument-against-add:
+        text: Lisää kumoava perustelu
+    placeholder:
+      perspective: Kirjoita näkökulma tähän
+      questions: Tähän voit kirjoittaa apukysymyksiä itsellesi
+      synthesis: Kirjoita synteesi näkökulmasta tähän
+  argument-editor:
+    btn:
+      argument-for-remove:
+        aria-label: Poista teesiä puoltava perustelu
+        title: Poista teesiä puoltava perustelu
+      argument-against-remove:
+        aria-label: Poista teesiä kumoava perustelu
+        title: Poista teesiä kumoava perustelu
+    placeholder:
+      argument-for: Kirjoita teesiä puoltava perustelu puolesta tähän
+      argument-against: Kirjoita teesiä kumoava perustelu vastaan tähän
+      source-for: Laita lähde tähän
+      source-against: Laita lähde tähän
+  traffic-lights:
+    btn:
+      source-evaluation-questionable:
+        aria-label: Lähteen luotettavuus on kyseenalainen.
+        title: Lähteen luotettavuus on kyseenalainen.
+      source-evaluation-somewhat-reliable:
+        aria-label: Lähde on melko luotettava.
+        title: Lähde on melko luotettava.
+      source-evaluation-reliable:
+        aria-label: Lähteeseen voi luottaa.
+        title: Lähteeseen voi luottaa.
