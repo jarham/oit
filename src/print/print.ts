@@ -35,6 +35,8 @@ interface PrintModel extends Omit<Model, 'perspectives'> {
   perspectives: PrintPerspective[];
   claimOrig: string;
   conclusionOrig: string;
+  appVersion: string;
+  docVersion: string;
 }
 
 function argumentToPrintArgument(a?: Argument): PrintArgument {
@@ -100,6 +102,8 @@ function modelToPrintModel(data: Model): PrintModel {
     perspectives: data.perspectives.map(perpectiveToPrintPerspective),
     conclusion: data.conclusion.trim() || '[EMPTY]',
     conclusionOrig: data.conclusion,
+    appVersion: __APP_VERSION__,
+    docVersion: '1.0.0',
   };
 }
 
