@@ -1,3 +1,10 @@
+# [15.0.0-rc.2](https://github.com/online-inquiry-tool/oit/compare/v15.0.0-rc.1...v15.0.0-rc.2) (2022-06-09)
+
+
+### Features
+
+* add app and doc version info to saved charts ([ee0020d](https://github.com/online-inquiry-tool/oit/commit/ee0020d7752eb66ac6687c347d686248ddfe67d4))
+
 # [15.0.0-rc.1](https://github.com/online-inquiry-tool/oit/compare/v14.0.0...v15.0.0-rc.1) (2022-06-09)
 
 
