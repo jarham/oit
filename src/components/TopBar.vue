@@ -29,8 +29,11 @@
       button.btn.btn-outline-primary.btn-sm(
         @click='$emit("show-instructions")'
       ) {{ tc('btn.instructions.text') }}
-  .d-flex.justify-content-center.align-items-center.flex-grow-1
-    h1 {{ tc('text.title') }}
+  .d-flex.flex-column.justify-content-center.align-items-center.flex-grow-1
+    h1.mb-1 {{ tc('text.title') }}
+    small.version-info
+      a.link-secondary(v-if='appLink' :href='appLink') {{ version }}
+      span.text-secondary(v-else) {{ version }}
   .d-flex.align-items-start
     button.btn.text-primary.btn-lg.px-2.py-1(@click='$emit("show-languages")')
       i.bi.bi-translate
@@ -53,6 +56,9 @@ const {t} = useI18n();
 const tc = (s: string) => t(`component.top-bar.${s}`);
 
 const elFileInput = ref<HTMLInputElement>();
+
+const version = ref(__APP_VERSION__);
+const appLink = ref(__APP_LINK__);
 
 const onOpenChart = () => {
   if (!elFileInput.value) return;
@@ -85,5 +91,9 @@ const onFileChange = () => {
 <style lang="scss">
 .toolbar > button {
   min-width: 25ch;
+}
+.version-info {
+  opacity: 0.7;
+  font-size: 80%;
 }
 </style>

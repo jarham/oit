@@ -13,3 +13,7 @@ declare module '*/LICENSE' {
   const str: string;
   export default str;
 }
+
+// For defines in vite.config.js
+declare const __APP_VERSION__: string;
+declare const __APP_LINK__: string | null;
