@@ -41,11 +41,16 @@ jobs:
         # semantic-release:dry-run generates .version.local file
         # See .releaserc.yaml for semantic-release configuration
         run: pnpm run semantic-release:dry-run
-      - name: Make sure .version.local exists
+      - name: Check if creating a new version
+        id: check-version
         run: |
+          # Make sure .version.local exists or fail
           test -f .version.local
-          cat .version.local
+          VERSION="$(cat .version.local)"
+          if [ -z "${VERSION}" ]; then echo "::set-output name=new-version::false"; else echo "::set-output name=new-version::true"; fi
       - name: Build
+        # Run only if new version is made
+        if: ${{ steps.check-version.outputs.new-version == 'true' }}
         run: |
           REL_NAME="v$(cat .version.local)"
           echo "APP_VERSION=${REL_NAME}" >> .env.production.local
@@ -54,6 +59,8 @@ jobs:
           cat .env.production.local
           pnpm run build
       - name: Package
+        # Run only if new version is made
+        if: ${{ steps.check-version.outputs.new-version == 'true' }}
         # semantic-release in next step will upload everything in
         # release.local directory as release assets. See: .releaserc.yaml
         run: |
@@ -62,12 +69,14 @@ jobs:
           bsdtar -acf "release.local/oit-${REL_NAME}.tar.gz" -C dist .
           bsdtar -acf "release.local/oit-${REL_NAME}.zip" -C dist .
       - name: Semantic release
+        # Run only if new version is made
+        if: ${{ steps.check-version.outputs.new-version == 'true' }}
         # See .releaserc.yaml for semantic-release configuration
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN_RELEASE_BOT }}
         run: pnpm run semantic-release
       - name: Push next on par with main
-        # Only if main branch was the trigger, ie. a release was made
+        # Only if main branch was the trigger, ie. main brach was updated
         if: ${{ github.ref_name == 'main' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN_RELEASE_BOT }}
@@ -78,6 +87,8 @@ jobs:
           REPO_URL="${GITHUB_SERVER_URL/:\/\//:\/\/$GITHUB_TOKEN@}/${GITHUB_REPOSITORY}.git"
           git push "${REPO_URL}" HEAD:next || git push -f "${REPO_URL}" HEAD:next
       - name: Configure AWS credentials for S3 deployment
+        # Run only if new version is made
+        if: ${{ steps.check-version.outputs.new-version == 'true' }}
         uses: aws-actions/configure-aws-credentials@05b148adc31e091bafbaf404f745055d4d3bc9d2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -87,6 +98,8 @@ jobs:
       # see: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-software
       #      https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-Readme.md
       - name: Deploy to S3
+        # Run only if new version is made
+        if: ${{ steps.check-version.outputs.new-version == 'true' }}
         # Always deploy to "release or rc path". Deploy releases to latest too.
         # Use sync with --delete to deploy latest. It'll delete old unused files.
         # BE CAREFUL WITH SYNC + --delete option! Don't target it to S3 root because
@@ -99,6 +112,8 @@ jobs:
             aws s3 sync --delete dist/ "s3://${{ secrets.AWS_BUCKET_NAME }}/latest/"
           fi
       - name: Edit Github release
+        # Run only if new version is made
+        if: ${{ steps.check-version.outputs.new-version == 'true' }}
         # Tried to figure how to add a custom piece of text to release note
         # to add links to the app but failed. Editing the release body text
         # instead.

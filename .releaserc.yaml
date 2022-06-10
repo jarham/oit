@@ -9,8 +9,10 @@ plugins:
   # Get next version info to file to be used in build.
   # It's a trick: first do `semantic-release --dry-run` to get the
   # version number, then build (uses .version.local) and finally release.
+  # If no new release is made .version.local is an empty file.
   # See: https://github.com/semantic-release/semantic-release/issues/1647#issuecomment-707934082
-  - verifyReleaseCmd: echo "${nextRelease.version}" > .version.local
+  - verifyConditionsCmd: echo "" > .version.local
+    verifyReleaseCmd: echo "${nextRelease.version}" > .version.local
 - '@semantic-release/changelog'
 - - '@semantic-release/npm'
   # We don't need NPM. Releasing the build to Github is enough.
