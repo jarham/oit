@@ -1,43 +1,41 @@
 <!-- SPDX-License-Identifier: BSD-2-Clause
      Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
 <template lang="pug">
-.modal.modal-argument-editor(ref='elModal')
-  .modal-dialog.modal-lg
-    .modal-content
-      .modal-header
-        h5.modal-title {{ tc(`text.title-argument-${kind}`) }}
-        button.btn-close(data-bs-dismiss='modal' :aria-label='tc("btn.close.aria-label")')
-      .modal-body.overflow-auto
-        ArgumentEditor(
-          :argument='argument'
-          :kind='kind'
-          :hide-remove-button='true'
-          :hide-drag-handle='true'
-          @modified='$emit("modified")'
-        )
-        textarea.form-control(
-          v-model='argument.justification'
-          :placeholder='tc("placeholder.justification")'
-          rows='6'
-          @input='$emit("modified")'
-          ref='txtJustify'
-        )
-      .modal-footer
-        button.btn.btn-outline-primary(data-bs-dismiss='modal') {{ tc('btn.done.text') }}
+ModalBase.modal-argument-editor(
+  v-bind='bind'
+  ref='modal'
+  @shown='onShown'
+)
+  template(v-slot:body)
+    ArgumentEditor(
+      :argument='argument'
+      :kind='kind'
+      :hide-remove-button='true'
+      :hide-drag-handle='true'
+      @modified='$emit("modified")'
+    )
+    textarea.form-control(
+      v-model='argument.justification'
+      :placeholder='tc("placeholder.justification")'
+      rows='6'
+      @input='$emit("modified")'
+      ref='txtJustify'
+    )
 </template>
 
 <script setup lang="ts">
-import {onBeforeUnmount, onMounted, ref} from 'vue';
+import {computed, ref} from 'vue';
 import {useI18n} from 'vue-i18n';
-import {Modal} from 'bootstrap';
 import type {Argument, ArgumentKind} from '@/model';
 import ArgumentEditor from '@/components/ArgumentEditor.vue';
+import ModalBase from '@/components/ModalBase.vue';
+import useModalBase from '@/composition/ModalBase';
 
 interface Props {
   argument: Argument;
   kind: ArgumentKind;
 }
-defineProps<Props>();
+const props = defineProps<Props>();
 defineEmits<{
   (event: 'modified'): void;
 }>();
@@ -47,32 +45,21 @@ const txtJustify = ref<HTMLTextAreaElement>();
 const {t} = useI18n();
 const tc = (s: string) => t(`component.modal-argument-editor.${s}`);
 
-const elModal = ref<HTMLDivElement>();
-let modal: Modal | null = null;
-
-onMounted(() => {
-  if (!elModal.value) return;
-  modal = new Modal(elModal.value);
-  elModal.value.addEventListener('shown.bs.modal', onShown);
+const modal = ref<InstanceType<typeof ModalBase>>();
+const {modalInterface, bind} = useModalBase(modal, {
+  haveBtnCancel: false,
+  clsDialog: ['modal-lg'],
+  clsBody: ['overflow-auto'],
+  txtTitle: computed(
+    () => `component.modal-argument-editor.text.title-argument-${props.kind}`,
+  ),
+  txtBtnOk: 'component.modal-argument-editor.btn.done.text',
+  ariaBtnClose: 'component.modal-argument-editor.btn.close.aria-label',
 });
-onBeforeUnmount(() => {
-  if (modal) {
-    modal.dispose();
-  }
-  if (elModal.value) {
-    elModal.value.removeEventListener('shown.bs.modal', onShown);
-  }
-  modal = null;
-});
-const onShown = () => {
-  if (!txtJustify.value) return;
-  txtJustify.value.focus();
-};
 
-const show = () => modal?.show();
-const hide = () => modal?.hide();
+const onShown = () => txtJustify.value?.focus();
 
-defineExpose({show, hide});
+defineExpose({...modalInterface});
 </script>
 
 <style lang="scss">
