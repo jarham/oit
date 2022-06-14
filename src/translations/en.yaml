@@ -2,7 +2,7 @@
 # Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro
 page:
   # Translations affect the HTML page directly go here
-  title: Online inquiry tool
+  title: Online Inquiry Tool
 misc:
   # The name suggested when saving new char the first time.
   default-filename: chart
