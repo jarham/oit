@@ -1,3 +1,10 @@
+## [15.0.1-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.0.0...v15.0.1-rc.1) (2022-06-15)
+
+
+### Bug Fixes
+
+* set localized page title on app mount ([2effa80](https://github.com/online-inquiry-tool/oit/commit/2effa80ad3110ae88af4da98271bc3c556d9f295))
+
 # [15.0.0](https://github.com/online-inquiry-tool/oit/compare/v14.0.0...v15.0.0) (2022-06-09)
 
 
