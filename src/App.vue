@@ -70,6 +70,7 @@ const mdlSave = ref<InstanceType<typeof ModalChartSave>>();
 
 onMounted(() => {
   resetModel();
+  setPageTitle();
 });
 
 const setPageTitle = () => {
