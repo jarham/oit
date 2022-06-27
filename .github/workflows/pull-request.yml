@@ -44,7 +44,7 @@ jobs:
       - name: Set result
         if: ${{ always() }}
         id: result
-        run: 'test -f build-ok && echo "::set-output name=result::- **✔️ Build**: Success 🛠️" || echo "::set-output name=result::- **🛑 Build**: FAILED 💩"'
+        run: 'test -f build-ok && echo "::set-output name=result::- **✔️ build**: Success 🛠️" || echo "::set-output name=result::- **🛑 build**: FAILED 💩"'
 
   deploy:
     name: Deploy
@@ -80,7 +80,7 @@ jobs:
         env:
           PR_NUM: ${{ github.event.number }}
         # NOTE: using secrets in output make GitHub to skip output!
-        run: 'test -f deploy-ok && echo "::set-output name=result::- **✔️ Deployment**: Success 🚀 Test it here: <${APP_SERVER}/pr/${PR_NUM}/${GITHUB_RUN_NUMBER}/index.html>" || echo "::set-output name=result::- **🛑 Deployment**: FAILED 💔"'
+        run: 'test -f deploy-ok && echo "::set-output name=result::- **✔️ deploy**: Success 🚀 Test it here: <${APP_SERVER}/pr/${PR_NUM}/${GITHUB_RUN_NUMBER}/index.html>" || echo "::set-output name=result::- **🛑 deploy**: FAILED 💔"'
       - name: Set test link
         if: ${{ always() }}
         id: test-link
@@ -130,15 +130,17 @@ jobs:
            echo "::set-output name=warn-many-commits::%0A**⚠️ WARNING: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check starts failing after that count! ⚠️**%0A"; \
           else echo "::set-output name=warn-many-commits::"; fi
 
-  eslint:
-    name: Run eslint
+  src-lints:
+    name: Run eslint and translations check
     # Run after build just in case to avoid cache getting messed up, but run always.
     # (Not sure if setup-node could handle parallel access).
     if: ${{ always() }}
     needs: [build]
     runs-on: ubuntu-latest
     outputs:
-      result: ${{ steps.result.outputs.result }}
+      es-result: ${{ steps.es-result.outputs.result }}
+      tr-result: ${{ steps.tr-result.outputs.result }}
+      tr-details: ${{ steps.tr-result.outputs.details }}
     steps:
       - name: Checkout
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
@@ -155,14 +157,29 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run eslint
         run: pnpm run lint && touch eslint-ok
-      - name: Set result
+      - name: Run translation check
         if: ${{ always() }}
-        id: result
+        run: |
+          pnpm run build:tools
+          node dist.local/tools/lang-check.js -m dist.local/tr-out.md && touch tr-ok
+      - name: Set eslint result
+        if: ${{ always() }}
+        id: es-result
         run: 'test -f eslint-ok && echo "::set-output name=result::- **✔️ eslint**: Success 👍" || echo "::set-output name=result::- **🛑 eslint**: FAILED 🧐"'
+      - name: Set translations check result
+        if: ${{ always() }}
+        id: tr-result
+        # NOTE: Multiline strings get "truncated" to only the first line. Newlines must be escaped as %0A.
+        # See: https://github.community/t/set-output-truncates-multiline-strings/16852/3
+        run: |
+          test -f tr-ok && echo "::set-output name=result::- **✔️ translations check**: Success 👍" || echo "::set-output name=result::- **🛑 translations check**: FAILED 🧐 (see \"Translation check problems below\")"
+          output=$(cat dist.local/tr-out.md)
+          output="${output//$'\n'/'%0A'}"
+          test -f tr-ok && echo "::set-output name=details::" || echo "::set-output name=details::${output}"
 
   comment-success:
     name: Leave a comment on success
-    needs: [build, deploy, commitlint, eslint]
+    needs: [build, deploy, commitlint, src-lints]
     runs-on: ubuntu-latest
     steps:
       - name: Leave a comment
@@ -184,7 +201,10 @@ jobs:
             ${{ needs.build.outputs.result }}
             ${{ needs.deploy.outputs.result }}
             ${{ needs.commitlint.outputs.result }}
-            ${{ needs.eslint.outputs.result }}
+            ${{ needs.src-lints.outputs.es-result }}
+            ${{ needs.src-lints.outputs.tr-result }}
+
+            ${{ needs.src-lints.outputs.tr-details }}
 
             Build job with artifacts is here: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>`
             })
@@ -192,7 +212,7 @@ jobs:
   comment-failure:
     name: Leave a comment on failure
     if: ${{ failure() }}
-    needs: [build, deploy, commitlint, eslint]
+    needs: [build, deploy, commitlint, src-lints]
     runs-on: ubuntu-latest
     steps:
       - name: Leave a comment
@@ -214,7 +234,10 @@ jobs:
             ${{ needs.build.outputs.result }}
             ${{ needs.deploy.outputs.result }}
             ${{ needs.commitlint.outputs.result }}
-            ${{ needs.eslint.outputs.result }}
+            ${{ needs.src-lints.outputs.es-result }}
+            ${{ needs.src-lints.outputs.tr-result }}
+
+            ${{ needs.src-lints.outputs.tr-details }}
 
             Build job with artifacts is here: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>`
             })

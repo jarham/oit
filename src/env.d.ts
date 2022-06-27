@@ -14,6 +14,12 @@ declare module '*/LICENSE' {
   export default str;
 }
 
+declare module '*translations/_config.yaml' {
+  import type {I18nConfig} from './lib/i18n-config';
+  const config: I18nConfig;
+  export default config;
+}
+
 // For defines in vite.config.js
 declare const __APP_VERSION__: string;
 declare const __APP_LINK__: string | null;

@@ -1,0 +1,17 @@
+# "referenceLocale" specifies the translation which
+# other translations are compared to in Github
+# "translation check".
+referenceLocale: en
+
+# "fallbackLocale" specifies vue-i18n fallback locales
+# see: https://vue-i18n.intlify.dev/guide/essentials/fallback.html
+# fallbackLocale:
+#   en-US:
+#     - en
+#   en-GB:
+#     - en
+
+# show warning in console during runtime when using fallback
+fallbackWarn: false
+# show warning in console during runtime when a translation is missing
+missingWarn: false
