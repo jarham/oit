@@ -1,3 +1,10 @@
+# [15.1.0-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.0.1-rc.1...v15.1.0-rc.1) (2022-06-27)
+
+
+### Features
+
+* add i18n config file and translations checker tool ([fa139cb](https://github.com/online-inquiry-tool/oit/commit/fa139cbd4299c8fde9cc36331eed7131c30e5f8d))
+
 ## [15.0.1-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.0.0...v15.0.1-rc.1) (2022-06-15)
 
 
