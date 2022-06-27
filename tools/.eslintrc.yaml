@@ -1,0 +1,7 @@
+extends:
+- eslint:recommended
+- plugin:@typescript-eslint/recommended
+parser: '@typescript-eslint/parser'
+# `root: true` makes eslint to ignore config file at project root
+# ie. making this file the only one affecting files in this dir.
+root: true

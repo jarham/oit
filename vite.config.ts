@@ -2,7 +2,10 @@ import {defineConfig, loadEnv} from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vueI18n from '@intlify/vite-plugin-vue-i18n';
 import {string} from 'rollup-plugin-string';
+import yaml from '@rollup/plugin-yaml';
 import * as path from 'path';
+import * as fg from 'fast-glob';
+import {configFilter, translationFilter} from './tools/file-filters';
 
 function getAppVersion(env: Record<string, string>): string {
   // env.APP_VERSION is read from .env.production.local file
@@ -39,12 +42,19 @@ export default defineConfig(({mode}) => {
           },
         }
       : undefined;
+
+  // vueI18n's `include` option uses `createFilter()` from @rollup/pluginutils
+  // which uses separate `include` and `exclude` options but vueI18n only
+  // hasn `include`. Use fast-glob to find actual translation files first.
+  const translationFiles = fg
+    .sync(translationFilter)
+    .map((f) => path.resolve(__dirname, f));
+
   return {
     plugins: [
       vue(),
-      vueI18n({
-        include: path.resolve(__dirname, './src/translations/**'),
-      }),
+      vueI18n({include: translationFiles}),
+      yaml({include: configFilter}),
       string({
         include: ['LICENSE'],
       }),
