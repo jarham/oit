@@ -114,8 +114,8 @@ const onChartSaveAs = (filename: string) => {
   dirty.value = false;
 };
 
-const onChartOpen = (hmtlSource: string) => {
-  store.loadHtmlAsModel(hmtlSource);
+const onChartOpen = (hmtlSource: string, filename: string) => {
+  store.loadHtmlAsModel(hmtlSource, filename);
 };
 
 const beforeUnloadHandler = (evt: Event) => {

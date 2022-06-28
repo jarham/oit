@@ -49,7 +49,7 @@ import {useConfirmDialog} from '@/vue-plugins/plugin-confirm-dialog';
 const emit = defineEmits<{
   (event: 'chart-new'): void;
   (event: 'chart-save'): void;
-  (event: 'chart-open', htmlSource: string): void;
+  (event: 'chart-open', htmlSource: string, filename: string): void;
   (event: 'show-languages'): void;
   (event: 'show-about'): void;
   (event: 'show-instructions'): void;
@@ -88,7 +88,7 @@ const onFileChange = () => {
     try {
       const contents = e.target?.result;
       if (typeof contents === 'string') {
-        emit('chart-open', contents);
+        emit('chart-open', contents, file.name);
       }
     } catch (e) {
       console.error(e);
