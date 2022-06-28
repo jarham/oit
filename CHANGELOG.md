@@ -1,3 +1,11 @@
+# [15.1.0-rc.5](https://github.com/online-inquiry-tool/oit/compare/v15.1.0-rc.4...v15.1.0-rc.5) (2022-06-28)
+
+
+### Bug Fixes
+
+* add visual drag handle to perspectives ([#21](https://github.com/online-inquiry-tool/oit/issues/21)) ([56d08d3](https://github.com/online-inquiry-tool/oit/commit/56d08d37899222348bc306c97176904aa403598c))
+* close argument editor dialog on done button ([#20](https://github.com/online-inquiry-tool/oit/issues/20)) ([5d219bc](https://github.com/online-inquiry-tool/oit/commit/5d219bc37db95e2db47f3384fe834457cb468cbb))
+
 # [15.1.0-rc.4](https://github.com/online-inquiry-tool/oit/compare/v15.1.0-rc.3...v15.1.0-rc.4) (2022-06-28)
 
 
