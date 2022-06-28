@@ -181,3 +181,10 @@ export function parseHtmlAsModel(source: string, idStore?: IdStore): Model {
 
   return data;
 }
+
+export function filenameToChartname(filename: string): string {
+  let split = filename.split(/[\\/]/).pop();
+  if (typeof split !== 'string') split = filename;
+  const idot = split.lastIndexOf('.');
+  return idot >= 0 ? split.substring(0, idot) : split;
+}
