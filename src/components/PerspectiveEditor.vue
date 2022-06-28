@@ -6,9 +6,10 @@
     .d-block.tabbed-box-tab.p-1.claim-perspective-title.flex-grow-1.w-100.me-2-last-0.position-relative(
       v-for='(title, i) in titles'
     )
-      .d-block(
+      .d-flex.align-items-center.me-4(
         :class='{"drag-handle": i === 0}'
       ) {{ title }}
+        i.bi.bi-grip-horizontal.fs-5.ms-3(v-if='i === 0')
       button.btn-close.btn-sm.ms-auto.position-absolute.mt-1(
         v-if='i === 0'
         style='top: 0; right: 0;'

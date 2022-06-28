@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro
-import {parseHtmlAsModel} from '@/utils';
+import {filenameToChartname, parseHtmlAsModel} from '@/utils';
 import {defineStore} from 'pinia';
 import {
   getDefaultModel,
@@ -17,7 +17,9 @@ import {
 interface StoreState {
   data: Model;
   dirty: boolean;
-  filename: string;
+  // null = use default filename from translations
+  filename: string | null;
+  saveTemplateKeys: string[];
 }
 
 export const useStore = defineStore('main', {
@@ -25,11 +27,12 @@ export const useStore = defineStore('main', {
     return {
       data: getDefaultModel(),
       dirty: false,
-      filename: '',
+      filename: null,
+      saveTemplateKeys: [],
     };
   },
   actions: {
-    newModel(filename: string) {
+    newModel(filename: string | null = null) {
       resetIds();
       this.$patch((state) => {
         state.data = getDefaultModel();
@@ -37,7 +40,7 @@ export const useStore = defineStore('main', {
         state.filename = filename;
       });
     },
-    loadHtmlAsModel(htmlSource: string) {
+    loadHtmlAsModel(htmlSource: string, filename: string) {
       try {
         // Start ids from 0 for loaded doc
         const idStore: IdStore = {
@@ -45,11 +48,13 @@ export const useStore = defineStore('main', {
           argumentId: 0,
         };
         const data = parseHtmlAsModel(htmlSource, idStore);
+
         // Reset ids taking parsed data into account
         resetIds(data);
         this.$patch((state) => {
           state.data = {...data};
           state.dirty = false;
+          state.filename = filenameToChartname(filename);
         });
       } catch (e) {
         console.error(e);

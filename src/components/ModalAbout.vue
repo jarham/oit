@@ -1,65 +1,42 @@
 <!-- SPDX-License-Identifier: BSD-2-Clause
      Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
 <template lang="pug">
-.modal.modal-about(ref='elModal')
-  .modal-dialog.modal-lg
-    .modal-content
-      .modal-header
-        h5.modal-title {{ tc('text.title') }}
-        button.btn-close(data-bs-dismiss='modal' :aria-label='tc("btn.close.aria-label")')
-      .modal-body.overflow-auto
-        section.about-license
-          h5 {{ tc('heading.license') }}
-          MarkdownElemement.mx-3(
-            :markdown='license'
-          )
-      .modal-footer
-        button.btn.btn-outline-secondary(
-          data-bs-dismiss='modal'
-          ref='btnClose'
-        ) {{ tc('btn.close.text') }}
+ModalBase.modal-about(
+  v-bind='bind'
+  ref='modal'
+)
+  template(v-slot:body)
+    section.about-license
+      h5 {{ tc('heading.license') }}
+      MarkdownElement.mx-3(
+        :markdown='license'
+      )
 </template>
 
 <script setup lang="ts">
-import {onBeforeUnmount, onMounted, ref} from 'vue';
+import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
-import {Modal} from 'bootstrap';
-import MarkdownElemement from '@/components/MarkdownElement.vue';
+import MarkdownElement from '@/components/MarkdownElement.vue';
 import LICENSE from '../../LICENSE';
+import ModalBase from '@/components/ModalBase.vue';
+import useModalBase from '@/composition/ModalBase';
 
 const {t} = useI18n();
 const tc = (s: string) => t(`component.modal-about.${s}`);
 
-const elModal = ref<HTMLDivElement>();
-let modal: Modal | null = null;
-
-const btnClose = ref<HTMLButtonElement>();
-
-onMounted(() => {
-  if (!elModal.value) return;
-  modal = new Modal(elModal.value);
-  elModal.value.addEventListener('shown.bs.modal', onShown);
+const modal = ref<InstanceType<typeof ModalBase>>();
+const {modalInterface, bind} = useModalBase(modal, {
+  haveBtnOk: false,
+  clsDialog: ['modal-lg'],
+  clsBody: ['overflow-auto'],
+  txtTitle: 'component.modal-about.text.title',
+  txtBtnCancel: 'component.modal-about.btn.close.text',
+  ariaBtnClose: 'component.modal-about.btn.close.aria-label',
 });
-onBeforeUnmount(() => {
-  if (modal) {
-    modal.dispose();
-  }
-  if (elModal.value) {
-    elModal.value.removeEventListener('shown.bs.modal', onShown);
-  }
-  modal = null;
-});
-const onShown = () => {
-  if (!btnClose.value) return;
-  btnClose.value.focus();
-};
-
-const show = () => modal?.show();
-const hide = () => modal?.hide();
 
 const license = ref(`\`\`\`\n${LICENSE}\n\`\`\``);
 
-defineExpose({show, hide});
+defineExpose({...modalInterface});
 </script>
 
 <style lang="scss">

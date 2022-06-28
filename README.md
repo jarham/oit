@@ -1,8 +1,5 @@
 # Online Inquiry Tool
 
-**NOTE: The project is currently being rewritten in Vue 3 (originally being a GWT project).**
-The original GWT code is temporarily stored in `gwt-old` directory.
-
 Online inquiry tool is licensed under Simplified BSD license.
 See file [LICENSE](LICENSE) for full license text.
 Template used for license is available here: <http://opensource.org/licenses/BSD-2-Clause>

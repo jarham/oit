@@ -8,6 +8,9 @@ import PluginConfirmDialog, {
 } from './vue-plugins/plugin-confirm-dialog';
 import App from './App.vue';
 import messages from '@intlify/vite-plugin-vue-i18n/messages';
+import i18nConfig from './translations/_config.yaml';
+import {flatten} from 'flat';
+import {useStore} from './stores/main';
 
 declare global {
   interface Navigator {
@@ -35,7 +38,7 @@ const getNavigatorLanguage = (): string => {
 };
 
 const getLocale = (): string => {
-  const supportedLocales = Object.keys(messages);
+  const supportedLocales = Object.keys(messages).map((l) => l.toLowerCase());
   const localeParts = getNavigatorLanguage().toLowerCase().split('-');
   for (let i = localeParts.length - 1; i >= 0; i--) {
     const tryLocale = localeParts.join('-');
@@ -48,7 +51,9 @@ const getLocale = (): string => {
 
 const i18n = createI18n({
   locale: getLocale(),
-  fallbackLocale,
+  fallbackLocale: i18nConfig.fallbackLocale,
+  fallbackWarn: i18nConfig.fallbackWarn,
+  missingWarn: i18nConfig.missingWarn,
   messages,
 });
 const pinia = createPinia();
@@ -59,3 +64,15 @@ app
   .use(pinia)
   .use(PluginConfirmDialog, new ConfirmDialog())
   .mount('#app');
+
+if (
+  typeof messages[i18nConfig.referenceLocale] === 'object' &&
+  messages[i18nConfig.referenceLocale] &&
+  typeof messages[i18nConfig.referenceLocale]['save-template'] === 'object' &&
+  messages[i18nConfig.referenceLocale]['save-template']
+) {
+  const store = useStore();
+  store.saveTemplateKeys = Object.keys(
+    flatten(messages[i18nConfig.referenceLocale]['save-template']),
+  ).map((k) => `t.${k}`);
+}

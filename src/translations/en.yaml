@@ -255,6 +255,41 @@ component:
       source-evaluation-reliable:
         aria-label: Source is reliable.
         title: Source is reliable.
+#
+# Save template translations are below. These are
+# shown if a saved chart is opened directly on a
+# computer or a device, for example, by double clicking
+# on a saved file in a file explorer.
+#
+# NOTE: Texts with ':' or '[]' have to be quoted.
+#
+save-template:
+  heading:
+    claim: Claim
+    conclusion: Conclusion
+    perspective: Perspective
+  perspective-items:
+    name: 'Name:'
+    questions: 'Questions:'
+    arguments-for: Arguments for
+    arguments-against: Arguments against
+    synthesis: 'Synthesis:'
+  argument-for-items:
+    argument: 'Argument:'
+    source: 'Source:'
+    reliability: 'Reliability:'
+    justification: 'Justification:'
+  argument-against-items:
+    argument: 'Argument:'
+    source: 'Source:'
+    reliability: 'Reliability:'
+    justification: 'Justification:'
+  empty-text: '[EMPTY]'
+  reliability:
+    questionable: Questionable
+    somewhat-reliable: Somewhat reliable
+    reliable: Reliable
+    not-set: '[NOT SET]'
 
 # Languages are always read from en.yaml. No need to
 # add them to other translation files. Add languages

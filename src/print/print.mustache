@@ -10,64 +10,64 @@
   <body>
     <div class="oit">
       <div>
-        <h2>Claim:</h2>
+        <h2>{{t.heading.claim}}</h2>
         <span class="oit-claim oit-text" data-text="{{claimOrig}}">{{claim}}</span>
       </div>
       <div class="oit-perspectives">
         <ul>
           {{#perspectives}}
             <li>
-              <h2>Perspective</h2>
+              <h2>{{t.heading.perspective}}</h2>
               <div class="oit-perspective">
                 <div class="hi">
-                  <strong>Name:</strong>
+                  <strong>{{t.perspective-items.name}}</strong>
                   <span class="oit-perspective-name oit-text" data-text="{{nameOrig}}">{{name}}</span>
                 </div>
                 <div class="hi">
-                  <strong>Questions:</strong>
+                  <strong>{{t.perspective-items.questions}}</strong>
                   <span class="oit-perspective-questions oit-text" data-text="{{questionsOrig}}">{{questions}}</span>
                 </div>
                 <div>
                   <table>
                     <thead>
-                      <tr><th scope="col">Arguments for</th><th scope="col">Arguments against</th></tr>
+                      <tr><th scope="col">{{t.perspective-items.arguments-for}}</th><th scope="col">{{t.perspective-items.arguments-against}}</th></tr>
                     </thead>
                     <tbody>
                     {{#arguments}}
                       <tr class="oit-arguments">
                         <td class="oit-argument oit-argument-for oit-empty-{{for.empty}}">
                           <div class="hi">
-                            <strong>Argument:</strong>
+                            <strong>{{t.argument-for-items.argument}}</strong>
                             <span class="oit-argument-for-argument oit-text" data-text="{{for.argumentOrig}}">{{for.argument}}</span>
                           </div>
                           <div class="hi">
-                            <strong>Source:</strong>
+                            <strong>{{t.argument-for-items.source}}</strong>
                             <span class="oit-argument-for-source oit-text" data-text="{{for.sourceOrig}}">{{for.source}}</span>
                           </div>
                           <div class="hi">
-                            <strong>Reliability:</strong>
-                            <span class="oit-argument-for-reliability oit-text">{{for.reliability}}</span>
+                            <strong>{{t.argument-for-items.reliability}}</strong>
+                            <span class="oit-argument-for-reliability oit-text" data-text="{{for.reliabilityOrig}}">{{for.reliability}}</span>
                           </div>
                           <div class="hi">
-                            <strong>Justification:</strong>
+                            <strong>{{t.argument-for-items.justification}}</strong>
                             <span class="oit-argument-for-justification oit-text" data-text="{{for.justificationOrig}}">{{for.justification}}</span>
                           </div>
                         </td>
                         <td class="oit-argument oit-argument-against oit-empty-{{against.empty}}">
                           <div class="hi">
-                            <strong>Argument:</strong>
+                            <strong>{{t.argument-against-items.argument}}</strong>
                             <span class="oit-argument-against-argument oit-text" data-text="{{against.argumentOrig}}">{{against.argument}}</span>
                           </div>
                           <div class="hi">
-                            <strong>Source:</strong>
+                            <strong>{{t.argument-against-items.source}}</strong>
                             <span class="oit-argument-against-source oit-text" data-text="{{against.sourceOrig}}">{{against.source}}</span>
                           </div>
                           <div class="hi">
-                            <strong>Reliability:</strong>
-                            <span class="oit-argument-against-reliability oit-text">{{against.reliability}}</span>
+                            <strong>{{t.argument-against-items.reliability}}</strong>
+                            <span class="oit-argument-against-reliability oit-text" data-text="{{against.reliabilityOrig}}">{{against.reliability}}</span>
                           </div>
                           <div class="hi">
-                            <strong>Justification:</strong>
+                            <strong>{{t.argument-against-items.justification}}</strong>
                             <span class="oit-argument-against-justification oit-text" data-text="{{against.justificationOrig}}">{{against.justification}}</span>
                           </div>
                         </td>
@@ -77,7 +77,7 @@
                   </table>
                 </div>
                 <div class="hi">
-                  <strong>Synthesis:</strong>
+                  <strong>{{t.perspective-items.synthesis}}</strong>
                   <span class="oit-perspective-synthesis oit-text" data-text="{{synthesisOrig}}">{{synthesis}}</span>
                 </div>
               </div>
@@ -86,7 +86,7 @@
         </ul>
       </div>
       <div>
-        <h2>Conclusion:</h2>
+        <h2>{{t.heading.conclusion}}</h2>
         <span class="oit-conclusion oit-text" data-text="{{conclusionOrig}}">{{conclusion}}</span>
       </div>
     </div>
