@@ -9,6 +9,8 @@ import PluginConfirmDialog, {
 import App from './App.vue';
 import messages from '@intlify/vite-plugin-vue-i18n/messages';
 import i18nConfig from './translations/_config.yaml';
+import {flatten} from 'flat';
+import {useStore} from './stores/main';
 
 declare global {
   interface Navigator {
@@ -62,3 +64,15 @@ app
   .use(pinia)
   .use(PluginConfirmDialog, new ConfirmDialog())
   .mount('#app');
+
+if (
+  typeof messages[i18nConfig.referenceLocale] === 'object' &&
+  messages[i18nConfig.referenceLocale] &&
+  typeof messages[i18nConfig.referenceLocale]['save-template'] === 'object' &&
+  messages[i18nConfig.referenceLocale]['save-template']
+) {
+  const store = useStore();
+  store.saveTemplateKeys = Object.keys(
+    flatten(messages[i18nConfig.referenceLocale]['save-template']),
+  ).map((k) => `t.${k}`);
+}

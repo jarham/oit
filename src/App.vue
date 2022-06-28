@@ -46,6 +46,8 @@ import MainView from '@/views/MainView.vue';
 import {useStore} from '@/stores/main';
 import {useConfirmDialog} from '@/vue-plugins/plugin-confirm-dialog';
 import printToHtml from '@/print/print';
+import type {PrintTranslations} from '@/print/print';
+import {unflatten} from 'flat';
 
 const store = useStore();
 const {data, dirty} = storeToRefs(store);
@@ -108,7 +110,15 @@ const onChartSave = () => {
   mdlSave.value?.show();
 };
 const onChartSaveAs = (filename: string) => {
-  const doc = printToHtml(data.value);
+  const translations = unflatten<{[key: string]: string}, PrintTranslations>(
+    Object.fromEntries(
+      store.saveTemplateKeys.map((k) => {
+        const tkey = k.replace(/^t\./, '');
+        return [tkey, t(`save-template.${tkey}`)];
+      }),
+    ),
+  );
+  const doc = printToHtml(data.value, translations);
   const blob = new Blob([doc], {type: 'text/html;charset=utf-8'});
   saveAs(blob, filename);
   dirty.value = false;

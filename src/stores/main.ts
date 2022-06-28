@@ -19,6 +19,7 @@ interface StoreState {
   dirty: boolean;
   // null = use default filename from translations
   filename: string | null;
+  saveTemplateKeys: string[];
 }
 
 export const useStore = defineStore('main', {
@@ -27,6 +28,7 @@ export const useStore = defineStore('main', {
       data: getDefaultModel(),
       dirty: false,
       filename: null,
+      saveTemplateKeys: [],
     };
   },
   actions: {

@@ -134,10 +134,26 @@ class OitHtmlParserContext implements Partial<Handler> {
     }
 
     if (current.clazz.includes('oit-argument-for-reliability') && this.af) {
-      this.af.reliability = stringToReliability(this.text.trim());
+      let val: string;
+      if (current.data.text) {
+        // doc version >= 1.1.0
+        val = current.data.text;
+      } else {
+        // doc version < 1.1.0
+        val = this.text.trim();
+      }
+      this.af.reliability = stringToReliability(val);
     }
     if (current.clazz.includes('oit-argument-against-reliability') && this.aa) {
-      this.aa.reliability = stringToReliability(this.text.trim());
+      let val: string;
+      if (current.data.text) {
+        // doc version >= 1.1.0
+        val = current.data.text;
+      } else {
+        // doc version < 1.1.0
+        val = this.text.trim();
+      }
+      this.aa.reliability = stringToReliability(val);
     }
 
     if (current.clazz.includes('oit-text')) this.readText = false;
