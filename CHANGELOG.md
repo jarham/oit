@@ -1,3 +1,20 @@
+# [15.1.0](https://github.com/online-inquiry-tool/oit/compare/v15.0.0...v15.1.0) (2022-06-28)
+
+
+### Bug Fixes
+
+* add visual drag handle to perspectives ([#21](https://github.com/online-inquiry-tool/oit/issues/21)) ([56d08d3](https://github.com/online-inquiry-tool/oit/commit/56d08d37899222348bc306c97176904aa403598c))
+* always use selected locale for suggested filename ([#14](https://github.com/online-inquiry-tool/oit/issues/14)) ([1d3acfb](https://github.com/online-inquiry-tool/oit/commit/1d3acfbf293fe46d77167467406e052fb6bcb4a2))
+* close argument editor dialog on done button ([#20](https://github.com/online-inquiry-tool/oit/issues/20)) ([5d219bc](https://github.com/online-inquiry-tool/oit/commit/5d219bc37db95e2db47f3384fe834457cb468cbb))
+* set filename of opened chart as current filename ([#16](https://github.com/online-inquiry-tool/oit/issues/16)) ([a6c8a32](https://github.com/online-inquiry-tool/oit/commit/a6c8a32c1f5f92b015ee9699894a9b0142cd0929))
+* set localized page title on app mount ([2effa80](https://github.com/online-inquiry-tool/oit/commit/2effa80ad3110ae88af4da98271bc3c556d9f295))
+
+
+### Features
+
+* add i18n config file and translations checker tool ([fa139cb](https://github.com/online-inquiry-tool/oit/commit/fa139cbd4299c8fde9cc36331eed7131c30e5f8d))
+* translate saved documents ([710561d](https://github.com/online-inquiry-tool/oit/commit/710561d21459895a79338e8e6bce601a430af1f4))
+
 # [15.1.0-rc.5](https://github.com/online-inquiry-tool/oit/compare/v15.1.0-rc.4...v15.1.0-rc.5) (2022-06-28)
 
 

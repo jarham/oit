@@ -1,7 +1,7 @@
 {
   "name": "oit",
   "private": true,
-  "version": "15.1.0-rc.5",
+  "version": "15.1.0",
   "license": "BSD-2-Clause",
   "repository": {
     "type": "git",
