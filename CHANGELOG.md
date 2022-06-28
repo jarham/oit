@@ -1,3 +1,10 @@
+# [15.1.0-rc.2](https://github.com/online-inquiry-tool/oit/compare/v15.1.0-rc.1...v15.1.0-rc.2) (2022-06-28)
+
+
+### Bug Fixes
+
+* always use selected locale for suggested filename ([#14](https://github.com/online-inquiry-tool/oit/issues/14)) ([1d3acfb](https://github.com/online-inquiry-tool/oit/commit/1d3acfbf293fe46d77167467406e052fb6bcb4a2))
+
 # [15.1.0-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.0.1-rc.1...v15.1.0-rc.1) (2022-06-27)
 
 
