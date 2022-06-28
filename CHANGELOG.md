@@ -1,3 +1,10 @@
+# [15.1.0-rc.3](https://github.com/online-inquiry-tool/oit/compare/v15.1.0-rc.2...v15.1.0-rc.3) (2022-06-28)
+
+
+### Bug Fixes
+
+* set filename of opened chart as current filename ([#16](https://github.com/online-inquiry-tool/oit/issues/16)) ([a6c8a32](https://github.com/online-inquiry-tool/oit/commit/a6c8a32c1f5f92b015ee9699894a9b0142cd0929))
+
 # [15.1.0-rc.2](https://github.com/online-inquiry-tool/oit/compare/v15.1.0-rc.1...v15.1.0-rc.2) (2022-06-28)
 
 
