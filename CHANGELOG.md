@@ -1,3 +1,10 @@
+# [15.1.0-rc.4](https://github.com/online-inquiry-tool/oit/compare/v15.1.0-rc.3...v15.1.0-rc.4) (2022-06-28)
+
+
+### Features
+
+* translate saved documents ([710561d](https://github.com/online-inquiry-tool/oit/commit/710561d21459895a79338e8e6bce601a430af1f4))
+
 # [15.1.0-rc.3](https://github.com/online-inquiry-tool/oit/compare/v15.1.0-rc.2...v15.1.0-rc.3) (2022-06-28)
 
 
