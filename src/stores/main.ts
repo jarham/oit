@@ -17,7 +17,8 @@ import {
 interface StoreState {
   data: Model;
   dirty: boolean;
-  filename: string;
+  // null = use default filename from translations
+  filename: string | null;
 }
 
 export const useStore = defineStore('main', {
@@ -25,11 +26,11 @@ export const useStore = defineStore('main', {
     return {
       data: getDefaultModel(),
       dirty: false,
-      filename: '',
+      filename: null,
     };
   },
   actions: {
-    newModel(filename: string) {
+    newModel(filename: string | null = null) {
       resetIds();
       this.$patch((state) => {
         state.data = getDefaultModel();

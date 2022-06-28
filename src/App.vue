@@ -101,8 +101,7 @@ const onChartNew = async () => {
 };
 
 const resetModel = () => {
-  const filename = t('misc.default-filename');
-  store.newModel(filename);
+  store.newModel();
 };
 
 const onChartSave = () => {
