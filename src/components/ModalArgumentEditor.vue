@@ -5,6 +5,7 @@ ModalBase.modal-argument-editor(
   v-bind='bind'
   ref='modal'
   @shown='onShown'
+  @ok='modalInterface.hide'
 )
   template(v-slot:body)
     ArgumentEditor(
