@@ -31,9 +31,11 @@ const emit = defineEmits<{
 }>();
 
 const store = useStore();
-const {filename} = storeToRefs(store);
+const {filename: storeFilename} = storeToRefs(store);
 const {t} = useI18n();
 const tc = (s: string) => t(`component.modal-chart-save.${s}`);
+
+const filename = ref('');
 
 const modal = ref<InstanceType<typeof ModalBase>>();
 const {modalInterface, bind} = useModalBase(modal, {
@@ -43,10 +45,19 @@ const {modalInterface, bind} = useModalBase(modal, {
   ariaBtnClose: 'component.modal-chart-save.btn.close.aria-label',
 });
 
-defineExpose({...modalInterface});
+const show = () => {
+  filename.value =
+    storeFilename.value !== null
+      ? storeFilename.value
+      : t('misc.default-filename');
+  modalInterface.show();
+};
+
+defineExpose({...modalInterface, show});
 
 const onSaveAs = () => {
-  emit('chart-save-as', filename.value);
+  storeFilename.value = filename.value;
+  emit('chart-save-as', filename.value || '');
   modalInterface.hide();
 };
 </script>
