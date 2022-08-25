@@ -4,7 +4,7 @@ env:
   # NOTE: APP_SERVER is used as output in few steps so it cannot be
   # secret (Github would fail to output). As the server is also
   # used in public github comments it's fine to have it here.
-  APP_SERVER: https://onlineinquirytool.org/
+  APP_SERVER: https://onlineinquirytool.org
 jobs:
   build:
     name: Build
