@@ -153,6 +153,7 @@ watch(dirty, (dirty) => {
 
 .drag-handle {
   cursor: grab;
+  border: none;
 }
 
 .tabbed-box {
