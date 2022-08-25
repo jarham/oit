@@ -1,3 +1,10 @@
+## [15.1.1](https://github.com/online-inquiry-tool/oit/compare/v15.1.0...v15.1.1) (2022-08-25)
+
+
+### Bug Fixes
+
+* **ui:** remove hover border from argument drag handle ([3c01731](https://github.com/online-inquiry-tool/oit/commit/3c0173167715f4e3b255e823c0e8d056aa64b932))
+
 ## [15.1.1-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.1.0...v15.1.1-rc.1) (2022-08-25)
 
 
