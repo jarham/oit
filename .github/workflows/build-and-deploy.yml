@@ -100,15 +100,30 @@ jobs:
       - name: Deploy to S3
         # Run only if new version is made
         if: ${{ steps.check-version.outputs.new-version == 'true' }}
+        # If releasing, store the previous release S3 prefix, if any. It's
+        # used for getting previous version assets so we can keep them (to
+        # mitigate situations where, after a new release, old index.html is served
+        # from CloudFront cache but browser uses such headers for assets that
+        # previously cached assets are not served and the request fails, see #26).
         # Always deploy to "release or rc path". Deploy releases to latest too.
+        # index.html is copied with its own cache-control for release.
         # Use sync with --delete to deploy latest. It'll delete old unused files.
         # BE CAREFUL WITH SYNC + --delete option! Don't target it to S3 root because
         # you'll EASILY DELETE EVERYTHING ELSE except new files.
         run: |
+          if [ "${GITHUB_REF_NAME}" == "main" ]; then
+            PREV_REL_PREFIX="$(aws s3api list-objects-v2 --bucket ${{ secrets.AWS_BUCKET_NAME }} --delimiter / --prefix release/ | jq -r '.CommonPrefixes | .[].Prefix' | sort -V | tail -n1)"
+          else
+            PREV_REL_PREFIX=""
+          fi
           DPATH="$(if [ "${GITHUB_REF_NAME}" == "main" ]; then echo release; else echo rc; fi)"
           REL_NAME="v$(cat .version.local)"
           aws s3 cp --recursive dist/ "s3://${{ secrets.AWS_BUCKET_NAME }}/${DPATH}/${REL_NAME}/"
           if [ "${GITHUB_REF_NAME}" == "main" ]; then
+            if [ ! -z "${PREV_REL_PREFIX}" ]; then
+              aws s3 cp --recursive "s3://${{ secrets.AWS_BUCKET_NAME }}/${PREV_REL_PREFIX}assets/" dist/assets/
+            fi
+            aws s3 cp --cache-control max-age=900,s-maxage=600 dist/index.html "s3://${{ secrets.AWS_BUCKET_NAME }}/latest/"
             aws s3 sync --delete dist/ "s3://${{ secrets.AWS_BUCKET_NAME }}/latest/"
           fi
       - name: Edit Github release
