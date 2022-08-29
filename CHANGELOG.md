@@ -1,3 +1,10 @@
+## [15.1.2-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.1.1...v15.1.2-rc.1) (2022-08-29)
+
+
+### Bug Fixes
+
+* mitigate cache problem with releasing ([1ed0536](https://github.com/online-inquiry-tool/oit/commit/1ed0536ed8b3a9b95c8e908cff3a4ba8194b60e3)), closes [#26](https://github.com/online-inquiry-tool/oit/issues/26)
+
 ## [15.1.1](https://github.com/online-inquiry-tool/oit/compare/v15.1.0...v15.1.1) (2022-08-25)
 
 
