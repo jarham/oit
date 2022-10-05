@@ -49,8 +49,8 @@ component:
         text: Sulje
   modal-argument-editor:
     text:
-      title-argument-for: Muokaa teesiä puoltavaa perustelua
-      title-argument-against: Muokka teesiä kumoavaa perustelua
+      title-argument-for: Muokkaa väitettä puoltavaa perustelua
+      title-argument-against: Muokkaa väitettä kumoavaa perustelua
     placeholder:
       justification: Kirjoita tähän perustelu luotettavuusvalinnallesi
     btn:
@@ -65,9 +65,9 @@ component:
       instructions: |
         **POHTIMISKAAVIO**
 
-        MUODOSTA TEESI TUTKITTAVASTA AIHEESTA
+        MUODOSTA VÄITE TUTKITTAVASTA AIHEESTA
 
-        Kun olet valinnut tutkittavan aiheen, kirjoita kaavioon siitä jokin teesi (esim. energiajuomat pitää kieltää).
+        Kun olet valinnut tutkittavan aiheen, kirjoita kaavioon siitä jokin väite (esim. energiajuomat pitää kieltää).
 
         MISTÄ NÄKÖKULMISTA AIHETTA VOISI TARKASTELLA?
 
@@ -75,7 +75,7 @@ component:
 
         PERUSTELUIDEN ETSIMINEN
 
-        Etsi sitten Internetistä sekä teesiä puoltavia että sitä kumoavia perusteluita. Kirjaa löytämäsi perustelut niille tarkoitettuihin laatikoihin lähdetietoineen. Lähdetiedon voit merkitä kopioimalla internetsivun osoitteen kunkin perustelun alapuolelle.
+        Etsi sitten Internetistä sekä väitettä puoltavia että sitä kumoavia perusteluita. Kirjaa löytämäsi perustelut niille tarkoitettuihin laatikoihin lähdetietoineen. Lähdetiedon voit merkitä kopioimalla internetsivun osoitteen kunkin perustelun alapuolelle.
 
         LÄHTEIDEN ARVIOINTI
 
@@ -179,8 +179,8 @@ component:
       perspective-add:
         text: Lisää näkökulma
     claim:
-      title: Teesi
-      placeholder: Kirjoita teesi tähän
+      title: Väite
+      placeholder: Kirjoita väite tähän
     conclusion:
       title: Yhteenveto asiasta
       placeholder: Kirjoita yhteenvetosi asiasta tähän
@@ -188,8 +188,8 @@ component:
     text:
       heading:
         perspective: Näkökulma
-        arguments-for: Teesiä puoltava perustelu
-        arguments-against: Teesiä kumoava perustelu
+        arguments-for: Väitettä puoltava perustelu
+        arguments-against: Väitettä kumoava perustelu
         synthesis: Synteesi
     btn:
       perspective-remove:
@@ -206,14 +206,14 @@ component:
   argument-editor:
     btn:
       argument-for-remove:
-        aria-label: Poista teesiä puoltava perustelu
-        title: Poista teesiä puoltava perustelu
+        aria-label: Poista väitettä puoltava perustelu
+        title: Poista väitettä puoltava perustelu
       argument-against-remove:
-        aria-label: Poista teesiä kumoava perustelu
-        title: Poista teesiä kumoava perustelu
+        aria-label: Poista väitettä kumoava perustelu
+        title: Poista väitettä kumoava perustelu
     placeholder:
-      argument-for: Kirjoita teesiä puoltava perustelu puolesta tähän
-      argument-against: Kirjoita teesiä kumoava perustelu vastaan tähän
+      argument-for: Kirjoita väitettä puoltava perustelu puolesta tähän
+      argument-against: Kirjoita väitettä kumoava perustelu vastaan tähän
       source-for: Laita lähde tähän
       source-against: Laita lähde tähän
   traffic-lights:
@@ -237,7 +237,7 @@ component:
 #
 save-template:
   heading:
-    claim: Teesi
+    claim: Väite
     conclusion: Yhteenveto
     perspective: Näkökulma
   perspective-items:
