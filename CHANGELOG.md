@@ -1,3 +1,10 @@
+## [15.1.3](https://github.com/online-inquiry-tool/oit/compare/v15.1.2...v15.1.3) (2022-10-05)
+
+
+### Bug Fixes
+
+* **lang fi:** change term "teesi" to "väite" ([2cf4e49](https://github.com/online-inquiry-tool/oit/commit/2cf4e491356cb783c064119306e886144e9b5718))
+
 ## [15.1.3-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.1.2...v15.1.3-rc.1) (2022-10-05)
 
 
