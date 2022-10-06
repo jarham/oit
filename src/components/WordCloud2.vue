@@ -49,23 +49,17 @@ let linkGroup: d3.Selection<
 let nodes: WordNodeDatum[] = [];
 let links: WordNodeLinkDatum[] = [];
 let reheat = false;
-let linksForce: d3.ForceLink<WordNodeDatum, WordNodeLinkDatum> | null = null;
-let centerForce: d3.ForceCenter<d3.SimulationNodeDatum> | null = null;
-let chargeForce: d3.ForceManyBody<WordNodeDatum> | null = null;
-const center: WordNodeDatum = {
-  id: 'center',
-  word: '',
-  fx: 0.5,
-  fy: 0.5,
-  collision: false,
-  br: new Flatten.Box(),
-};
 
 interface WordNodeDatum extends d3.SimulationNodeDatum {
   id: string;
   word: string;
   collision: boolean;
   br: Flatten.Box;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  index: number;
 }
 interface WordNodeLinkDatum extends d3.SimulationLinkDatum<WordNodeDatum> {
   distance: number;
@@ -91,6 +85,29 @@ function distDatum(a: WordNodeDatum, b: WordNodeDatum): number {
   return Math.sqrt((a.x || 0) - (b.x || 0) * (a.y || 0) - (b.y || 0));
 }
 
+function velocityWordNodeDatum(wd1: WordNodeDatum, i: number) {
+  // wd.vx = (Math.cos(i) * i) / (tick / 4);
+  // wd.vy = (Math.sin(i) * i) / (tick / 4);
+  for (let j = 0; j < nodes.length; j++) {
+    wd1.vx *= 0.2;
+    wd1.vy *= 0.2;
+    if (i === j) return;
+    const wd2 = nodes[j];
+    const dx = wd1.x - wd2.x;
+    const dy = wd1.y - wd2.y;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    const t = dx / d + dy / d;
+    const mx = dx / d / t;
+    const my = dy / d / t;
+    const f = (1 / (dx * dx + dy * dy)) * 100;
+    const c = wd1.br.intersect(wd2.br);
+    const af = Math.max(c ? 2 * f : f);
+
+    wd1.vx += af * (mx * dx);
+    wd1.vy += af * (my * dy);
+  }
+}
+
 const createCloud = () => {
   disposeCloud();
 
@@ -100,32 +117,7 @@ const createCloud = () => {
 
   updateContainer();
 
-  center.x = 0;
-  center.y = 0;
-  center.fx = 0;
-  center.fy = 0;
-
-  linksForce = d3.forceLink<WordNodeDatum, WordNodeLinkDatum>().id((d) => d.id);
-  // .distance((d1, i, a) => d1.distance)
-  // .distance((d1, i, a) => d1.distance)
-  // .distance((d1) => d1.distance)
-  // .iterations(1);
-  centerForce = d3.forceCenter().strength(1.5);
-  chargeForce = d3.forceManyBody<WordNodeDatum>().strength((n, i, a) => {
-    const c = a[i].br.intersect(n.br);
-    return c ? -220 : -210;
-  });
-
-  simulation = d3
-    .forceSimulation<WordNodeDatum>()
-    .alphaTarget(0.001)
-    .alphaDecay(0.005)
-    // .alphaDecay(0.0005)
-    // .force('link', linksForce)
-    .force('charge', chargeForce)
-    .force('x', d3.forceX())
-    .force('y', d3.forceY());
-  // .force('center', centerForce);
+  simulation = d3.forceSimulation<WordNodeDatum>().alphaDecay(0.00001);
 
   // TODO: w/o cast (d3.Selection is the problem in create() above)
   nodeGroup = svg.append('g').attr('class', 'nodes') as unknown as d3.Selection<
@@ -163,9 +155,6 @@ const disposeCloud = () => {
   svg = null;
   nodeGroup = null;
   nodes.splice(0, nodes.length);
-  linksForce = null;
-  centerForce = null;
-  chargeForce = null;
 };
 
 const update = () => {
@@ -180,18 +169,28 @@ const update = () => {
       word: word.text,
       x: cx,
       y: cy,
+      vx: Math.cos(n) * n,
+      vy: Math.sin(n) * n,
+      index: n,
       collision: false,
       // We get real values later after text has been added
       br: new Flatten.Box(cx, cy, cx, cy),
     };
   });
-  links = nodes.map((source) => ({
-    source,
-    target: center,
-    distance: 15,
-  }));
+  links = links.splice(0, links.length);
+  nodes.forEach((source, i) => {
+    nodes.forEach((target, j) => {
+      if (i !== j) {
+        links.push({
+          source,
+          target,
+          distance: 300,
+        });
+      }
+    });
+  });
 
-  if (!simulation || !linksForce || !linkGroup || !nodeGroup) return;
+  if (!simulation || !linkGroup || !nodeGroup) return;
 
   simulation.restart();
   if (reheat) {
@@ -202,20 +201,12 @@ const update = () => {
       .alpha(1);
   }
   simulation.nodes(nodes).on('tick', () => {
-    // linksForce?.distance((d1) =>
-    //   Math.max(30 - distDatum(d1.source, d1.target), 20),
-    // );
-    // chargeForce?.strength((n, i, a) => {
-    //   const c = a[i].br.intersect(n.br);
-    //   return c ? -10 : -1;
-    // });
     nodeGroup
       ?.selectAll<Element, WordNodeDatum>('text')
-      .attr('x', (d) => `${d.x}`)
-      .attr('y', (d) => `${d.y}`)
+      .attr('x', (d) => d.x || 0)
+      .attr('y', (d) => d.y || 0)
       // .attr('dx', (d) => ((d.x || 0) > scx ? '6' : '-6'))
       .each((wd, i, g) => {
-        // wd.br = g[i].getBoundingClientRect();
         const r = g[i].getBoundingClientRect();
         wd.br.xmin = (wd.x || 0) - r.width / 2;
         wd.br.ymin = (wd.y || 0) - r.height / 2;
@@ -228,7 +219,8 @@ const update = () => {
           nodes[j].collision ||= c;
           wd.collision ||= c;
         }
-      });
+      })
+      .each(velocityWordNodeDatum);
     nodeGroup
       ?.selectAll<Element, WordNodeDatum>('rect')
       .attr('x', (d) => d.br.xmin)
@@ -244,11 +236,9 @@ const update = () => {
       .attr('y2', (d) => d.target.y || 0);
   });
 
-  linksForce.links(links);
-
   // Using join instead of enter/exit/merge
   // See: https://observablehq.com/@d3/selection-join
-  linkGroup.selectAll('line').data(links).join('line');
+  // linkGroup.selectAll('line').data(links).join('line');
 
   const ngs = nodeGroup
     .selectAll<Element, WordNodeDatum>('g')
