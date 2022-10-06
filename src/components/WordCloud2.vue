@@ -85,21 +85,91 @@ function distDatum(a: WordNodeDatum, b: WordNodeDatum): number {
   return Math.sqrt((a.x || 0) - (b.x || 0) * (a.y || 0) - (b.y || 0));
 }
 
+/**
+ * Calculate shortest distance from point to line.
+ *
+ * @param x0 Point's x
+ * @param y0 Point's y
+ * @param x1 Line's x1
+ * @param y1 Line's y1
+ * @param x2 Line's x2
+ * @param y2 Line's y2
+ */
+function distPointLine(
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): number {
+  return (
+    Math.abs((x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) /
+    Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
+  );
+}
+
+function distDatumBox(a: WordNodeDatum, b: WordNodeDatum): number {
+  const c = a.br.intersect(a.br);
+  if (c) return 0;
+
+  // Check every box corner point's distance to line on the other box.
+  // Do it "both ways", ie. 1) a's points, b's lines, 2) b's points, a's lines
+  let d = Number.POSITIVE_INFINITY;
+  let lines = [
+    [b.br.xmin, b.br.ymin, b.br.xmax, b.br.ymin],
+    [b.br.xmax, b.br.ymin, b.br.xmax, b.br.ymax],
+    [b.br.xmax, b.br.ymax, b.br.xmin, b.br.ymax],
+    [b.br.xmin, b.br.ymax, b.br.xmin, b.br.ymin],
+  ];
+  [
+    [a.br.xmin, a.br.ymin],
+    [a.br.xmax, a.br.ymin],
+    [a.br.xmax, a.br.ymax],
+    [a.br.xmin, a.br.ymax],
+  ].forEach(([x0, y0]) => {
+    lines.forEach(([x1, y1, x2, y2]) => {
+      const d2 = distPointLine(x0, y0, x1, y1, x2, y2);
+      if (d2 < d) d = d2;
+    });
+  });
+  lines = [
+    [a.br.xmin, a.br.ymin, a.br.xmax, a.br.ymin],
+    [a.br.xmax, a.br.ymin, a.br.xmax, a.br.ymax],
+    [a.br.xmax, a.br.ymax, a.br.xmin, a.br.ymax],
+    [a.br.xmin, a.br.ymax, a.br.xmin, a.br.ymin],
+  ];
+  [
+    [b.br.xmin, b.br.ymin],
+    [b.br.xmax, b.br.ymin],
+    [b.br.xmax, b.br.ymax],
+    [b.br.xmin, b.br.ymax],
+  ].forEach(([x0, y0]) => {
+    lines.forEach(([x1, y1, x2, y2]) => {
+      const d2 = distPointLine(x0, y0, x1, y1, x2, y2);
+      if (d2 < d) d = d2;
+    });
+  });
+
+  return d;
+}
+
 function velocityWordNodeDatum(wd1: WordNodeDatum, i: number) {
   // wd.vx = (Math.cos(i) * i) / (tick / 4);
   // wd.vy = (Math.sin(i) * i) / (tick / 4);
   for (let j = 0; j < nodes.length; j++) {
     wd1.vx *= 0.2;
     wd1.vy *= 0.2;
-    if (i === j) return;
+    if (i === j) continue;
     const wd2 = nodes[j];
     const dx = wd1.x - wd2.x;
     const dy = wd1.y - wd2.y;
-    const d = Math.sqrt(dx * dx + dy * dy);
+    // const d = Math.sqrt(dx * dx + dy * dy);
+    const d = distDatumBox(wd1, wd2) || 0.00001;
     const t = dx / d + dy / d;
     const mx = dx / d / t;
     const my = dy / d / t;
-    const f = (1 / (dx * dx + dy * dy)) * 100;
+    const f = (1 / (dx * dx + dy * dy)) * 10;
     const c = wd1.br.intersect(wd2.br);
     const af = Math.max(c ? 2 * f : f);
 
@@ -117,7 +187,7 @@ const createCloud = () => {
 
   updateContainer();
 
-  simulation = d3.forceSimulation<WordNodeDatum>().alphaDecay(0.00001);
+  simulation = d3.forceSimulation<WordNodeDatum>().alphaDecay(0.001);
 
   // TODO: w/o cast (d3.Selection is the problem in create() above)
   nodeGroup = svg.append('g').attr('class', 'nodes') as unknown as d3.Selection<
@@ -169,8 +239,8 @@ const update = () => {
       word: word.text,
       x: cx,
       y: cy,
-      vx: Math.cos(n) * n,
-      vy: Math.sin(n) * n,
+      vx: Math.cos(n * 2) * n * 10,
+      vy: Math.sin(n * 2) * n * 10,
       index: n,
       collision: false,
       // We get real values later after text has been added
