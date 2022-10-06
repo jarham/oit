@@ -10,7 +10,7 @@
       button.btn.btn-outline-primary.btn-sm.me-1(
         @click='$emit("show-about")'
       ) {{ tc('btn.about.text') }}
-    .d-block.toolbar.mb-1
+    .d-flex.toolbar.mb-1
       button.btn.btn-outline-primary.btn-sm.me-1(
         @click='onOpenChart'
       ) {{ tc('btn.chart-open.text') }}
@@ -22,6 +22,9 @@
           accept='.html,.htm'
           @change='onFileChange'
         )
+      button.btn.btn-outline-primary.btn-sm.me-1(
+        @click='$emit("show-perspective-palette")'
+      ) {{ tc('btn.perspective-palette-show.text') }}
     .d-flex.toolbar.mb-1
       button.btn.btn-outline-primary.btn-sm.me-1(
         @click='$emit("chart-save")'
@@ -52,6 +55,7 @@ const emit = defineEmits<{
   (event: 'chart-open', htmlSource: string, filename: string): void;
   (event: 'show-languages'): void;
   (event: 'show-about'): void;
+  (event: 'show-perspective-palette'): void;
   (event: 'show-instructions'): void;
 }>();
 

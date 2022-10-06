@@ -23,6 +23,8 @@ component:
         text: Tallenna kaavio
       about:
         text: Tietoja sovelluksesta
+      perspective-palette-show:
+        text: Näkökulmapaletti
       instructions:
         text: Ohjeet
     text:
@@ -91,6 +93,29 @@ component:
     btn:
       close:
         aria-label: Sulje ohjeet
+        text: Sulje
+  modal-perspective-palette:
+    text:
+      title: Näkökulmapaletti
+      perspectives: |
+        näkökulma 0001
+        näkökulma 0002
+        näkökulma 0003
+        näkökulma 0004
+        näkökulma 0005
+        näkökulma 0006
+        näkökulma 0007
+        näkökulma 0008
+        näkökulma 0009
+        näkökulma 0010
+        näkökulma 0011
+        näkökulma 0012
+        näkökulma 0013
+        näkökulma 0014
+        näkökulma 0015
+    btn:
+      close:
+        aria-label: Sulje näkökulmapaletti
         text: Sulje
   modal-confirm:
     # Translations action confirmations

@@ -23,6 +23,8 @@ component:
         text: Save chart
       about:
         text: About
+      perspective-palette-show:
+        text: Palette of perspectives
       instructions:
         text: Instructions
     text:
@@ -119,6 +121,29 @@ component:
     btn:
       close:
         aria-label: Close instructions dialog
+        text: Close
+  modal-perspective-palette:
+    text:
+      title: Palette of perspectives
+      perspectives: |
+        perspective 0001
+        perspective 0002
+        perspective 0003
+        perspective 0004
+        perspective 0005
+        perspective 0006
+        perspective 0007
+        perspective 0008
+        perspective 0009
+        perspective 0010
+        perspective 0011
+        perspective 0012
+        perspective 0013
+        perspective 0014
+        perspective 0015
+    btn:
+      close:
+        aria-label: Close palette of perspectives
         text: Close
   modal-confirm:
     # Translations action confirmations
