@@ -49,6 +49,7 @@ let linkGroup: d3.Selection<
 let nodes: WordNodeDatum[] = [];
 let links: WordNodeLinkDatum[] = [];
 let reheat = false;
+let t = 0;
 
 interface WordNodeDatum extends d3.SimulationNodeDatum {
   id: string;
@@ -60,6 +61,7 @@ interface WordNodeDatum extends d3.SimulationNodeDatum {
   vx: number;
   vy: number;
   index: number;
+  type: 'word' | 'center';
 }
 interface WordNodeLinkDatum extends d3.SimulationLinkDatum<WordNodeDatum> {
   distance: number;
@@ -154,12 +156,43 @@ function distDatumBox(a: WordNodeDatum, b: WordNodeDatum): number {
   return d;
 }
 
+function forceBoxSeparation() {
+  let nodes: WordNodeDatum[] | null = null;
+  let tf = 0;
+  const f = (alpha: number) => {
+    let colls = false;
+    nodes?.forEach((wd1, i) => {
+      nodes?.forEach((wd2, j) => {
+        if (i === j) return;
+        const c = wd1.br.intersect(wd2.br);
+        colls ||= c;
+        const dx = wd1.x - wd2.x;
+        const dy = wd1.y - wd2.y;
+        // const d = Math.sqrt(dx * dx + dy * dy);
+        const d = distDatumBox(wd1, wd2) || 0.00001;
+        const tot = dx / d + dy / d;
+        const mx = dx / d / tot;
+        const my = dy / d / tot;
+        const ff = Math.min(Math.pow(tf * 0.1, 3), 100);
+        const f = (1 / (dx * dx + dy * dy)) * ff;
+        const af = Math.max(c ? f * 10 : 0);
+
+        wd1.vx += af * (mx * dx);
+        wd1.vy += af * (my * dy);
+      });
+    });
+    tf = Math.max(tf + (colls ? 1 : -1), 0);
+  };
+  f.initialize = (newNodes: WordNodeDatum[]) => (nodes = newNodes);
+  return f;
+}
+
 function velocityWordNodeDatum(wd1: WordNodeDatum, i: number) {
   // wd.vx = (Math.cos(i) * i) / (tick / 4);
   // wd.vy = (Math.sin(i) * i) / (tick / 4);
   for (let j = 0; j < nodes.length; j++) {
-    wd1.vx *= 0.2;
-    wd1.vy *= 0.2;
+    // wd1.vx *= 0.2;
+    // wd1.vy *= 0.2;
     if (i === j) continue;
     const wd2 = nodes[j];
     const dx = wd1.x - wd2.x;
@@ -181,13 +214,23 @@ function velocityWordNodeDatum(wd1: WordNodeDatum, i: number) {
 const createCloud = () => {
   disposeCloud();
 
+  t = 0;
+
   if (!elWordCloud.value) return;
   svg = d3.create('svg').attr('viewBox', [0, 0, width, height]);
   // .style('font', '10px sans-serif');
 
   updateContainer();
 
-  simulation = d3.forceSimulation<WordNodeDatum>().alphaDecay(0.001);
+  let forceCharge = d3.forceManyBody<WordNodeDatum>().strength(-30);
+
+  simulation = d3
+    .forceSimulation<WordNodeDatum>()
+    .alphaDecay(0.01)
+    .force('charge', forceCharge)
+    .force('x', d3.forceX().strength(0.01))
+    .force('y', d3.forceY().strength(0.008))
+    .force('separate', forceBoxSeparation());
 
   // TODO: w/o cast (d3.Selection is the problem in create() above)
   nodeGroup = svg.append('g').attr('class', 'nodes') as unknown as d3.Selection<
@@ -239,12 +282,13 @@ const update = () => {
       word: word.text,
       x: cx,
       y: cy,
-      vx: Math.cos(n * 2) * n * 10,
-      vy: Math.sin(n * 2) * n * 10,
+      // vx: Math.cos(n * 2) * n * 10,
+      // vy: Math.sin(n * 2) * n * 10,
       index: n,
       collision: false,
       // We get real values later after text has been added
       br: new Flatten.Box(cx, cy, cx, cy),
+      type: 'word',
     };
   });
   links = links.splice(0, links.length);
@@ -271,6 +315,7 @@ const update = () => {
       .alpha(1);
   }
   simulation.nodes(nodes).on('tick', () => {
+    t++;
     nodeGroup
       ?.selectAll<Element, WordNodeDatum>('text')
       .attr('x', (d) => d.x || 0)
@@ -278,10 +323,10 @@ const update = () => {
       // .attr('dx', (d) => ((d.x || 0) > scx ? '6' : '-6'))
       .each((wd, i, g) => {
         const r = g[i].getBoundingClientRect();
-        wd.br.xmin = (wd.x || 0) - r.width / 2;
-        wd.br.ymin = (wd.y || 0) - r.height / 2;
-        wd.br.xmax = wd.br.xmin + r.width;
-        wd.br.ymax = wd.br.ymin + r.height;
+        wd.br.xmin = (wd.x || 0) - (r.width + 30) / 2;
+        wd.br.ymin = (wd.y || 0) - (r.height + 20) / 2;
+        wd.br.xmax = wd.br.xmin + r.width + 30;
+        wd.br.ymax = wd.br.ymin + r.height + 20;
         wd.collision = false;
 
         for (let j = 0; j < i; j++) {
@@ -289,8 +334,8 @@ const update = () => {
           nodes[j].collision ||= c;
           wd.collision ||= c;
         }
-      })
-      .each(velocityWordNodeDatum);
+      });
+    // .each(velocityWordNodeDatum);
     nodeGroup
       ?.selectAll<Element, WordNodeDatum>('rect')
       .attr('x', (d) => d.br.xmin)
