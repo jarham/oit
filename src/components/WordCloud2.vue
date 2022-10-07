@@ -9,6 +9,8 @@
 import * as d3 from 'd3';
 import Flatten from '@flatten-js/core';
 import {computed, onBeforeUnmount, onMounted, ref} from 'vue';
+import * as kld from 'kld-intersections';
+console.log(kld);
 
 interface Props {
   // words as \n separated string
@@ -56,6 +58,7 @@ interface WordNodeDatum extends d3.SimulationNodeDatum {
   word: string;
   collision: boolean;
   br: Flatten.Box;
+  el: kld.Ellipse;
   x: number;
   y: number;
   vx: number;
@@ -282,12 +285,13 @@ const update = () => {
       word: word.text,
       x: cx,
       y: cy,
-      // vx: Math.cos(n * 2) * n * 10,
-      // vy: Math.sin(n * 2) * n * 10,
+      vx: 0,
+      vy: 0,
       index: n,
       collision: false,
       // We get real values later after text has been added
       br: new Flatten.Box(cx, cy, cx, cy),
+      el: kld.ShapeInfo.ellipse({cx: 0, cy: 0, rx: 0, ry: 0}),
       type: 'word',
     };
   });
@@ -327,11 +331,25 @@ const update = () => {
         wd.br.ymin = (wd.y || 0) - (r.height + 20) / 2;
         wd.br.xmax = wd.br.xmin + r.width + 30;
         wd.br.ymax = wd.br.ymin + r.height + 20;
+
         wd.collision = false;
 
+        // for (let j = 0; j < i; j++) {
+        //   const c = nodes[j].br.intersect(wd.br);
+        //   nodes[j].collision ||= c;
+        //   wd.collision ||= c;
+        // }
+
+        wd.el = kld.ShapeInfo.ellipse({
+          cx: wd.br.xmin + (wd.br.xmax - wd.br.xmin) / 2,
+          cy: wd.br.ymin + (wd.br.ymax - wd.br.ymin) / 2,
+          rx: (wd.br.xmax - wd.br.xmin) / 2,
+          ry: (wd.br.ymax - wd.br.ymin) / 2,
+        });
+
         for (let j = 0; j < i; j++) {
-          const c = nodes[j].br.intersect(wd.br);
-          nodes[j].collision ||= c;
+          const c = kld.Intersection.intersect(wd.el, nodes[j].el);
+          nodes[j].collision ||= c.status === 'Intersection';
           wd.collision ||= c;
         }
       });
@@ -341,8 +359,15 @@ const update = () => {
       .attr('x', (d) => d.br.xmin)
       .attr('y', (d) => d.br.ymin)
       .attr('width', (d) => d.br.xmax - d.br.xmin)
-      .attr('stroke', (d) => (d.collision ? '#f00' : '#000'))
-      .attr('height', (d) => d.br.ymax - d.br.ymin);
+      .attr('height', (d) => d.br.ymax - d.br.ymin)
+      .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
+    nodeGroup
+      ?.selectAll<Element, WordNodeDatum>('ellipse')
+      .attr('cx', (d) => d.el.args[0].x)
+      .attr('cy', (d) => d.el.args[0].y)
+      .attr('rx', (d) => d.el.args[1])
+      .attr('ry', (d) => d.el.args[2])
+      .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
     linkGroup
       ?.selectAll<Element, WordNodeLinkDatum>('line')
       .attr('x1', (d) => d.source.x || 0)
@@ -379,6 +404,11 @@ const update = () => {
         .attr('text-anchor', 'middle')
         .text((d) => d.word);
       g.append('rect')
+        .attr('fill', 'none')
+        .attr('stroke', '#000')
+        // .attr('transform', 'rotate(14)')
+        .attr('stroke-width', 0.5);
+      g.append('ellipse')
         .attr('fill', 'none')
         .attr('stroke', '#000')
         // .attr('transform', 'rotate(14)')
