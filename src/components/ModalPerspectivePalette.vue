@@ -22,6 +22,7 @@ ModalBase.modal-perspective-palette(
       :f-sep-v-strength='fSepVStrength'
       :f-sep-p='fSepPEnable'
       :f-sep-p-strength='fSepPStrength'
+      :sim-auto-run='simAutoRun'
       ref='wordCloud'
       @click='wordCloud?.createCloud()'
     )
@@ -80,6 +81,20 @@ ModalBase.modal-perspective-palette(
             input#wc-f-sep-p.form-check-input.mt-0(type='checkbox' v-model='fSepPEnable')
           label.input-group-text(for='wc-f-sep-p-str') Strength
           input#wc-f-sep-p-str.form-control(type='number' min='0' v-model='fSepPStrength')
+    .d-flex
+      .input-group.input-group-sm.mb-2
+          label.input-group-text(for='wc-sim-auto-run') Auto run
+          .input-group-text
+            input#wc-sim-auto-run.form-check-input.mt-0(type='checkbox' v-model='simAutoRun')
+          button.btn.btn-outline-primary(
+            :disabled='simAutoRun'
+            @click='wordCloud?.tick(simStepSize)'
+          ) Step
+          input#sim-step-count.form-control(type='number' min='0' v-model='simStepSize' style='max-width: 12ch;')
+          label.input-group-text(for='wc-sim-step-count') Steps
+          button.btn.btn-outline-primary(
+            @click='wordCloud?.createCloud()'
+          ) Reset simulation
 
 </template>
 
@@ -114,10 +129,15 @@ const fSepVStrength = ref(2);
 const fSepPEnable = ref(true);
 const fSepPStrength = ref(1);
 
-watch([], () => wordCloud.value?.createCloud());
+const simAutoRun = ref(true);
+const simStepSize = ref(1);
+
 watch(
   [showDebugInfo, showCollisionShape, collisionShape, shapePx, shapePy],
   () => nextTick(() => wordCloud.value?.updateNodes()),
+);
+watch(simAutoRun, (auto) =>
+  auto ? wordCloud.value?.start() : wordCloud.value?.stop(),
 );
 
 const modal = ref<InstanceType<typeof ModalBase>>();

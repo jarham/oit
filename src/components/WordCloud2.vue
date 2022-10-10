@@ -29,6 +29,7 @@ interface Props {
   fSepVStrength?: number;
   fSepP?: boolean;
   fSepPStrength?: number;
+  simAutoRun?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {
   collisionShape: 'rectangle',
@@ -45,6 +46,7 @@ const props = withDefaults(defineProps<Props>(), {
   fSepVStrength: 1,
   fSepP: false,
   fSepPStrength: 1,
+  simAutoRun: true,
 });
 
 const elWordCloud = ref<HTMLDivElement>();
@@ -459,13 +461,25 @@ const updateNodes = () => {
     .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
 };
 
+const onTick = () => {
+  console.log('tick');
+  t++;
+  updateNodes();
+  linkGroup
+    ?.selectAll<Element, WordNodeLinkDatum>('line')
+    .attr('x1', (d) => d.source.x || 0)
+    .attr('y1', (d) => d.source.y || 0)
+    .attr('x2', (d) => d.target.x || 0)
+    .attr('y2', (d) => d.target.y || 0);
+};
+
 const update = () => {
   // TODO: check resize
   // if (needsLinkResize) resizePeersLinks();
   // console.log('update', nodes, linksActive);
   nodes = cloudWords.value.map((word, n) => {
-    const cx = Math.cos(n) * n;
-    const cy = Math.sin(n) * n;
+    const cx = Math.cos(n) * (n + 30) * 2;
+    const cy = Math.sin(n) * (n + 30) * 2;
     return {
       id: `word-${n}`,
       word: word.text,
@@ -481,6 +495,7 @@ const update = () => {
       type: 'word',
     };
   });
+  console.log(nodes);
   links = links.splice(0, links.length);
   nodes.forEach((source, i) => {
     nodes.forEach((target, j) => {
@@ -496,7 +511,8 @@ const update = () => {
 
   if (!simulation || !linkGroup || !nodeGroup) return;
 
-  simulation.restart();
+  if (props.simAutoRun) simulation.restart();
+  else simulation.stop();
   if (reheat) {
     reheat = false;
     simulation
@@ -504,16 +520,7 @@ const update = () => {
       // https://github.com/d3/d3-force#simulation_restart
       .alpha(1);
   }
-  simulation.nodes(nodes).on('tick', () => {
-    t++;
-    updateNodes();
-    linkGroup
-      ?.selectAll<Element, WordNodeLinkDatum>('line')
-      .attr('x1', (d) => d.source.x || 0)
-      .attr('y1', (d) => d.source.y || 0)
-      .attr('x2', (d) => d.target.x || 0)
-      .attr('y2', (d) => d.target.y || 0);
-  });
+  simulation.nodes(nodes).on('tick', onTick);
 
   // Using join instead of enter/exit/merge
   // See: https://observablehq.com/@d3/selection-join
@@ -557,6 +564,7 @@ const update = () => {
       update.selectAll<Element, WordNodeDatum>('text').text((d) => d.word);
     },
   );
+  updateNodes();
 };
 
 onMounted(() => {
@@ -574,6 +582,13 @@ defineExpose({
   updateNodes: () => {
     updateNodes();
   },
+  tick: (ticks?: number) => {
+    // NOTE: simuation.tick()
+    simulation?.tick(ticks);
+    onTick();
+  },
+  stop: () => simulation?.stop(),
+  start: () => simulation?.restart(),
 });
 </script>
 <style lang="scss">
