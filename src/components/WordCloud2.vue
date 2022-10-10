@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: BSD-2-Clause
      Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
 <template lang="pug">
-.word-cloud(@click='onClick')
+.word-cloud
   .word-cloud-body(ref='elWordCloud')
 </template>
 
@@ -15,8 +15,37 @@ console.log(kld);
 interface Props {
   // words as \n separated string
   words: string;
+  collisionShape?: 'rectangle' | 'ellipse';
+  showCollisionShape?: boolean;
+  px?: number;
+  py?: number;
+  fCharge?: boolean;
+  fChargeStrength?: number;
+  fX?: boolean;
+  fXStrength?: number;
+  fY?: boolean;
+  fYStrength?: number;
+  fSepV?: boolean;
+  fSepVStrength?: number;
+  fSepP?: boolean;
+  fSepPStrength?: number;
 }
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  collisionShape: 'rectangle',
+  showCollisionShape: false,
+  px: 30,
+  py: 20,
+  fCharge: true,
+  fChargeStrength: -30,
+  fX: true,
+  fXStrength: 0.02,
+  fY: true,
+  fYStrength: 0.02,
+  fSepV: true,
+  fSepVStrength: 1,
+  fSepP: false,
+  fSepPStrength: 1,
+});
 
 const elWordCloud = ref<HTMLDivElement>();
 const cloudWords = computed(() =>
@@ -159,16 +188,30 @@ function distDatumBox(a: WordNodeDatum, b: WordNodeDatum): number {
   return d;
 }
 
-function forceBoxSeparation() {
+// type StrFn = (() => number) & ((strength: number) => ForceSeparate);
+type StrFn = {(): number; (strength: number): ForceSeparate};
+interface ForceSeparate extends d3.Force<WordNodeDatum, any> {
+  strength(this: ForceSeparate): number;
+  strength(this: ForceSeparate, str: number): ForceSeparate;
+}
+
+function forceBoxSeparationV(): ForceSeparate {
   let nodes: WordNodeDatum[] | null = null;
   let tf = 0;
+  let str = 1;
   const f = (alpha: number) => {
     let colls = false;
     nodes?.forEach((wd1, i) => {
       nodes?.forEach((wd2, j) => {
         if (i === j) return;
-        const ints = kld.Intersection.intersect(wd1.el, wd2.el);
-        const c = ints.status === 'Intersection';
+
+        // const ints = kld.Intersection.intersect(wd1.el, wd2.el);
+        // const c = ints.status === 'Intersection';
+        const c =
+          props.collisionShape === 'rectangle'
+            ? wd1.br.intersect(wd2.br)
+            : kld.Intersection.intersect(wd1.el, wd2.el).status ===
+              'Intersection';
 
         // const c = wd1.br.intersect(wd2.br);
 
@@ -183,16 +226,71 @@ function forceBoxSeparation() {
         const my = dy / d / tot;
         const ff = Math.min(Math.pow(tf * 0.1, 3), 100);
         const f = (1 / (dx * dx + dy * dy)) * ff;
-        const af = Math.max(c ? f * 10 : 0);
+        const af = Math.max(c ? f : 0);
 
-        wd1.vx += af * (mx * dx);
-        wd1.vy += af * (my * dy);
+        wd1.vx += str * af * (mx * dx);
+        wd1.vy += str * af * (my * dy);
       });
     });
     tf = Math.max(tf + (colls ? 1 : -1), 0);
   };
   f.initialize = (newNodes: WordNodeDatum[]) => (nodes = newNodes);
-  return f;
+  f.strength = function (this: ForceSeparate, s?: number) {
+    if (typeof s === 'number') {
+      str = s;
+      return f;
+    }
+    return str;
+  };
+  // TODO: w/o cast
+  return f as ForceSeparate;
+}
+
+function forceBoxSeparationP(): ForceSeparate {
+  let nodes: WordNodeDatum[] | null = null;
+  let str = 1;
+  let tf = 0;
+  const f = (alpha: number) => {
+    let colls = false;
+    nodes?.forEach((wd1, i) => {
+      nodes?.forEach((wd2, j) => {
+        if (i === j) return;
+
+        const c =
+          props.collisionShape === 'rectangle'
+            ? wd1.br.intersect(wd2.br)
+            : kld.Intersection.intersect(wd1.el, wd2.el).status ===
+              'Intersection';
+
+        colls ||= c;
+
+        const dx = wd1.x - wd2.x;
+        const dy = wd1.y - wd2.y;
+        // const d = Math.sqrt(dx * dx + dy * dy);
+        const d = distDatumBox(wd1, wd2) || 0.00001;
+        const tot = dx / d + dy / d;
+        const mx = dx / d / tot;
+        const my = dy / d / tot;
+        const ff = Math.min(Math.pow(tf * 0.1, 3), 100);
+        const f = (1 / (dx * dx + dy * dy)) * ff;
+        const af = Math.max(c ? f : 0);
+
+        wd1.x += str * af * (mx * dx);
+        wd1.y += str * af * (my * dy);
+      });
+    });
+    tf = Math.max(tf + (colls ? 1 : -1), 0);
+  };
+  f.initialize = (newNodes: WordNodeDatum[]) => (nodes = newNodes);
+  f.strength = function (this: ForceSeparate, s?: number) {
+    if (typeof s === 'number') {
+      str = s;
+      return f;
+    }
+    return str;
+  };
+  // TODO: w/o cast
+  return f as ForceSeparate;
 }
 
 function velocityWordNodeDatum(wd1: WordNodeDatum, i: number) {
@@ -219,6 +317,20 @@ function velocityWordNodeDatum(wd1: WordNodeDatum, i: number) {
   }
 }
 
+let forceCharge: d3.ForceManyBody<WordNodeDatum>;
+let forceX: d3.ForceX<d3.SimulationNodeDatum>;
+let forceY: d3.ForceY<d3.SimulationNodeDatum>;
+let forceSepV: ForceSeparate;
+let forceSepP: ForceSeparate;
+
+const updateForces = () => {
+  forceCharge.strength(props.fCharge ? props.fChargeStrength : 0);
+  forceX.strength(props.fX ? props.fXStrength : 0);
+  forceY.strength(props.fY ? props.fYStrength : 0);
+  forceSepV.strength(props.fSepV ? props.fSepVStrength : 0);
+  forceSepP.strength(props.fSepP ? props.fSepPStrength : 0);
+};
+
 const createCloud = () => {
   disposeCloud();
 
@@ -230,15 +342,21 @@ const createCloud = () => {
 
   updateContainer();
 
-  let forceCharge = d3.forceManyBody<WordNodeDatum>().strength(-30);
+  forceCharge = d3.forceManyBody<WordNodeDatum>();
+  forceX = d3.forceX();
+  forceY = d3.forceY();
+  forceSepV = forceBoxSeparationV();
+  forceSepP = forceBoxSeparationP();
+  updateForces();
 
   simulation = d3
     .forceSimulation<WordNodeDatum>()
     .alphaDecay(0.01)
     .force('charge', forceCharge)
-    .force('x', d3.forceX().strength(0.01))
-    .force('y', d3.forceY().strength(0.008))
-    .force('separate', forceBoxSeparation());
+    .force('x', forceX)
+    .force('y', forceY)
+    .force('separateV', forceSepV)
+    .force('separateP', forceSepP);
 
   // TODO: w/o cast (d3.Selection is the problem in create() above)
   nodeGroup = svg.append('g').attr('class', 'nodes') as unknown as d3.Selection<
@@ -276,6 +394,66 @@ const disposeCloud = () => {
   svg = null;
   nodeGroup = null;
   nodes.splice(0, nodes.length);
+};
+
+const updateNodes = () => {
+  nodeGroup
+    ?.selectAll<Element, WordNodeDatum>('text')
+    .attr('x', (d) => d.x || 0)
+    .attr('y', (d) => d.y || 0)
+    // .attr('dx', (d) => ((d.x || 0) > scx ? '6' : '-6'))
+    .each((wd1, i, g) => {
+      const r = g[i].getBoundingClientRect();
+      wd1.br.xmin = (wd1.x || 0) - (r.width + props.px) / 2;
+      wd1.br.ymin = (wd1.y || 0) - (r.height + props.py) / 2;
+      wd1.br.xmax = wd1.br.xmin + r.width + props.px;
+      wd1.br.ymax = wd1.br.ymin + r.height + props.py;
+
+      wd1.collision = false;
+
+      wd1.el = kld.ShapeInfo.ellipse({
+        cx: wd1.br.xmin + (wd1.br.xmax - wd1.br.xmin) / 2,
+        cy: wd1.br.ymin + (wd1.br.ymax - wd1.br.ymin) / 2,
+        rx: (wd1.br.xmax - wd1.br.xmin) / 2,
+        ry: (wd1.br.ymax - wd1.br.ymin) / 2,
+      });
+
+      for (let j = 0; j < i; j++) {
+        const wd2 = nodes[j];
+        const c =
+          props.collisionShape === 'rectangle'
+            ? wd1.br.intersect(wd2.br)
+            : kld.Intersection.intersect(wd1.el, wd2.el).status ===
+              'Intersection';
+        wd1.collision ||= c;
+        wd2.collision ||= c;
+      }
+    });
+  // .each(velocityWordNodeDatum);
+  nodeGroup
+    ?.selectAll<Element, WordNodeDatum>('rect')
+    .attr('x', (d) => d.br.xmin)
+    .attr('y', (d) => d.br.ymin)
+    .attr('width', (d) => d.br.xmax - d.br.xmin)
+    .attr('height', (d) => d.br.ymax - d.br.ymin)
+    .attr('display', () =>
+      props.collisionShape === 'rectangle' && props.showCollisionShape
+        ? null
+        : 'none',
+    )
+    .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
+  nodeGroup
+    ?.selectAll<Element, WordNodeDatum>('ellipse')
+    .attr('cx', (d) => d.el.args[0].x)
+    .attr('cy', (d) => d.el.args[0].y)
+    .attr('rx', (d) => d.el.args[1])
+    .attr('ry', (d) => d.el.args[2])
+    .attr('display', () =>
+      props.collisionShape === 'ellipse' && props.showCollisionShape
+        ? null
+        : 'none',
+    )
+    .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
 };
 
 const update = () => {
@@ -325,54 +503,7 @@ const update = () => {
   }
   simulation.nodes(nodes).on('tick', () => {
     t++;
-    nodeGroup
-      ?.selectAll<Element, WordNodeDatum>('text')
-      .attr('x', (d) => d.x || 0)
-      .attr('y', (d) => d.y || 0)
-      // .attr('dx', (d) => ((d.x || 0) > scx ? '6' : '-6'))
-      .each((wd, i, g) => {
-        const r = g[i].getBoundingClientRect();
-        wd.br.xmin = (wd.x || 0) - (r.width + 30) / 2;
-        wd.br.ymin = (wd.y || 0) - (r.height + 20) / 2;
-        wd.br.xmax = wd.br.xmin + r.width + 30;
-        wd.br.ymax = wd.br.ymin + r.height + 20;
-
-        wd.collision = false;
-
-        // for (let j = 0; j < i; j++) {
-        //   const c = nodes[j].br.intersect(wd.br);
-        //   nodes[j].collision ||= c;
-        //   wd.collision ||= c;
-        // }
-
-        wd.el = kld.ShapeInfo.ellipse({
-          cx: wd.br.xmin + (wd.br.xmax - wd.br.xmin) / 2,
-          cy: wd.br.ymin + (wd.br.ymax - wd.br.ymin) / 2,
-          rx: (wd.br.xmax - wd.br.xmin) / 2,
-          ry: (wd.br.ymax - wd.br.ymin) / 2,
-        });
-
-        for (let j = 0; j < i; j++) {
-          const c = kld.Intersection.intersect(wd.el, nodes[j].el);
-          nodes[j].collision ||= c.status === 'Intersection';
-          wd.collision ||= c.status === 'Intersection';
-        }
-      });
-    // .each(velocityWordNodeDatum);
-    nodeGroup
-      ?.selectAll<Element, WordNodeDatum>('rect')
-      .attr('x', (d) => d.br.xmin)
-      .attr('y', (d) => d.br.ymin)
-      .attr('width', (d) => d.br.xmax - d.br.xmin)
-      .attr('height', (d) => d.br.ymax - d.br.ymin)
-      .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
-    nodeGroup
-      ?.selectAll<Element, WordNodeDatum>('ellipse')
-      .attr('cx', (d) => d.el.args[0].x)
-      .attr('cy', (d) => d.el.args[0].y)
-      .attr('rx', (d) => d.el.args[1])
-      .attr('ry', (d) => d.el.args[2])
-      .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
+    updateNodes();
     linkGroup
       ?.selectAll<Element, WordNodeLinkDatum>('line')
       .attr('x1', (d) => d.source.x || 0)
@@ -433,12 +564,14 @@ onBeforeUnmount(() => {
   disposeCloud();
 });
 
-const onClick = () => {
-  console.log('click');
-  createCloud();
-};
-
-defineExpose({updateContainer, update, createCloud});
+defineExpose({
+  updateContainer,
+  update,
+  createCloud,
+  updateNodes: () => {
+    updateNodes();
+  },
+});
 </script>
 <style lang="scss">
 .word-cloud-body {

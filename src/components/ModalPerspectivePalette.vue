@@ -8,12 +8,84 @@ ModalBase.modal-perspective-palette(
   template(v-slot:body)
     WordCloud.mx-3(
       :words='tc("text.perspectives")'
+      :collision-shape='collisionShape'
+      :show-collision-shape='showDebugInfo && showCollisionShape'
+      :px='shapePx'
+      :py='shapePy'
+      :f-charge='fChargeEnable'
+      :f-charge-strength='fChargeStrength'
+      :f-x='fXEnable'
+      :f-x-strength='fXStrength'
+      :f-y='fYEnable'
+      :f-y-strength='fYStrength'
+      :f-sep-v='fSepVEnable'
+      :f-sep-v-strength='fSepVStrength'
+      :f-sep-p='fSepPEnable'
+      :f-sep-p-strength='fSepPStrength'
       ref='wordCloud'
+      @click='wordCloud?.createCloud()'
     )
+    hr
+    .input-group.input-group-sm.mb-2
+      label.input-group-text(for='wc-coll-shape') Collision shape
+      select#wc-coll-shape.form-select(v-model='collisionShape')
+        option(
+          v-for='cs in collisionShapes'
+          :value='cs'
+        ) {{ cs }}
+    .d-flex
+      .input-group.input-group-sm.mb-2.flex-nowrap.me-2
+          label.input-group-text(for='wc-shape-px') Padding X
+          input#wc-shape-px.form-control(type='number' min='0' v-model='shapePx' style='min-width: 8ch;')
+          label.input-group-text(for='wc-shape-px') Padding Y
+          input#wc-shape-px.form-control(type='number' min='0' v-model='shapePy' style='min-width: 8ch;')
+      .d-flex
+        .input-group.input-group-sm.mb-2.flex-nowrap.me-2
+          label.input-group-text(for='wc-show-debug') Show debug
+          .input-group-text
+            input#wc-show-debug.form-check-input.mt-0(type='checkbox' v-model='showDebugInfo')
+        .input-group.input-group-sm.mb-2.flex-nowrap
+          label.input-group-text(for='wc-show-coll-shape') Show collision shape
+          .input-group-text
+            input#wc-show-coll-shape.form-check-input.mt-0(type='checkbox' v-model='showCollisionShape')
+    .d-flex
+      .input-group.input-group-sm.mb-2.flex-nowrap
+          label.input-group-text(for='wc-f-charge') Force: charge
+          .input-group-text
+            input#wc-f-charge.form-check-input.mt-0(type='checkbox' v-model='fChargeEnable')
+          label.input-group-text(for='wc-f-charge-str') Strength
+          input#wc-f-charge-str.form-control(type='number' v-model='fChargeStrength')
+      .w-100
+    .d-flex
+      .input-group.input-group-sm.mb-2.flex-nowrap
+          label.input-group-text(for='wc-f-x') Force: X
+          .input-group-text
+            input#wc-f-x.form-check-input.mt-0(type='checkbox' v-model='fXEnable')
+          label.input-group-text(for='wc-f-x-str') Strength
+          input#wc-f-x-str.form-control(type='number' min='0' v-model='fXStrength')
+          label.input-group-text(for='wc-f-y') Force: Y
+          .input-group-text
+            input#wc-f-y.form-check-input.mt-0(type='checkbox' v-model='fYEnable')
+          label.input-group-text(for='wc-f-y-str') Strength
+          input#wc-f-y-str.form-control(type='number' min='0' v-model='fYStrength')
+    .d-flex
+      .input-group.input-group-sm.mb-2.flex-nowrap
+          label.input-group-text(for='wc-f-sep-v') Force: Separate V
+          .input-group-text
+            input#wc-f-sep-v.form-check-input.mt-0(type='checkbox' v-model='fSepVEnable')
+          label.input-group-text(for='wc-f-sep-v-str') Strength
+          input#wc-f-sep-v-str.form-control(type='number' min='0' v-model='fSepVStrength')
+          label.input-group-text(for='wc-f-sep-p') Force: Separate P
+          .input-group-text
+            input#wc-f-sep-p.form-check-input.mt-0(type='checkbox' v-model='fSepPEnable')
+          label.input-group-text(for='wc-f-sep-p-str') Strength
+          input#wc-f-sep-p-str.form-control(type='number' min='0' v-model='fSepPStrength')
+
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue';
+import {nextTick, ref, watch} from 'vue';
+import type {Ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 import WordCloud from '@/components/WordCloud2.vue';
 import ModalBase from '@/components/ModalBase.vue';
@@ -21,6 +93,32 @@ import useModalBase from '@/composition/ModalBase';
 
 const {t} = useI18n();
 const tc = (s: string) => t(`component.modal-perspective-palette.${s}`);
+
+const collisionShapes = ['rectangle', 'ellipse'] as const;
+const collisionShape: Ref<typeof collisionShapes[number]> = ref(
+  collisionShapes[0],
+);
+const showDebugInfo = ref(true);
+const showCollisionShape = ref(true);
+const shapePx = ref(30);
+const shapePy = ref(20);
+
+const fChargeEnable = ref(true);
+const fChargeStrength = ref(-30);
+const fXEnable = ref(true);
+const fXStrength = ref(0.02);
+const fYEnable = ref(true);
+const fYStrength = ref(0.02);
+const fSepVEnable = ref(true);
+const fSepVStrength = ref(1);
+const fSepPEnable = ref(false);
+const fSepPStrength = ref(1);
+
+watch([], () => wordCloud.value?.createCloud());
+watch(
+  [showDebugInfo, showCollisionShape, collisionShape, shapePx, shapePy],
+  () => nextTick(() => wordCloud.value?.updateNodes()),
+);
 
 const modal = ref<InstanceType<typeof ModalBase>>();
 const {modalInterface, bind} = useModalBase(modal, {
