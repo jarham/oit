@@ -167,8 +167,13 @@ function forceBoxSeparation() {
     nodes?.forEach((wd1, i) => {
       nodes?.forEach((wd2, j) => {
         if (i === j) return;
-        const c = wd1.br.intersect(wd2.br);
+        const ints = kld.Intersection.intersect(wd1.el, wd2.el);
+        const c = ints.status === 'Intersection';
+
+        // const c = wd1.br.intersect(wd2.br);
+
         colls ||= c;
+
         const dx = wd1.x - wd2.x;
         const dy = wd1.y - wd2.y;
         // const d = Math.sqrt(dx * dx + dy * dy);
@@ -350,7 +355,7 @@ const update = () => {
         for (let j = 0; j < i; j++) {
           const c = kld.Intersection.intersect(wd.el, nodes[j].el);
           nodes[j].collision ||= c.status === 'Intersection';
-          wd.collision ||= c;
+          wd.collision ||= c.status === 'Intersection';
         }
       });
     // .each(velocityWordNodeDatum);
