@@ -96,22 +96,22 @@ const tc = (s: string) => t(`component.modal-perspective-palette.${s}`);
 
 const collisionShapes = ['rectangle', 'ellipse'] as const;
 const collisionShape: Ref<typeof collisionShapes[number]> = ref(
-  collisionShapes[0],
+  collisionShapes[1],
 );
 const showDebugInfo = ref(true);
 const showCollisionShape = ref(true);
-const shapePx = ref(30);
-const shapePy = ref(20);
+const shapePx = ref(40);
+const shapePy = ref(40);
 
 const fChargeEnable = ref(true);
-const fChargeStrength = ref(-30);
+const fChargeStrength = ref(-50);
 const fXEnable = ref(true);
 const fXStrength = ref(0.02);
 const fYEnable = ref(true);
 const fYStrength = ref(0.02);
 const fSepVEnable = ref(true);
-const fSepVStrength = ref(1);
-const fSepPEnable = ref(false);
+const fSepVStrength = ref(2);
+const fSepPEnable = ref(true);
 const fSepPStrength = ref(1);
 
 watch([], () => wordCloud.value?.createCloud());

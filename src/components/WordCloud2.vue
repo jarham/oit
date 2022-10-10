@@ -224,7 +224,10 @@ function forceBoxSeparationV(): ForceSeparate {
         const tot = dx / d + dy / d;
         const mx = dx / d / tot;
         const my = dy / d / tot;
-        const ff = Math.min(Math.pow(tf * 0.1, 3), 100);
+        const ff = Math.min(Math.pow(tf, 3), 30);
+        // const ff =
+        //   (1 / (0.2 * Math.sqrt(2 * Math.PI))) *
+        //   Math.pow(Math.E, -0.5 * Math.pow((2 * alpha - 1) / 2, 2));
         const f = (1 / (dx * dx + dy * dy)) * ff;
         const af = Math.max(c ? f : 0);
 
@@ -271,7 +274,7 @@ function forceBoxSeparationP(): ForceSeparate {
         const tot = dx / d + dy / d;
         const mx = dx / d / tot;
         const my = dy / d / tot;
-        const ff = Math.min(Math.pow(tf * 0.1, 3), 100);
+        const ff = Math.min(Math.pow(tf, 3), 10);
         const f = (1 / (dx * dx + dy * dy)) * ff;
         const af = Math.max(c ? f : 0);
 
