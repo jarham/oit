@@ -51,11 +51,11 @@ ModalBase.modal-perspective-palette(
           input#wc-shape-px.form-control(type='number' min='0' v-model='shapePy')
       .d-flex.w-100
         .input-group.input-group-sm.mb-2.flex-nowrap.me-2
-          label.input-group-text(for='wc-show-debug') Show debug
+          label.input-group-text.w-100(for='wc-show-debug') Show debug
           .input-group-text
             input#wc-show-debug.form-check-input.mt-0(type='checkbox' v-model='showDebugInfo')
         .input-group.input-group-sm.mb-2.flex-nowrap
-          label.input-group-text(for='wc-show-coll-shape') Show collision shape
+          label.input-group-text.w-100(for='wc-show-coll-shape') Show collision shape
           .input-group-text
             input#wc-show-coll-shape.form-check-input.mt-0(type='checkbox' v-model='showCollisionShape')
     .d-flex
@@ -67,11 +67,11 @@ ModalBase.modal-perspective-palette(
           input#wc-f-charge-str.form-control(type='number' v-model='fChargeStrength')
       .d-flex.w-100
         .input-group.input-group-sm.mb-2.flex-nowrap.me-2
-          label.input-group-text(for='wc-show-sep-v') Show SepV
+          label.input-group-text.w-100(for='wc-show-sep-v') Show SepV
           .input-group-text
             input#wc-show-sep-v.form-check-input.mt-0(type='checkbox' v-model='showSepV')
         .input-group.input-group-sm.mb-2.flex-nowrap
-          label.input-group-text(for='wc-show-sep-p') Show SepP
+          label.input-group-text.w-100(for='wc-show-sep-p') Show SepP
           .input-group-text
             input#wc-show-sep-p.form-check-input.mt-0(type='checkbox' v-model='showSepP')
     .d-flex
@@ -120,26 +120,30 @@ ModalBase.modal-perspective-palette(
             ) {{ sepAlphaNames[sa] }}
     .d-flex
       .input-group.input-group-sm.mb-2
-          label.input-group-text(for='wc-sim-auto-run') Auto run
-          .input-group-text
-            input#wc-sim-auto-run.form-check-input.mt-0(type='checkbox' v-model='simAutoRun')
           button.btn.btn-outline-primary(
             :disabled='simAutoRun'
             @click='wordCloud?.tick(simStepSize)'
           ) Step
-          input#sim-step-count.form-control(type='number' min='0' v-model='simStepSize' style='max-width: 11ch;')
+          input#sim-step-count.form-control(type='number' min='0' v-model='simStepSize')
           label.input-group-text(for='wc-sim-step-count') steps
           label.input-group-text(for='wc-sim-break-point') Break at
           input#wc-sim-break-point.form-control(
             :disabled='!simEnableBreakPoint'
-            type='number' min='0' v-model='simBreakPoint' style='max-width: 11ch;'
+            type='number' min='0' v-model='simBreakPoint'
           )
           .input-group-text
             input#wc-sim-auto-run.form-check-input.mt-0(type='checkbox' v-model='simEnableBreakPoint')
           button.btn.btn-outline-primary(
             @click='wordCloud?.createCloud()'
           ) Reset simulation
-
+          button.btn.btn-outline-primary(
+            @click='simAutoRun = !simAutoRun'
+            style='min-width: 7ch;'
+          )
+            .bi.bi-play(v-show='!simAutoRun')
+            .bi.bi-pause(v-show='simAutoRun')
+          .input-group-text.justify-content-center(style='min-width: 15ch;')
+            span {{ simAutoRun ? 'Running' : 'Paused' }}
 </template>
 
 <script setup lang="ts">
