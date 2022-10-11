@@ -48,7 +48,7 @@ ModalBase.modal-perspective-palette(
           :value='cs'
         ) {{ cs }}
     .d-flex
-      .input-group.input-group-sm.mb-2.flex-nowrap.me-2
+      .input-group.input-group-sm.mb-2.me-2
           label.input-group-text(for='wc-shape-px') Padding X
           input#wc-shape-px.form-control(type='number' min='0' v-model='shapePx')
           label.input-group-text(for='wc-shape-px') Padding Y
@@ -63,7 +63,7 @@ ModalBase.modal-perspective-palette(
           .input-group-text
             input#wc-show-coll-shape.form-check-input.mt-0(type='checkbox' v-model='showCollisionShape')
     .d-flex
-      .input-group.input-group-sm.mb-2.flex-nowrap.me-2
+      .input-group.input-group-sm.mb-2.me-2
           label.input-group-text(for='wc-f-charge') Force: charge
           .input-group-text
             input#wc-f-charge.form-check-input.mt-0(type='checkbox' v-model='fChargeEnable')
@@ -91,7 +91,7 @@ ModalBase.modal-perspective-palette(
           label.input-group-text(for='wc-f-y-str') Strength
           input#wc-f-y-str.form-control(type='number' min='0' v-model='fYStrength')
     .d-flex
-      .input-group.input-group-sm.mb-2.flex-nowrap
+      .input-group.input-group-sm.mb-2
           label.input-group-text(for='wc-f-sep-v') Force: Separate V
           .input-group-text
             input#wc-f-sep-v.form-check-input.mt-0(type='checkbox' v-model='fSepVEnable')
@@ -107,7 +107,7 @@ ModalBase.modal-perspective-palette(
               :value='sa'
             ) {{ sepAlphaNames[sa] }}
     .d-flex
-      .input-group.input-group-sm.mb-2.flex-nowrap
+      .input-group.input-group-sm.mb-2
           label.input-group-text(for='wc-f-sep-p') Force: Separate P
           .input-group-text
             input#wc-f-sep-p.form-check-input.mt-0(type='checkbox' v-model='fSepPEnable')
