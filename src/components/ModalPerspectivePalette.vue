@@ -10,6 +10,10 @@ ModalBase.modal-perspective-palette(
       :words='tc("text.perspectives")'
       :collision-shape='collisionShape'
       :show-collision-shape='showDebugInfo && showCollisionShape'
+      :show-sep-v='showDebugInfo && showSepV'
+      :show-sep-p='showDebugInfo && showSepP'
+      :show-sim-info='showDebugInfo'
+      :sim-break-point='simEnableBreakPoint ? simBreakPoint : undefined'
       :px='shapePx'
       :py='shapePy'
       :f-charge='fChargeEnable'
@@ -25,6 +29,7 @@ ModalBase.modal-perspective-palette(
       :sim-auto-run='simAutoRun'
       ref='wordCloud'
       @click='wordCloud?.createCloud()'
+      @breakpoint='simAutoRun = false'
     )
     hr
     .input-group.input-group-sm.mb-2
@@ -37,10 +42,10 @@ ModalBase.modal-perspective-palette(
     .d-flex
       .input-group.input-group-sm.mb-2.flex-nowrap.me-2
           label.input-group-text(for='wc-shape-px') Padding X
-          input#wc-shape-px.form-control(type='number' min='0' v-model='shapePx' style='min-width: 8ch;')
+          input#wc-shape-px.form-control(type='number' min='0' v-model='shapePx')
           label.input-group-text(for='wc-shape-px') Padding Y
-          input#wc-shape-px.form-control(type='number' min='0' v-model='shapePy' style='min-width: 8ch;')
-      .d-flex
+          input#wc-shape-px.form-control(type='number' min='0' v-model='shapePy')
+      .d-flex.w-100
         .input-group.input-group-sm.mb-2.flex-nowrap.me-2
           label.input-group-text(for='wc-show-debug') Show debug
           .input-group-text
@@ -50,13 +55,21 @@ ModalBase.modal-perspective-palette(
           .input-group-text
             input#wc-show-coll-shape.form-check-input.mt-0(type='checkbox' v-model='showCollisionShape')
     .d-flex
-      .input-group.input-group-sm.mb-2.flex-nowrap
+      .input-group.input-group-sm.mb-2.flex-nowrap.me-2
           label.input-group-text(for='wc-f-charge') Force: charge
           .input-group-text
             input#wc-f-charge.form-check-input.mt-0(type='checkbox' v-model='fChargeEnable')
           label.input-group-text(for='wc-f-charge-str') Strength
           input#wc-f-charge-str.form-control(type='number' v-model='fChargeStrength')
-      .w-100
+      .d-flex.w-100
+        .input-group.input-group-sm.mb-2.flex-nowrap.me-2
+          label.input-group-text(for='wc-show-sep-v') Show SepV
+          .input-group-text
+            input#wc-show-sep-v.form-check-input.mt-0(type='checkbox' v-model='showSepV')
+        .input-group.input-group-sm.mb-2.flex-nowrap
+          label.input-group-text(for='wc-show-sep-p') Show SepP
+          .input-group-text
+            input#wc-show-sep-p.form-check-input.mt-0(type='checkbox' v-model='showSepP')
     .d-flex
       .input-group.input-group-sm.mb-2.flex-nowrap
           label.input-group-text(for='wc-f-x') Force: X
@@ -90,8 +103,15 @@ ModalBase.modal-perspective-palette(
             :disabled='simAutoRun'
             @click='wordCloud?.tick(simStepSize)'
           ) Step
-          input#sim-step-count.form-control(type='number' min='0' v-model='simStepSize' style='max-width: 12ch;')
-          label.input-group-text(for='wc-sim-step-count') Steps
+          input#sim-step-count.form-control(type='number' min='0' v-model='simStepSize' style='max-width: 11ch;')
+          label.input-group-text(for='wc-sim-step-count') steps
+          label.input-group-text(for='wc-sim-break-point') Break at
+          input#wc-sim-break-point.form-control(
+            :disabled='!simEnableBreakPoint'
+            type='number' min='0' v-model='simBreakPoint' style='max-width: 11ch;'
+          )
+          .input-group-text
+            input#wc-sim-auto-run.form-check-input.mt-0(type='checkbox' v-model='simEnableBreakPoint')
           button.btn.btn-outline-primary(
             @click='wordCloud?.createCloud()'
           ) Reset simulation
@@ -114,6 +134,8 @@ const collisionShape: Ref<typeof collisionShapes[number]> = ref(
   collisionShapes[1],
 );
 const showDebugInfo = ref(true);
+const showSepV = ref(true);
+const showSepP = ref(true);
 const showCollisionShape = ref(true);
 const shapePx = ref(40);
 const shapePy = ref(40);
@@ -131,9 +153,19 @@ const fSepPStrength = ref(1);
 
 const simAutoRun = ref(true);
 const simStepSize = ref(1);
+const simBreakPoint = ref(0);
+const simEnableBreakPoint = ref(false);
 
 watch(
-  [showDebugInfo, showCollisionShape, collisionShape, shapePx, shapePy],
+  [
+    showDebugInfo,
+    showCollisionShape,
+    showSepV,
+    showSepP,
+    collisionShape,
+    shapePx,
+    shapePy,
+  ],
   () => nextTick(() => wordCloud.value?.updateNodes()),
 );
 watch(simAutoRun, (auto) =>

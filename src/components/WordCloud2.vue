@@ -17,6 +17,10 @@ interface Props {
   words: string;
   collisionShape?: 'rectangle' | 'ellipse';
   showCollisionShape?: boolean;
+  showSepV?: boolean;
+  showSepP?: boolean;
+  showSimInfo?: boolean;
+  simBreakPoint?: number | undefined;
   px?: number;
   py?: number;
   fCharge?: boolean;
@@ -34,6 +38,10 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   collisionShape: 'rectangle',
   showCollisionShape: false,
+  showSepV: false,
+  showSepP: false,
+  showSimInfo: false,
+  simBreakPoint: undefined,
   px: 30,
   py: 20,
   fCharge: true,
@@ -48,6 +56,8 @@ const props = withDefaults(defineProps<Props>(), {
   fSepPStrength: 1,
   simAutoRun: true,
 });
+
+const emit = defineEmits(['breakpoint']);
 
 const elWordCloud = ref<HTMLDivElement>();
 const cloudWords = computed(() =>
@@ -79,6 +89,7 @@ let linkGroup: d3.Selection<
   null,
   undefined
 > | null = null;
+let simInfo: d3.Selection<SVGTextElement, undefined, null, undefined>;
 let nodes: WordNodeDatum[] = [];
 let links: WordNodeLinkDatum[] = [];
 let reheat = false;
@@ -96,6 +107,10 @@ interface WordNodeDatum extends d3.SimulationNodeDatum {
   vy: number;
   index: number;
   type: 'word' | 'center';
+  cvx: number;
+  cvy: number;
+  cpx: number;
+  cpy: number;
 }
 interface WordNodeLinkDatum extends d3.SimulationLinkDatum<WordNodeDatum> {
   distance: number;
@@ -204,6 +219,8 @@ function forceBoxSeparationV(): ForceSeparate {
   const f = (alpha: number) => {
     let colls = false;
     nodes?.forEach((wd1, i) => {
+      wd1.cvx = 0;
+      wd1.cvy = 0;
       nodes?.forEach((wd2, j) => {
         if (i === j) return;
 
@@ -222,10 +239,10 @@ function forceBoxSeparationV(): ForceSeparate {
         const dx = wd1.x - wd2.x;
         const dy = wd1.y - wd2.y;
         // const d = Math.sqrt(dx * dx + dy * dy);
-        const d = distDatumBox(wd1, wd2) || 0.00001;
-        const tot = dx / d + dy / d;
-        const mx = dx / d / tot;
-        const my = dy / d / tot;
+        const d = distDatumBox(wd1, wd2) || 0.1;
+        const tot = Math.abs(dx) / d + Math.abs(dy) / d;
+        const mx = Math.abs(dx / d / tot);
+        const my = Math.abs(dy / d / tot);
         const ff = Math.min(Math.pow(tf, 3), 30);
         // const ff =
         //   (1 / (0.2 * Math.sqrt(2 * Math.PI))) *
@@ -233,9 +250,11 @@ function forceBoxSeparationV(): ForceSeparate {
         const f = (1 / (dx * dx + dy * dy)) * ff;
         const af = Math.max(c ? f : 0);
 
-        wd1.vx += str * af * (mx * dx);
-        wd1.vy += str * af * (my * dy);
+        wd1.cvx += str * af * (mx * dx);
+        wd1.cvy += str * af * (my * dy);
       });
+      wd1.vx += wd1.cvx;
+      wd1.vy += wd1.cvy;
     });
     tf = Math.max(tf + (colls ? 1 : -1), 0);
   };
@@ -258,6 +277,8 @@ function forceBoxSeparationP(): ForceSeparate {
   const f = (alpha: number) => {
     let colls = false;
     nodes?.forEach((wd1, i) => {
+      wd1.cpx = 0;
+      wd1.cpy = 0;
       nodes?.forEach((wd2, j) => {
         if (i === j) return;
 
@@ -272,17 +293,19 @@ function forceBoxSeparationP(): ForceSeparate {
         const dx = wd1.x - wd2.x;
         const dy = wd1.y - wd2.y;
         // const d = Math.sqrt(dx * dx + dy * dy);
-        const d = distDatumBox(wd1, wd2) || 0.00001;
-        const tot = dx / d + dy / d;
-        const mx = dx / d / tot;
-        const my = dy / d / tot;
+        const d = distDatumBox(wd1, wd2) || 0.1;
+        const tot = Math.abs(dx) / d + Math.abs(dy) / d;
+        const mx = Math.abs(dx / d / tot);
+        const my = Math.abs(dy / d / tot);
         const ff = Math.min(Math.pow(tf, 3), 10);
         const f = (1 / (dx * dx + dy * dy)) * ff;
         const af = Math.max(c ? f : 0);
 
-        wd1.x += str * af * (mx * dx);
-        wd1.y += str * af * (my * dy);
+        wd1.cpx += str * af * (mx * dx);
+        wd1.cpy += str * af * (my * dy);
       });
+      wd1.x += wd1.cpx;
+      wd1.y += wd1.cpy;
     });
     tf = Math.max(tf + (colls ? 1 : -1), 0);
   };
@@ -384,6 +407,15 @@ const createCloud = () => {
     undefined
   >;
 
+  simInfo = svg
+    .append('text')
+    .attr('stroke', '#00f')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('font-size', 'smaller')
+    .attr('font-weight', 100)
+    .text('text');
+
   const n = svg.node();
   if (n) elWordCloud.value.appendChild(n);
   else return disposeCloud();
@@ -459,18 +491,46 @@ const updateNodes = () => {
         : 'none',
     )
     .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
+
+  nodeGroup
+    ?.selectAll<Element, WordNodeDatum>('line.f-sep-v')
+    .attr('x1', (d) => d.x)
+    .attr('y1', (d) => d.y)
+    .attr('x2', (d) => d.x + d.cvx * 10)
+    .attr('y2', (d) => d.y + d.cvy * 10)
+    .attr('display', () => (props.showSepV ? null : 'none'));
+  nodeGroup
+    ?.selectAll<Element, WordNodeDatum>('line.f-sep-p')
+    .attr('x1', (d) => d.x)
+    .attr('y1', (d) => d.y)
+    .attr('x2', (d) => d.x + d.cpx * 10)
+    .attr('y2', (d) => d.y + d.cpy * 10)
+    .attr('display', () => (props.showSepP ? null : 'none'));
 };
 
-const onTick = () => {
-  console.log('tick');
-  t++;
+const updateSimInfo = () => {
+  simInfo
+    ?.attr('x', width / -2)
+    .attr('y', height / 2 - 5)
+    .attr('display', () => (props.showSimInfo ? null : 'none'))
+    .text(`t: ${t}`);
+};
+
+const onTick = (c?: number) => {
+  if (typeof c === 'number') t += c;
+  else t++;
   updateNodes();
+  updateSimInfo();
   linkGroup
     ?.selectAll<Element, WordNodeLinkDatum>('line')
     .attr('x1', (d) => d.source.x || 0)
     .attr('y1', (d) => d.source.y || 0)
     .attr('x2', (d) => d.target.x || 0)
     .attr('y2', (d) => d.target.y || 0);
+  if (t === props.simBreakPoint) {
+    simulation?.stop();
+    emit('breakpoint');
+  }
 };
 
 const update = () => {
@@ -487,6 +547,10 @@ const update = () => {
       y: cy,
       vx: 0,
       vy: 0,
+      cvx: 0,
+      cvy: 0,
+      cpx: 0,
+      cpy: 0,
       index: n,
       collision: false,
       // We get real values later after text has been added
@@ -559,12 +623,21 @@ const update = () => {
         .attr('stroke', '#000')
         // .attr('transform', 'rotate(14)')
         .attr('stroke-width', 0.5);
+      g.append('line')
+        .attr('class', 'f-sep-v')
+        .attr('stroke', '#f00')
+        .attr('stroke-width', 2.5);
+      g.append('line')
+        .attr('class', 'f-sep-p')
+        .attr('stroke', '#0f0')
+        .attr('stroke-width', 2.5);
     },
     (update) => {
       update.selectAll<Element, WordNodeDatum>('text').text((d) => d.word);
     },
   );
   updateNodes();
+  updateSimInfo();
 };
 
 onMounted(() => {
@@ -581,11 +654,12 @@ defineExpose({
   createCloud,
   updateNodes: () => {
     updateNodes();
+    updateSimInfo();
   },
   tick: (ticks?: number) => {
     // NOTE: simuation.tick()
     simulation?.tick(ticks);
-    onTick();
+    onTick(ticks);
   },
   stop: () => simulation?.stop(),
   start: () => simulation?.restart(),
