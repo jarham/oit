@@ -619,8 +619,8 @@ const update = () => {
   // if (needsLinkResize) resizePeersLinks();
   // console.log('update', nodes, linksActive);
   nodes = cloudWords.value.map((word, n) => {
-    const cx = Math.cos(n) * (n + 30) * 2;
-    const cy = Math.sin(n) * (n + 30) * 2;
+    const cx = Math.cos(n) * (n + 10) * 2;
+    const cy = Math.sin(n) * (n + 10) * 2;
     return {
       id: `word-${n}`,
       word: word.text,

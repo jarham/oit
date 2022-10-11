@@ -261,7 +261,10 @@ defineExpose({
     modalInterface.show();
     // if (wordCloud.value) wordCloud.value.resizeLayout();
     if (wordCloud.value) {
+      simAutoRun.value = true;
+      simStopped.value = false;
       wordCloud.value.createCloud();
+      wordCloud.value.start();
     }
   },
 });
