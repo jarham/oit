@@ -147,9 +147,9 @@ const fXStrength = ref(0.02);
 const fYEnable = ref(true);
 const fYStrength = ref(0.02);
 const fSepVEnable = ref(true);
-const fSepVStrength = ref(2);
+const fSepVStrength = ref(15);
 const fSepPEnable = ref(true);
-const fSepPStrength = ref(1);
+const fSepPStrength = ref(10);
 
 const simAutoRun = ref(true);
 const simStepSize = ref(1);
