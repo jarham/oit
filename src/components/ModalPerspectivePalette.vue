@@ -179,12 +179,12 @@ const sepAlphaNames: Record<typeof sepAlphas[number], string> = {
 } as const;
 const fSepVEnable = ref(true);
 const fSepVOutOnly = ref(true);
-const fSepVStrength = ref(15);
-const fSepVAlpha = ref(sepAlphas[1]);
+const fSepVStrength = ref(6);
+const fSepVAlpha = ref(sepAlphas[2]);
 const fSepPEnable = ref(true);
 const fSepPOutOnly = ref(true);
-const fSepPStrength = ref(10);
-const fSepPAlpha = ref(sepAlphas[1]);
+const fSepPStrength = ref(3);
+const fSepPAlpha = ref(sepAlphas[2]);
 
 const simAutoRun = ref(true);
 const simStepSize = ref(1);
