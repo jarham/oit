@@ -23,8 +23,10 @@ ModalBase.modal-perspective-palette(
       :f-y='fYEnable'
       :f-y-strength='fYStrength'
       :f-sep-v='fSepVEnable'
+      :f-sep-v-out-only='fSepVOutOnly'
       :f-sep-v-strength='fSepVStrength'
       :f-sep-p='fSepPEnable'
+      :f-sep-p-out-only='fSepPOutOnly'
       :f-sep-p-strength='fSepPStrength'
       :sim-auto-run='simAutoRun'
       ref='wordCloud'
@@ -88,12 +90,20 @@ ModalBase.modal-perspective-palette(
           .input-group-text
             input#wc-f-sep-v.form-check-input.mt-0(type='checkbox' v-model='fSepVEnable')
           label.input-group-text(for='wc-f-sep-v-str') Strength
-          input#wc-f-sep-v-str.form-control(type='number' min='0' v-model='fSepVStrength')
+          input#wc-f-sep-v-str.form-control(type='number' min='0' v-model='fSepVStrength' style='max-width: 11ch;')
+          label.input-group-text(for='wc-f-sep-v-out-only') Outwards only
+          .input-group-text
+            input#wc-f-sep-v-out-only.form-check-input.mt-0(type='checkbox' v-model='fSepVOutOnly')
+    .d-flex
+      .input-group.input-group-sm.mb-2.flex-nowrap
           label.input-group-text(for='wc-f-sep-p') Force: Separate P
           .input-group-text
             input#wc-f-sep-p.form-check-input.mt-0(type='checkbox' v-model='fSepPEnable')
           label.input-group-text(for='wc-f-sep-p-str') Strength
-          input#wc-f-sep-p-str.form-control(type='number' min='0' v-model='fSepPStrength')
+          input#wc-f-sep-p-str.form-control(type='number' min='0' v-model='fSepPStrength' style='max-width: 11ch;')
+          label.input-group-text(for='wc-f-sep-p-out-only') Outwards only
+          .input-group-text
+            input#wc-f-sep-p-out-only.form-check-input.mt-0(type='checkbox' v-model='fSepPOutOnly')
     .d-flex
       .input-group.input-group-sm.mb-2
           label.input-group-text(for='wc-sim-auto-run') Auto run
@@ -147,8 +157,10 @@ const fXStrength = ref(0.02);
 const fYEnable = ref(true);
 const fYStrength = ref(0.02);
 const fSepVEnable = ref(true);
+const fSepVOutOnly = ref(true);
 const fSepVStrength = ref(15);
 const fSepPEnable = ref(true);
+const fSepPOutOnly = ref(true);
 const fSepPStrength = ref(10);
 
 const simAutoRun = ref(true);

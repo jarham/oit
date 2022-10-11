@@ -30,8 +30,10 @@ interface Props {
   fY?: boolean;
   fYStrength?: number;
   fSepV?: boolean;
+  fSepVOutOnly?: boolean;
   fSepVStrength?: number;
   fSepP?: boolean;
+  fSepPOutOnly?: boolean;
   fSepPStrength?: number;
   simAutoRun?: boolean;
 }
@@ -51,8 +53,10 @@ const props = withDefaults(defineProps<Props>(), {
   fY: true,
   fYStrength: 0.02,
   fSepV: true,
+  fSepVOutOnly: true,
   fSepVStrength: 1,
   fSepP: false,
+  fSepPOutOnly: true,
   fSepPStrength: 1,
   simAutoRun: true,
 });
@@ -89,7 +93,9 @@ let linkGroup: d3.Selection<
   null,
   undefined
 > | null = null;
-let simInfo: d3.Selection<SVGTextElement, undefined, null, undefined>;
+let simInfo: d3.Selection<SVGGElement, undefined, null, undefined>;
+let simInfoT: d3.Selection<SVGTextElement, undefined, null, undefined>;
+let simInfoCenter: d3.Selection<SVGTextElement, undefined, null, undefined>;
 let nodes: WordNodeDatum[] = [];
 let links: WordNodeLinkDatum[] = [];
 let reheat = false;
@@ -238,6 +244,10 @@ function forceBoxSeparationV(): ForceSeparate {
 
         const dx = wd1.x - wd2.x;
         const dy = wd1.y - wd2.y;
+
+        const outwardsX = Math.sign(wd1.x) === Math.sign(dx);
+        const outwardsY = Math.sign(wd1.y) === Math.sign(dy);
+
         // const d = Math.sqrt(dx * dx + dy * dy);
         const d = distDatumBox(wd1, wd2) || 0.1;
         const tot = Math.abs(dx) / d + Math.abs(dy) / d;
@@ -250,8 +260,12 @@ function forceBoxSeparationV(): ForceSeparate {
         const f = (1 / (dx * dx + dy * dy)) * ff;
         const af = Math.max(c ? f : 0);
 
-        wd1.cvx += str * af * (mx * dx);
-        wd1.cvy += str * af * (my * dy);
+        if (outwardsX || !props.fSepPOutOnly) {
+          wd1.cvx += str * af * (mx * dx);
+        }
+        if (outwardsY || !props.fSepPOutOnly) {
+          wd1.cvy += str * af * (my * dy);
+        }
       });
       wd1.vx += wd1.cvx;
       wd1.vy += wd1.cvy;
@@ -292,6 +306,10 @@ function forceBoxSeparationP(): ForceSeparate {
 
         const dx = wd1.x - wd2.x;
         const dy = wd1.y - wd2.y;
+
+        const outwardsX = Math.sign(wd1.x) === Math.sign(dx);
+        const outwardsY = Math.sign(wd1.y) === Math.sign(dy);
+
         // const d = Math.sqrt(dx * dx + dy * dy);
         const d = distDatumBox(wd1, wd2) || 0.1;
         const tot = Math.abs(dx) / d + Math.abs(dy) / d;
@@ -301,8 +319,12 @@ function forceBoxSeparationP(): ForceSeparate {
         const f = (1 / (dx * dx + dy * dy)) * ff;
         const af = Math.max(c ? f : 0);
 
-        wd1.cpx += str * af * (mx * dx);
-        wd1.cpy += str * af * (my * dy);
+        if (outwardsX || !props.fSepPOutOnly) {
+          wd1.cpx += str * af * (mx * dx);
+        }
+        if (outwardsY || !props.fSepPOutOnly) {
+          wd1.cpy += str * af * (my * dy);
+        }
       });
       wd1.x += wd1.cpx;
       wd1.y += wd1.cpy;
@@ -407,14 +429,23 @@ const createCloud = () => {
     undefined
   >;
 
-  simInfo = svg
+  simInfo = svg.append('g');
+  simInfoT = simInfo
     .append('text')
     .attr('stroke', '#00f')
     .attr('x', 0)
     .attr('y', 0)
     .attr('font-size', 'smaller')
     .attr('font-weight', 100)
-    .text('text');
+    .text('');
+  simInfoCenter = simInfo
+    .append('text')
+    .attr('stroke', '#0f0')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('font-size', 'smaller')
+    .attr('font-weight', 100)
+    .text('🞨');
 
   const n = svg.node();
   if (n) elWordCloud.value.appendChild(n);
@@ -509,10 +540,10 @@ const updateNodes = () => {
 };
 
 const updateSimInfo = () => {
-  simInfo
+  simInfo?.attr('display', () => (props.showSimInfo ? null : 'none'));
+  simInfoT
     ?.attr('x', width / -2)
     .attr('y', height / 2 - 5)
-    .attr('display', () => (props.showSimInfo ? null : 'none'))
     .text(`t: ${t}`);
 };
 
