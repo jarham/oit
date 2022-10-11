@@ -32,9 +32,11 @@ interface Props {
   fSepV?: boolean;
   fSepVOutOnly?: boolean;
   fSepVStrength?: number;
+  fSepVAlpha?: 'direct' | 'bell' | 'ccc^3';
   fSepP?: boolean;
   fSepPOutOnly?: boolean;
   fSepPStrength?: number;
+  fSepPAlpha?: 'direct' | 'bell' | 'ccc^3';
   simAutoRun?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {
@@ -55,9 +57,11 @@ const props = withDefaults(defineProps<Props>(), {
   fSepV: true,
   fSepVOutOnly: true,
   fSepVStrength: 1,
+  fSepVAlpha: 'bell',
   fSepP: false,
   fSepPOutOnly: true,
   fSepPStrength: 1,
+  fSepPAlpha: 'bell',
   simAutoRun: true,
 });
 
@@ -253,10 +257,20 @@ function forceBoxSeparationV(): ForceSeparate {
         const tot = Math.abs(dx) / d + Math.abs(dy) / d;
         const mx = Math.abs(dx / d / tot);
         const my = Math.abs(dy / d / tot);
-        const ff = Math.min(Math.pow(tf, 3), 30);
-        // const ff =
-        //   (1 / (0.2 * Math.sqrt(2 * Math.PI))) *
-        //   Math.pow(Math.E, -0.5 * Math.pow((2 * alpha - 1) / 2, 2));
+        const ff = (() => {
+          if (props.fSepVAlpha === 'ccc^3') {
+            return Math.min(Math.pow(tf, 3), 30);
+          } else if (props.fSepVAlpha === 'bell') {
+            // Needs a bit of scaling (compared to 'ccc^3')
+            return (
+              10 *
+              ((1 / (0.2 * Math.sqrt(2 * Math.PI))) *
+                Math.pow(Math.E, -0.5 * Math.pow((2 * alpha - 1) / 2, 2)))
+            );
+          }
+          // Needs a bit of scaling (compared to 'ccc^3')
+          return alpha * 25;
+        })();
         const f = (1 / (dx * dx + dy * dy)) * ff;
         const af = Math.max(c ? f : 0);
 
@@ -315,7 +329,20 @@ function forceBoxSeparationP(): ForceSeparate {
         const tot = Math.abs(dx) / d + Math.abs(dy) / d;
         const mx = Math.abs(dx / d / tot);
         const my = Math.abs(dy / d / tot);
-        const ff = Math.min(Math.pow(tf, 3), 10);
+        const ff = (() => {
+          if (props.fSepPAlpha === 'ccc^3') {
+            return Math.min(Math.pow(tf, 3), 30);
+          } else if (props.fSepPAlpha === 'bell') {
+            // Needs a bit of scaling (compared to 'ccc^3')
+            return (
+              10 *
+              ((1 / (0.2 * Math.sqrt(2 * Math.PI))) *
+                Math.pow(Math.E, -0.5 * Math.pow((2 * alpha - 1) / 2, 2)))
+            );
+          }
+          // Needs a bit of scaling (compared to 'ccc^3')
+          return alpha * 25;
+        })();
         const f = (1 / (dx * dx + dy * dy)) * ff;
         const af = Math.max(c ? f : 0);
 

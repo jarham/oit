@@ -25,9 +25,11 @@ ModalBase.modal-perspective-palette(
       :f-sep-v='fSepVEnable'
       :f-sep-v-out-only='fSepVOutOnly'
       :f-sep-v-strength='fSepVStrength'
+      :f-sep-v-alpha='fSepVAlpha'
       :f-sep-p='fSepPEnable'
       :f-sep-p-out-only='fSepPOutOnly'
       :f-sep-p-strength='fSepPStrength'
+      :f-sep-p-alpha='fSepPAlpha'
       :sim-auto-run='simAutoRun'
       ref='wordCloud'
       @click='wordCloud?.createCloud()'
@@ -94,6 +96,12 @@ ModalBase.modal-perspective-palette(
           label.input-group-text(for='wc-f-sep-v-out-only') Outwards only
           .input-group-text
             input#wc-f-sep-v-out-only.form-check-input.mt-0(type='checkbox' v-model='fSepVOutOnly')
+          label.input-group-text(for='wc-f-sep-v-alpha') Alpha fn
+          select#wc-f-sep-v-alpha.form-select(v-model='fSepVAlpha')
+            option(
+              v-for='sa in sepAlphas'
+              :value='sa'
+            ) {{ sepAlphaNames[sa] }}
     .d-flex
       .input-group.input-group-sm.mb-2.flex-nowrap
           label.input-group-text(for='wc-f-sep-p') Force: Separate P
@@ -104,6 +112,12 @@ ModalBase.modal-perspective-palette(
           label.input-group-text(for='wc-f-sep-p-out-only') Outwards only
           .input-group-text
             input#wc-f-sep-p-out-only.form-check-input.mt-0(type='checkbox' v-model='fSepPOutOnly')
+          label.input-group-text(for='wc-f-sep-p-alpha') Alpha fn
+          select#wc-f-sep-p-alpha.form-select(v-model='fSepPAlpha')
+            option(
+              v-for='sa in sepAlphas'
+              :value='sa'
+            ) {{ sepAlphaNames[sa] }}
     .d-flex
       .input-group.input-group-sm.mb-2
           label.input-group-text(for='wc-sim-auto-run') Auto run
@@ -156,12 +170,21 @@ const fXEnable = ref(true);
 const fXStrength = ref(0.02);
 const fYEnable = ref(true);
 const fYStrength = ref(0.02);
+
+const sepAlphas = ['bell', 'ccc^3', 'direct'] as const;
+const sepAlphaNames: Record<typeof sepAlphas[number], string> = {
+  bell: 'Bell shape',
+  'ccc^3': 'Cum. coll. counter',
+  direct: 'Direct',
+} as const;
 const fSepVEnable = ref(true);
 const fSepVOutOnly = ref(true);
 const fSepVStrength = ref(15);
+const fSepVAlpha = ref(sepAlphas[1]);
 const fSepPEnable = ref(true);
 const fSepPOutOnly = ref(true);
 const fSepPStrength = ref(10);
+const fSepPAlpha = ref(sepAlphas[1]);
 
 const simAutoRun = ref(true);
 const simStepSize = ref(1);
