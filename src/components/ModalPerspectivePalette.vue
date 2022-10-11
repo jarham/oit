@@ -181,9 +181,9 @@ const shapePx = ref(40);
 const shapePy = ref(40);
 
 const fChargeEnable = ref(true);
-const fChargeStrength = ref(-70);
+const fChargeStrength = ref(-100);
 const fXEnable = ref(true);
-const fXStrength = ref(0.02);
+const fXStrength = ref(0.005);
 const fYEnable = ref(true);
 const fYStrength = ref(0.02);
 
@@ -198,11 +198,11 @@ const sepAlphaNames: Record<typeof sepAlphas[number], string> = {
 const fSepVEnable = ref(true);
 const fSepVOutOnly = ref(true);
 const fSepVStrength = ref(6);
-const fSepVAlpha = ref(sepAlphas[2]);
+const fSepVAlpha = ref(sepAlphas[4]);
 const fSepPEnable = ref(true);
 const fSepPOutOnly = ref(true);
 const fSepPStrength = ref(3);
-const fSepPAlpha = ref(sepAlphas[2]);
+const fSepPAlpha = ref(sepAlphas[4]);
 
 const simAutoRun = ref(true);
 const simStopped = ref(false);
