@@ -181,7 +181,7 @@ const shapePx = ref(40);
 const shapePy = ref(40);
 
 const fChargeEnable = ref(true);
-const fChargeStrength = ref(-50);
+const fChargeStrength = ref(-70);
 const fXEnable = ref(true);
 const fXStrength = ref(0.02);
 const fYEnable = ref(true);
@@ -208,7 +208,7 @@ const simStepSize = ref(1);
 const simBreakPoint = ref(0);
 const simEnableBreakPoint = ref(false);
 const simAlphaTarget = ref(0); // d3 default = 0
-const simAlphaDecay = ref(0.03); // d3 default = 0.0228
+const simAlphaDecay = ref(0.1); // d3 default = 0.0228
 const simAlphaMin = ref(0.001); // d3 default = 0.001
 
 watch(
