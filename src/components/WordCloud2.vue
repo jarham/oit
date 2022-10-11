@@ -32,11 +32,11 @@ interface Props {
   fSepV?: boolean;
   fSepVOutOnly?: boolean;
   fSepVStrength?: number;
-  fSepVAlpha?: 'direct' | 'bell' | 'ccc^3';
+  fSepVAlpha?: 'direct' | 'bell' | 'bump' | 'ccc^3' | 'sigmoid';
   fSepP?: boolean;
   fSepPOutOnly?: boolean;
   fSepPStrength?: number;
-  fSepPAlpha?: 'direct' | 'bell' | 'ccc^3';
+  fSepPAlpha?: 'direct' | 'bell' | 'bump' | 'ccc^3' | 'sigmoid';
   simAutoRun?: boolean;
   simAlphaTarget?: number;
   simAlphaDecay?: number;
@@ -274,6 +274,14 @@ function forceBoxSeparationV(): ForceSeparate {
               ((1 / (0.2 * Math.sqrt(2 * Math.PI))) *
                 Math.pow(Math.E, -0.5 * Math.pow((2 * alpha - 1) / 2, 2)))
             );
+          } else if (props.fSepVAlpha === 'bump') {
+            // Needs a bit of scaling (compared to 'ccc^3')
+            return alpha > 0.2 && alpha < 1
+              ? Math.exp(1 / (1 - Math.pow(2.5 * (1 - alpha) - 1.5, 2))) * 2
+              : 0;
+          } else if (props.fSepVAlpha === 'sigmoid') {
+            // Needs a bit of scaling (compared to 'ccc^3')
+            return (1 / (1 + Math.pow(Math.E, -12 * (1 - alpha - 0.5)))) * 50;
           }
           // Needs a bit of scaling (compared to 'ccc^3')
           return alpha * 25;
@@ -346,6 +354,13 @@ function forceBoxSeparationP(): ForceSeparate {
               ((1 / (0.2 * Math.sqrt(2 * Math.PI))) *
                 Math.pow(Math.E, -0.5 * Math.pow((2 * alpha - 1) / 2, 2)))
             );
+          } else if (props.fSepPAlpha === 'bump') {
+            // Needs a bit of scaling (compared to 'ccc^3')
+            return alpha > 0.2 && alpha < 1
+              ? Math.exp(1 / (1 - Math.pow(2.5 * (1 - alpha) - 1.5, 2))) * 2
+              : 0;
+          } else if (props.fSepPAlpha === 'sigmoid') {
+            return (1 / (1 + Math.pow(Math.E, -12 * (1 - alpha - 0.5)))) * 50;
           }
           // Needs a bit of scaling (compared to 'ccc^3')
           return alpha * 25;

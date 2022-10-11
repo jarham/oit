@@ -187,11 +187,13 @@ const fXStrength = ref(0.02);
 const fYEnable = ref(true);
 const fYStrength = ref(0.02);
 
-const sepAlphas = ['bell', 'ccc^3', 'direct'] as const;
+const sepAlphas = ['bell', 'bump', 'ccc^3', 'direct', 'sigmoid'] as const;
 const sepAlphaNames: Record<typeof sepAlphas[number], string> = {
   bell: 'Bell shape',
+  bump: 'Shifted bump shape',
   'ccc^3': 'Cum. coll. counter',
   direct: 'Direct',
+  sigmoid: 'Sigmoid',
 } as const;
 const fSepVEnable = ref(true);
 const fSepVOutOnly = ref(true);
