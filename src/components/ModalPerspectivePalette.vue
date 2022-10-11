@@ -30,10 +30,14 @@ ModalBase.modal-perspective-palette(
       :f-sep-p-out-only='fSepPOutOnly'
       :f-sep-p-strength='fSepPStrength'
       :f-sep-p-alpha='fSepPAlpha'
-      :sim-auto-run='simAutoRun'
+      :sim-auto-run='simAutoRun && !simStopped'
+      :sim-alpha-target='simAlphaTarget'
+      :sim-alpha-decay='simAlphaDecay'
+      :sim-alpha-min='simAlphaMin'
       ref='wordCloud'
       @click='wordCloud?.createCloud()'
       @breakpoint='simAutoRun = false'
+      @simulation-end='simStopped = true'
     )
     hr
     .input-group.input-group-sm.mb-2
@@ -119,10 +123,18 @@ ModalBase.modal-perspective-palette(
               :value='sa'
             ) {{ sepAlphaNames[sa] }}
     .d-flex
+      .input-group.input-group-sm.mb-2.flex-nowrap.me-2
+          label.input-group-text(for='wc-shape-px') Alpha settings
+          label.input-group-text(for='wc-shape-px') Target
+          input#wc-shape-px.form-control(type='number' min='0' max='1' step='0.01' v-model='simAlphaTarget')
+          label.input-group-text(for='wc-shape-px') Decay
+          input#wc-shape-px.form-control(type='number' min='0' max='1' step='0.01' v-model='simAlphaDecay')
+          label.input-group-text(for='wc-shape-px') Min
+          input#wc-shape-px.form-control(type='number' min='0' max='1' step='0.01' v-model='simAlphaMin ')
+    .d-flex
       .input-group.input-group-sm.mb-2
           button.btn.btn-outline-primary(
-            :disabled='simAutoRun'
-            @click='wordCloud?.tick(simStepSize)'
+            @click='onStep'
           ) Step
           input#sim-step-count.form-control(type='number' min='0' v-model='simStepSize')
           label.input-group-text(for='wc-sim-step-count') steps
@@ -137,13 +149,13 @@ ModalBase.modal-perspective-palette(
             @click='wordCloud?.createCloud()'
           ) Reset simulation
           button.btn.btn-outline-primary(
-            @click='simAutoRun = !simAutoRun'
+            @click='onPlayPause'
             style='min-width: 7ch;'
           )
-            .bi.bi-play(v-show='!simAutoRun')
-            .bi.bi-pause(v-show='simAutoRun')
+            .bi.bi-play(v-show='!simAutoRun || simStopped')
+            .bi.bi-pause(v-show='simAutoRun && !simStopped')
           .input-group-text.justify-content-center(style='min-width: 15ch;')
-            span {{ simAutoRun ? 'Running' : 'Paused' }}
+            span {{ simStopped ? 'Stopped' : simAutoRun ? 'Running' : 'Paused' }}
 </template>
 
 <script setup lang="ts">
@@ -191,9 +203,13 @@ const fSepPStrength = ref(3);
 const fSepPAlpha = ref(sepAlphas[2]);
 
 const simAutoRun = ref(true);
+const simStopped = ref(false);
 const simStepSize = ref(1);
 const simBreakPoint = ref(0);
 const simEnableBreakPoint = ref(false);
+const simAlphaTarget = ref(0); // d3 default = 0
+const simAlphaDecay = ref(0.03); // d3 default = 0.0228
+const simAlphaMin = ref(0.001); // d3 default = 0.001
 
 watch(
   [
@@ -221,6 +237,24 @@ const {modalInterface, bind} = useModalBase(modal, {
   ariaBtnClose: 'component.modal-perspective-palette.btn.close.aria-label',
 });
 const wordCloud = ref<InstanceType<typeof WordCloud>>();
+
+const onPlayPause = () => {
+  if (!simAutoRun.value || simStopped.value) {
+    // Play click
+    simAutoRun.value = true;
+    simStopped.value = false;
+    wordCloud.value?.start();
+  } else {
+    // Pause click
+    simAutoRun.value = false;
+    wordCloud.value?.stop();
+  }
+};
+const onStep = () => {
+  simAutoRun.value = false;
+  wordCloud.value?.tick(simStepSize.value);
+};
+
 defineExpose({
   ...modalInterface,
   show: () => {

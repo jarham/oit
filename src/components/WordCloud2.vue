@@ -38,6 +38,9 @@ interface Props {
   fSepPStrength?: number;
   fSepPAlpha?: 'direct' | 'bell' | 'ccc^3';
   simAutoRun?: boolean;
+  simAlphaTarget?: number;
+  simAlphaDecay?: number;
+  simAlphaMin?: number;
 }
 const props = withDefaults(defineProps<Props>(), {
   collisionShape: 'rectangle',
@@ -63,9 +66,12 @@ const props = withDefaults(defineProps<Props>(), {
   fSepPStrength: 1,
   fSepPAlpha: 'bell',
   simAutoRun: true,
+  simAlphaTarget: 0,
+  simAlphaDecay: 0.0228,
+  simAlphaMin: 0.001,
 });
 
-const emit = defineEmits(['breakpoint']);
+const emit = defineEmits(['breakpoint', 'simulation-end']);
 
 const elWordCloud = ref<HTMLDivElement>();
 const cloudWords = computed(() =>
@@ -99,6 +105,7 @@ let linkGroup: d3.Selection<
 > | null = null;
 let simInfo: d3.Selection<SVGGElement, undefined, null, undefined>;
 let simInfoT: d3.Selection<SVGTextElement, undefined, null, undefined>;
+let simInfoAlpha: d3.Selection<SVGTextElement, undefined, null, undefined>;
 let simInfoCenter: d3.Selection<SVGTextElement, undefined, null, undefined>;
 let nodes: WordNodeDatum[] = [];
 let links: WordNodeLinkDatum[] = [];
@@ -428,7 +435,9 @@ const createCloud = () => {
 
   simulation = d3
     .forceSimulation<WordNodeDatum>()
-    .alphaDecay(0.01)
+    .alphaTarget(props.simAlphaTarget)
+    .alphaDecay(props.simAlphaDecay)
+    .alphaMin(props.simAlphaMin)
     .force('charge', forceCharge)
     .force('x', forceX)
     .force('y', forceY)
@@ -458,6 +467,14 @@ const createCloud = () => {
 
   simInfo = svg.append('g');
   simInfoT = simInfo
+    .append('text')
+    .attr('stroke', '#00f')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('font-size', 'smaller')
+    .attr('font-weight', 100)
+    .text('');
+  simInfoAlpha = simInfo
     .append('text')
     .attr('stroke', '#00f')
     .attr('x', 0)
@@ -572,6 +589,12 @@ const updateSimInfo = () => {
     ?.attr('x', width / -2)
     .attr('y', height / 2 - 5)
     .text(`t: ${t}`);
+  const a = Number.parseFloat(simulation?.alpha() as any);
+  simInfoAlpha
+    ?.attr('x', width / -2)
+    .attr('y', height / 2 - 25)
+    .attr('stroke', a > (simulation?.alphaMin() || 0) ? '#0f0' : '#f00')
+    .text(`α: ${a.toFixed(6)}`);
 };
 
 const onTick = (c?: number) => {
@@ -643,6 +666,7 @@ const update = () => {
       .alpha(1);
   }
   simulation.nodes(nodes).on('tick', onTick);
+  simulation.nodes(nodes).on('end', () => emit('simulation-end'));
 
   // Using join instead of enter/exit/merge
   // See: https://observablehq.com/@d3/selection-join
