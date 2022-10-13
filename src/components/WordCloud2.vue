@@ -37,6 +37,8 @@ interface Props {
   fSepPOutOnly?: boolean;
   fSepPStrength?: number;
   fSepPAlpha?: 'direct' | 'bell' | 'bump' | 'ccc^3' | 'sigmoid';
+  fKeepInVp?: boolean;
+  fKeepInVpStrength?: number;
   simAutoRun?: boolean;
   simAlphaTarget?: number;
   simAlphaDecay?: number;
@@ -65,6 +67,8 @@ const props = withDefaults(defineProps<Props>(), {
   fSepPOutOnly: true,
   fSepPStrength: 1,
   fSepPAlpha: 'bell',
+  fKeepInVp: true,
+  fKeepInVpStrength: 1,
   simAutoRun: true,
   simAlphaTarget: 0,
   simAlphaDecay: 0.0228,
@@ -134,13 +138,21 @@ interface WordNodeLinkDatum extends d3.SimulationLinkDatum<WordNodeDatum> {
   source: WordNodeDatum;
   target: WordNodeDatum;
 }
+interface Point {
+  x: number;
+  y: number;
+}
+interface Vector {
+  p1: Point;
+  p2: Point;
+}
 
 const updateContainer = () => {
   if (!elWordCloud.value || !svg) return;
   const div = elWordCloud.value;
   const r = div.getBoundingClientRect();
   width = r.width;
-  height = r.height;
+  height = 500; //r.height;
   svg.attr('viewBox', [-width / 2, -height / 2, width, height]);
   scx = 0;
   scy = 0;
@@ -177,59 +189,121 @@ function distPointLine(
   );
 }
 
+function unitVector(l: Vector): Vector {
+  const dx = l.p2.x - l.p1.x;
+  const dy = l.p2.y - l.p1.y;
+  const d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+  return {
+    p1: {x: 0, y: 0},
+    p2: {x: dx / d, y: dy / d},
+  };
+}
+
 function distDatumBox(a: WordNodeDatum, b: WordNodeDatum): number {
-  const c = a.br.intersect(a.br);
-  if (c) return 0;
+  return distBox(a.br, b.br);
+}
+function distBox(
+  a: Flatten.Box,
+  b: Flatten.Box,
+  pa?: Point,
+  la?: Vector,
+  pb?: Point,
+  lb?: Vector,
+): number {
+  const c = a.intersect(b);
+  if (pa) {
+    pa.x = Number.NaN;
+    pa.y = Number.NaN;
+  }
+  if (la) {
+    la.p1.x = Number.NaN;
+    la.p1.y = Number.NaN;
+    la.p2.x = Number.NaN;
+    la.p2.y = Number.NaN;
+  }
+  if (pb) {
+    pb.x = Number.NaN;
+    pb.y = Number.NaN;
+  }
+  if (lb) {
+    lb.p1.x = Number.NaN;
+    lb.p1.y = Number.NaN;
+    lb.p2.x = Number.NaN;
+    lb.p2.y = Number.NaN;
+  }
+  if (c) {
+    return 0;
+  }
 
   // Check every box corner point's distance to line on the other box.
   // Do it "both ways", ie. 1) a's points, b's lines, 2) b's points, a's lines
   let d = Number.POSITIVE_INFINITY;
   let lines = [
-    [b.br.xmin, b.br.ymin, b.br.xmax, b.br.ymin],
-    [b.br.xmax, b.br.ymin, b.br.xmax, b.br.ymax],
-    [b.br.xmax, b.br.ymax, b.br.xmin, b.br.ymax],
-    [b.br.xmin, b.br.ymax, b.br.xmin, b.br.ymin],
+    [b.xmin, b.ymin, b.xmax, b.ymin],
+    [b.xmax, b.ymin, b.xmax, b.ymax],
+    [b.xmax, b.ymax, b.xmin, b.ymax],
+    [b.xmin, b.ymax, b.xmin, b.ymin],
   ];
   [
-    [a.br.xmin, a.br.ymin],
-    [a.br.xmax, a.br.ymin],
-    [a.br.xmax, a.br.ymax],
-    [a.br.xmin, a.br.ymax],
+    [a.xmin, a.ymin],
+    [a.xmax, a.ymin],
+    [a.xmax, a.ymax],
+    [a.xmin, a.ymax],
   ].forEach(([x0, y0]) => {
     lines.forEach(([x1, y1, x2, y2]) => {
       const d2 = distPointLine(x0, y0, x1, y1, x2, y2);
-      if (d2 < d) d = d2;
+      if (d2 < d) {
+        d = d2;
+        if (pa) {
+          pa.x = x0;
+          pa.y = y0;
+        }
+        if (lb) {
+          lb.p1.x = x1;
+          lb.p1.y = y1;
+          lb.p2.x = x2;
+          lb.p2.y = y2;
+        }
+      }
     });
   });
   lines = [
-    [a.br.xmin, a.br.ymin, a.br.xmax, a.br.ymin],
-    [a.br.xmax, a.br.ymin, a.br.xmax, a.br.ymax],
-    [a.br.xmax, a.br.ymax, a.br.xmin, a.br.ymax],
-    [a.br.xmin, a.br.ymax, a.br.xmin, a.br.ymin],
+    [a.xmin, a.ymin, a.xmax, a.ymin],
+    [a.xmax, a.ymin, a.xmax, a.ymax],
+    [a.xmax, a.ymax, a.xmin, a.ymax],
+    [a.xmin, a.ymax, a.xmin, a.ymin],
   ];
   [
-    [b.br.xmin, b.br.ymin],
-    [b.br.xmax, b.br.ymin],
-    [b.br.xmax, b.br.ymax],
-    [b.br.xmin, b.br.ymax],
+    [b.xmin, b.ymin],
+    [b.xmax, b.ymin],
+    [b.xmax, b.ymax],
+    [b.xmin, b.ymax],
   ].forEach(([x0, y0]) => {
     lines.forEach(([x1, y1, x2, y2]) => {
       const d2 = distPointLine(x0, y0, x1, y1, x2, y2);
       if (d2 < d) d = d2;
+      if (pb) {
+        pb.x = x0;
+        pb.y = y0;
+      }
+      if (la) {
+        la.p1.x = x1;
+        la.p1.y = y1;
+        la.p2.x = x2;
+        la.p2.y = y2;
+      }
     });
   });
 
   return d;
 }
 
-// type StrFn = (() => number) & ((strength: number) => ForceSeparate);
-type StrFn = {(): number; (strength: number): ForceSeparate};
-interface ForceSeparate extends d3.Force<WordNodeDatum, any> {
-  strength(this: ForceSeparate): number;
-  strength(this: ForceSeparate, str: number): ForceSeparate;
+interface ForceWordNodeDatum extends d3.Force<WordNodeDatum, any> {
+  strength(this: ForceWordNodeDatum): number;
+  strength(this: ForceWordNodeDatum, str: number): ForceWordNodeDatum;
 }
 
-function forceBoxSeparationV(): ForceSeparate {
+function forceBoxSeparationV(): ForceWordNodeDatum {
   let nodes: WordNodeDatum[] | null = null;
   let tf = 0;
   let str = 1;
@@ -302,7 +376,7 @@ function forceBoxSeparationV(): ForceSeparate {
     tf = Math.max(tf + (colls ? 1 : -1), 0);
   };
   f.initialize = (newNodes: WordNodeDatum[]) => (nodes = newNodes);
-  f.strength = function (this: ForceSeparate, s?: number) {
+  f.strength = function (this: ForceWordNodeDatum, s?: number) {
     if (typeof s === 'number') {
       str = s;
       return f;
@@ -310,10 +384,10 @@ function forceBoxSeparationV(): ForceSeparate {
     return str;
   };
   // TODO: w/o cast
-  return f as ForceSeparate;
+  return f as ForceWordNodeDatum;
 }
 
-function forceBoxSeparationP(): ForceSeparate {
+function forceBoxSeparationP(): ForceWordNodeDatum {
   let nodes: WordNodeDatum[] | null = null;
   let str = 1;
   let tf = 0;
@@ -381,7 +455,7 @@ function forceBoxSeparationP(): ForceSeparate {
     tf = Math.max(tf + (colls ? 1 : -1), 0);
   };
   f.initialize = (newNodes: WordNodeDatum[]) => (nodes = newNodes);
-  f.strength = function (this: ForceSeparate, s?: number) {
+  f.strength = function (this: ForceWordNodeDatum, s?: number) {
     if (typeof s === 'number') {
       str = s;
       return f;
@@ -389,7 +463,64 @@ function forceBoxSeparationP(): ForceSeparate {
     return str;
   };
   // TODO: w/o cast
-  return f as ForceSeparate;
+  return f as ForceWordNodeDatum;
+}
+
+function forceKeepInViewport(): ForceWordNodeDatum {
+  let nodes: WordNodeDatum[] | null = null;
+  let str = 1;
+  const f = () => {
+    if (str === 0) return;
+    const wpXMin = -width / 2;
+    const wpYMin = -height / 2;
+    const wpXMax = -wpXMin;
+    const wpYMax = -wpYMin;
+    nodes?.forEach((wd1, i) => {
+      // 1. If node is already out of viewport:
+      //    a) If fully out of viewport, teleport just "next to"
+      //       viewport aiming at the center.
+      //    b) Push node towards center with velocity
+      // 2. If node (bounding rect) is moving out of viewport
+      //    prevent that by "cutting velocity short".
+
+      const fullyInside =
+        wd1.br.xmin > wpXMin &&
+        wd1.br.xmax < wpXMax &&
+        wd1.br.ymin > wpYMin &&
+        wd1.br.ymax < wpYMax;
+      if (fullyInside) return;
+
+      const fullyOutside =
+        wd1.br.xmin > wpXMax ||
+        wd1.br.xmax < wpXMin ||
+        wd1.br.ymin > wpYMax ||
+        wd1.br.ymax < wpYMin;
+      if (fullyOutside) {
+        // teleport. note: db might not get us to border when
+        // aiming to center, but it's close enough.
+        const bvp = new Flatten.Box(wpXMin, wpYMin, wpXMax, wpYMax);
+        const pa: Point = {x: Number.NaN, y: Number.NaN};
+        const db = distBox(wd1.br, bvp, pa);
+        const uv = unitVector({p1: pa, p2: {x: 0, y: 0}});
+        wd1.x = pa.x + uv.p2.x * db;
+        wd1.y = pa.y + uv.p2.y * db;
+
+        // add velocity towards venter
+        wd1.vx = uv.p2.x * str;
+        wd1.vy = uv.p2.y * str;
+      }
+    });
+  };
+  f.initialize = (newNodes: WordNodeDatum[]) => (nodes = newNodes);
+  f.strength = function (this: ForceWordNodeDatum, s?: number) {
+    if (typeof s === 'number') {
+      str = s;
+      return f;
+    }
+    return str;
+  };
+  // TODO: w/o cast
+  return f as ForceWordNodeDatum;
 }
 
 function velocityWordNodeDatum(wd1: WordNodeDatum, i: number) {
@@ -419,8 +550,9 @@ function velocityWordNodeDatum(wd1: WordNodeDatum, i: number) {
 let forceCharge: d3.ForceManyBody<WordNodeDatum>;
 let forceX: d3.ForceX<d3.SimulationNodeDatum>;
 let forceY: d3.ForceY<d3.SimulationNodeDatum>;
-let forceSepV: ForceSeparate;
-let forceSepP: ForceSeparate;
+let forceSepV: ForceWordNodeDatum;
+let forceSepP: ForceWordNodeDatum;
+let forceKeepInVp: ForceWordNodeDatum;
 
 const updateForces = () => {
   forceCharge.strength(props.fCharge ? props.fChargeStrength : 0);
@@ -428,6 +560,7 @@ const updateForces = () => {
   forceY.strength(props.fY ? props.fYStrength : 0);
   forceSepV.strength(props.fSepV ? props.fSepVStrength : 0);
   forceSepP.strength(props.fSepP ? props.fSepPStrength : 0);
+  forceKeepInVp.strength(props.fKeepInVp ? props.fKeepInVpStrength : 0);
 };
 
 const createCloud = () => {
@@ -446,6 +579,7 @@ const createCloud = () => {
   forceY = d3.forceY();
   forceSepV = forceBoxSeparationV();
   forceSepP = forceBoxSeparationP();
+  forceKeepInVp = forceKeepInViewport();
   updateForces();
 
   simulation = d3
@@ -457,7 +591,8 @@ const createCloud = () => {
     .force('x', forceX)
     .force('y', forceY)
     .force('separateV', forceSepV)
-    .force('separateP', forceSepP);
+    .force('separateP', forceSepP)
+    .force('keepInVp', forceKeepInVp);
 
   // TODO: w/o cast (d3.Selection is the problem in create() above)
   nodeGroup = svg.append('g').attr('class', 'nodes') as unknown as d3.Selection<
@@ -739,10 +874,12 @@ const update = () => {
 
 onMounted(() => {
   createCloud();
+  addEventListener('resize', updateContainer);
 });
 
 onBeforeUnmount(() => {
   disposeCloud();
+  removeEventListener('resize', updateContainer);
 });
 
 defineExpose({

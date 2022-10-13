@@ -30,6 +30,8 @@ ModalBase.modal-perspective-palette(
       :f-sep-p-out-only='fSepPOutOnly'
       :f-sep-p-strength='fSepPStrength'
       :f-sep-p-alpha='fSepPAlpha'
+      :f-keep-in-vp='fKeepInVpEnable'
+      :f-keep-in-vp-strength='fKeepInVpStrength'
       :sim-auto-run='simAutoRun && !simStopped'
       :sim-alpha-target='simAlphaTarget'
       :sim-alpha-decay='simAlphaDecay'
@@ -123,6 +125,13 @@ ModalBase.modal-perspective-palette(
               :value='sa'
             ) {{ sepAlphaNames[sa] }}
     .d-flex
+      .input-group.input-group-sm.mb-2
+          label.input-group-text(for='wc-f-keep-in-vp') Force: Keep in Viewport
+          .input-group-text
+            input#wc-keep-in-vp.form-check-input.mt-0(type='checkbox' v-model='fKeepInVpEnable')
+          label.input-group-text(for='wc-f-keep-in-vp') Strength
+          input#wc-f-keep-in-vp.form-control(type='number' min='0' v-model='fKeepInVpStrength' style='max-width: 11ch;')
+    .d-flex
       .input-group.input-group-sm.mb-2.flex-nowrap.me-2
           label.input-group-text(for='wc-shape-px') Alpha settings
           label.input-group-text(for='wc-shape-px') Target
@@ -191,7 +200,7 @@ const sepAlphas = ['bell', 'bump', 'ccc^3', 'direct', 'sigmoid'] as const;
 const sepAlphaNames: Record<typeof sepAlphas[number], string> = {
   bell: 'Bell shape',
   bump: 'Shifted bump shape',
-  'ccc^3': 'Cum. coll. counter',
+  'ccc^3': 'Cumul. coll. counter',
   direct: 'Direct',
   sigmoid: 'Sigmoid',
 } as const;
@@ -203,6 +212,8 @@ const fSepPEnable = ref(true);
 const fSepPOutOnly = ref(true);
 const fSepPStrength = ref(3);
 const fSepPAlpha = ref(sepAlphas[4]);
+const fKeepInVpEnable = ref(true);
+const fKeepInVpStrength = ref(1);
 
 const simAutoRun = ref(true);
 const simStopped = ref(false);
@@ -271,3 +282,19 @@ defineExpose({
   },
 });
 </script>
+<style lang="scss">
+// Change modal sizing a bit with perspective palette:
+// - keep 800px width until really close hitting borders
+// - extra step until 680px
+// - at default 576px breakpoint modal-lg starts scaling with width
+@media (min-width: 680px) {
+  .modal-perspective-palette .modal-dialog.modal-lg {
+    --bs-modal-width: 660px;
+  }
+}
+@media (min-width: 820px) {
+  .modal-perspective-palette .modal-dialog.modal-lg {
+    --bs-modal-width: 800px;
+  }
+}
+</style>
