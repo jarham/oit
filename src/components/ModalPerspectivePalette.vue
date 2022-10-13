@@ -13,13 +13,27 @@ ModalBase.modal-perspective-palette(
       @simulation-end='simStopped = true'
     )
     hr
-    //- .input-group.input-group-sm.mb-2
-    //-   label.input-group-text(for='wc-coll-shape') Collision shape
-    //-   select#wc-coll-shape.form-select(v-model='collisionShape')
-    //-     option(
-    //-       v-for='cs in collisionShapes'
-    //-       :value='cs'
-    //-     ) {{ cs }}
+    .input-group.input-group-sm.mb-2
+      label.input-group-text(for='wc-coll-shape') Collision shape
+      select#wc-coll-shape.form-select(v-model='wcProps.collisionShape')
+        option(
+          v-for='cs in wordCloudCollisionShapes'
+          :value='cs'
+        ) {{ cs }}
+      .input-group-text Show coll. shape:
+      label.input-group-text(for='wc-dbg-show-rectangle') Rectangle
+      .input-group-text
+        input#wc-dbg-show-rectangle.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollRectangle')
+      label.input-group-text(for='wc-dbg-show-ellipse') Ellipse
+      .input-group-text
+        input#wc-dbg-show-ellipse.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollEllipse')
+      label.input-group-text(for='wc-dbg-show-polygon') Polygon
+      .input-group-text
+        input#wc-dbg-show-polygon.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollPolygon')
+    .input-group.input-group-sm.mb-2
+      label.input-group-text(for='wc-sim-ellipse-vertex-count') Ellipse approx. vertex count
+      input#wc-sim-ellipse-vertex-count.form-control(type='number' min='3' v-model='wcProps.simulation.ellipseVertexCount' style='max-width: 11ch;')
+
     //- .d-flex
     //-   .input-group.input-group-sm.mb-2.me-2
     //-       label.input-group-text(for='wc-shape-px') Padding X
@@ -144,13 +158,13 @@ import {useI18n} from 'vue-i18n';
 import WordCloud from '@/components/WordCloud.vue';
 import ModalBase from '@/components/ModalBase.vue';
 import useModalBase from '@/composition/ModalBase';
-import useWordCloud from '@/composition/WordCloud';
+import useWordCloud, {wordCloudCollisionShapes} from '@/composition/WordCloud';
 
 const {t} = useI18n();
 const tc = (s: string) => t(`component.modal-perspective-palette.${s}`);
 
 const wcProps = useWordCloud(['aaaa'], {
-  debugInfo: {showCollisionShape: true},
+  debugInfo: {showCollEllipse: true},
   simulation: {alpha: {target: 0.0}},
 });
 

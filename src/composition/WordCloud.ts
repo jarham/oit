@@ -55,10 +55,13 @@ interface WordCloudProps {
   simulation?: {
     run: boolean;
     breakPoint: number | null;
+    ellipseVertexCount: number;
     alpha: WordCloudForceAlphaParams;
   };
   debugInfo?: {
-    showCollisionShape: boolean;
+    showCollRectangle: boolean;
+    showCollEllipse: boolean;
+    showCollPolygon: boolean;
     showSepV: boolean;
     showSepP: boolean;
     showSimInfo: boolean;
@@ -80,6 +83,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
   simulation: {
     run: false,
     breakPoint: null,
+    ellipseVertexCount: 10,
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -87,7 +91,9 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     },
   },
   debugInfo: {
-    showCollisionShape: false,
+    showCollRectangle: false,
+    showCollEllipse: false,
+    showCollPolygon: false,
     showSepV: false,
     showSepP: false,
     showSimInfo: false,
@@ -162,7 +168,7 @@ export default function useWordCloud(
   });
 }
 
-abstract class ForceWordNodeDatum {
+export abstract class ForceWordNodeDatum {
   protected nodes: WordNodeDatum[] = [];
 
   constructor(private readonly opts: Ref<WordCloudBaseForceOpts>) {}

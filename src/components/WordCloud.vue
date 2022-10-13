@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import * as d3 from 'd3';
 import Flatten from '@flatten-js/core';
-import {computed, onBeforeUnmount, onMounted, ref, toRef} from 'vue';
+import {computed, onBeforeUnmount, onMounted, ref, toRef, watch} from 'vue';
 import {
   forceCharge,
   forceCombined,
@@ -37,10 +37,13 @@ interface WordCloudProps {
   simulation?: {
     run: boolean;
     breakPoint: number | null;
+    ellipseVertexCount: number;
     alpha: WordCloudForceAlphaParams;
   };
   debugInfo?: {
-    showCollisionShape: boolean;
+    showCollRectangle: boolean;
+    showCollEllipse: boolean;
+    showCollPolygon: boolean;
     showSepV: boolean;
     showSepP: boolean;
     showSimInfo: boolean;
@@ -69,8 +72,13 @@ const props = withDefaults(defineProps<WordCloudProps>(), {
 });
 const emit = defineEmits(['breakpoint', 'simulation-end']);
 
-const elWordCloud = ref<HTMLDivElement>();
+watch(
+  () => [props.collisionShape, props.debugInfo, props.simulation],
+  () => draw(),
+  {deep: true},
+);
 
+const elWordCloud = ref<HTMLDivElement>();
 const fChargeOps = toRef(props, 'fCharge');
 
 let width = 0;
@@ -249,7 +257,14 @@ const draw = () => {
       wd1.br.ymax = wd1.br.ymin + r.height + props.py;
 
       wd1.be = new Flatten.Polygon(
-        ellipse2poly(wd1.x, wd1.y, wd1.rx, wd1.ry, 0, 10),
+        ellipse2poly(
+          wd1.x,
+          wd1.y,
+          wd1.rx,
+          wd1.ry,
+          0,
+          props.simulation.ellipseVertexCount,
+        ),
       );
 
       // wd1.el = kld.ShapeInfo.ellipse({
@@ -276,8 +291,9 @@ const draw = () => {
     .attr('y', (d) => d.br.ymin)
     .attr('width', (d) => d.br.xmax - d.br.xmin)
     .attr('height', (d) => d.br.ymax - d.br.ymin)
+    .attr('stroke', props.collisionShape === 'rectangle' ? '#000' : '')
     .attr('display', () =>
-      props.collisionShape === 'rectangle' && props.debugInfo.showCollisionShape
+      props.collisionShape === 'rectangle' && props.debugInfo.showCollRectangle
         ? null
         : 'none',
     );
@@ -288,21 +304,26 @@ const draw = () => {
     .attr('cy', (d) => d.y)
     .attr('rx', (d) => d.rx)
     .attr('ry', (d) => d.ry)
-    // .attr('display', () =>
-    //   props.collisionShape === 'ellipse' && props.debugInfo.showCollisionShape
-    //     ? null
-    //     : 'none',
-    // )
-    // .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
+    .attr('display', () =>
+      props.collisionShape === 'ellipse' && props.debugInfo.showCollEllipse
+        ? null
+        : 'none',
+    );
+  // .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
   nodeGroup
     ?.selectAll<Element, WordNodeDatum>('polygon')
     .attr('points', (d) => d.be.vertices.map((v) => `${v.x},${v.y}`).join(' '))
-    // .attr('display', () =>
-    //   props.collisionShape === 'ellipse' && props.debugInfo.showCollisionShape
-    //     ? null
-    //     : 'none',
-    // )
-    // .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
+    .attr('display', () =>
+      props.collisionShape === 'ellipse' && props.debugInfo.showCollEllipse
+        ? null
+        : 'none',
+    );
+  // .attr('display', () =>
+  //   props.collisionShape === 'ellipse' && props.debugInfo.showCollisionShape
+  //     ? null
+  //     : 'none',
+  // )
+  // .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
 };
 
 defineExpose({
