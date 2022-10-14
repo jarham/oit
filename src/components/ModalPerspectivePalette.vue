@@ -34,12 +34,12 @@ ModalBase.modal-perspective-palette(
       label.input-group-text(for='wc-sim-ellipse-vertex-count') Ellipse approx. vertex count
       input#wc-sim-ellipse-vertex-count.form-control(type='number' min='3' v-model='wcProps.simulation.ellipseVertexCount' style='max-width: 11ch;')
 
-    //- .d-flex
-    //-   .input-group.input-group-sm.mb-2.me-2
-    //-       label.input-group-text(for='wc-shape-px') Padding X
-    //-       input#wc-shape-px.form-control(type='number' min='0' v-model='shapePx')
-    //-       label.input-group-text(for='wc-shape-px') Padding Y
-    //-       input#wc-shape-px.form-control(type='number' min='0' v-model='shapePy')
+    .d-flex
+      .input-group.input-group-sm.mb-2.me-2
+          label.input-group-text(for='wc-shape-px') Padding X
+          input#wc-shape-px.form-control(type='number' min='0' v-model='wcProps.px')
+          label.input-group-text(for='wc-shape-px') Padding Y
+          input#wc-shape-px.form-control(type='number' min='0' v-model='wcProps.py')
     //-   .d-flex.w-100
     //-     .input-group.input-group-sm.mb-2.flex-nowrap.me-2
     //-       label.input-group-text.w-100(for='wc-show-debug') Show debug
@@ -49,13 +49,13 @@ ModalBase.modal-perspective-palette(
     //-       label.input-group-text.w-100(for='wc-show-coll-shape') Show collision shape
     //-       .input-group-text
     //-         input#wc-show-coll-shape.form-check-input.mt-0(type='checkbox' v-model='showCollisionShape')
-    //- .d-flex
-    //-   .input-group.input-group-sm.mb-2.me-2
-    //-       label.input-group-text(for='wc-f-charge') Force: charge
-    //-       .input-group-text
-    //-         input#wc-f-charge.form-check-input.mt-0(type='checkbox' v-model='fChargeEnable')
-    //-       label.input-group-text(for='wc-f-charge-str') Strength
-    //-       input#wc-f-charge-str.form-control(type='number' v-model='fChargeStrength')
+    .d-flex
+      .input-group.input-group-sm.mb-2.me-2
+          label.input-group-text(for='wc-f-charge') Force: charge
+          .input-group-text
+            input#wc-f-charge.form-check-input.mt-0(type='checkbox' v-model='fChargeEnable')
+          label.input-group-text(for='wc-f-charge-str') Strength
+          input#wc-f-charge-str.form-control(type='number' v-model='wcProps.fCharge.params.strength')
     //-   .d-flex.w-100
     //-     .input-group.input-group-sm.mb-2.flex-nowrap.me-2
     //-       label.input-group-text.w-100(for='wc-show-sep-v') Show SepV
@@ -163,9 +163,9 @@ import useWordCloud, {wordCloudCollisionShapes} from '@/composition/WordCloud';
 const {t} = useI18n();
 const tc = (s: string) => t(`component.modal-perspective-palette.${s}`);
 
-const wcProps = useWordCloud(['aaaa'], {
+const wcProps = useWordCloud(['aaaaa', 'aaaaa'], {
+  collisionShape: 'ellipse',
   debugInfo: {showCollEllipse: true},
-  simulation: {alpha: {target: 0.0}},
 });
 
 // const collisionShapes = ['rectangle', 'ellipse'] as const;

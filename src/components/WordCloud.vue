@@ -11,16 +11,18 @@ import Flatten from '@flatten-js/core';
 import {computed, onBeforeUnmount, onMounted, ref, toRef, watch} from 'vue';
 import {
   forceCharge,
+  ForceChargeWordNodeDatum,
   forceCombined,
   wordCloudDefaultOpts,
 } from '@/composition/WordCloud';
 import type {
   ForceCombined,
-  ForceWordNodeDatum,
+  BaseWordNodeDatumForce,
   WordCloudBaseForceOpts,
   WordCloudCollisionShape,
-  WordCloudForceAlphaParams,
+  WordCloudForceAlphaSettings,
   WordCloudSeparationForceOpts,
+  WordCloudBaseForceParams,
   WordNodeDatum,
 } from '@/composition/WordCloud';
 import {ellipse2poly} from '@/lib/math-utils';
@@ -38,7 +40,7 @@ interface WordCloudProps {
     run: boolean;
     breakPoint: number | null;
     ellipseVertexCount: number;
-    alpha: WordCloudForceAlphaParams;
+    alpha: WordCloudForceAlphaSettings;
   };
   debugInfo?: {
     showCollRectangle: boolean;
@@ -48,12 +50,12 @@ interface WordCloudProps {
     showSepP: boolean;
     showSimInfo: boolean;
   };
-  fCharge?: WordCloudBaseForceOpts;
-  fX?: WordCloudBaseForceOpts;
-  fY?: WordCloudBaseForceOpts;
-  fSepV?: WordCloudSeparationForceOpts;
-  fSepP?: WordCloudSeparationForceOpts;
-  fKeepInVp?: WordCloudBaseForceOpts;
+  fCharge?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
+  fX?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
+  fY?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
+  fSepV?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
+  fSepP?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
+  fKeepInVp?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
 }
 
 // withDefaults doesn't seem to support ...wordCloudDefaultOpts
@@ -73,13 +75,20 @@ const props = withDefaults(defineProps<WordCloudProps>(), {
 const emit = defineEmits(['breakpoint', 'simulation-end']);
 
 watch(
-  () => [props.collisionShape, props.debugInfo, props.simulation],
+  () => [
+    props.collisionShape,
+    props.debugInfo,
+    props.simulation,
+    props.px,
+    props.py,
+  ],
   () => draw(),
   {deep: true},
 );
 
 const elWordCloud = ref<HTMLDivElement>();
-const fChargeOps = toRef(props, 'fCharge');
+const collisionShape = toRef(props, 'collisionShape');
+const fChargeParams = ref(toRef(props, 'fCharge').value.params);
 
 let width = 0;
 let height = 0;
@@ -91,12 +100,12 @@ let simulation: d3.Simulation<WordNodeDatum, any>;
 let nodeGroup: d3.Selection<SVGGElement, WordNodeDatum, null, undefined>;
 
 let fCombined: ForceCombined;
-let fCharge: ForceWordNodeDatum;
-let fX: ForceWordNodeDatum;
-let fY: ForceWordNodeDatum;
-let fSepV: ForceWordNodeDatum;
-let fSepP: ForceWordNodeDatum;
-let fKeepInVp: ForceWordNodeDatum;
+let fCharge: BaseWordNodeDatumForce;
+let fX: BaseWordNodeDatumForce;
+let fY: BaseWordNodeDatumForce;
+let fSepV: BaseWordNodeDatumForce;
+let fSepP: BaseWordNodeDatumForce;
+let fKeepInVp: BaseWordNodeDatumForce;
 
 /**
  * Update viewbox dimensions.
@@ -122,7 +131,7 @@ const create = () => {
 
   t = 0;
 
-  fCharge = forceCharge(fChargeOps);
+  fCharge = forceCharge(fChargeParams, collisionShape);
   fCombined = forceCombined().add(fCharge, {...props.fCharge.alpha});
 
   simulation = d3
@@ -170,6 +179,8 @@ const update = (reheat = false) => {
       ry: 0,
       vx: 0,
       vy: 0,
+      v: [],
+      p: [],
       // We get real values later after text has been added
       br: new Flatten.Box(cx, cy, cx, cy),
       be: new Flatten.Polygon(),
@@ -291,12 +302,12 @@ const draw = () => {
     .attr('y', (d) => d.br.ymin)
     .attr('width', (d) => d.br.xmax - d.br.xmin)
     .attr('height', (d) => d.br.ymax - d.br.ymin)
-    .attr('stroke', props.collisionShape === 'rectangle' ? '#000' : '')
-    .attr('display', () =>
-      props.collisionShape === 'rectangle' && props.debugInfo.showCollRectangle
-        ? null
-        : 'none',
-    );
+    .attr(
+      'stroke-dasharray',
+      props.collisionShape === 'rectangle' ? 'none' : '3,1',
+    )
+    .attr('stroke', props.collisionShape === 'rectangle' ? '#000' : '#555')
+    .attr('display', () => (props.debugInfo.showCollRectangle ? null : 'none'));
   // .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
   nodeGroup
     ?.selectAll<Element, WordNodeDatum>('ellipse')
@@ -304,20 +315,22 @@ const draw = () => {
     .attr('cy', (d) => d.y)
     .attr('rx', (d) => d.rx)
     .attr('ry', (d) => d.ry)
-    .attr('display', () =>
-      props.collisionShape === 'ellipse' && props.debugInfo.showCollEllipse
-        ? null
-        : 'none',
-    );
+    .attr(
+      'stroke-dasharray',
+      props.collisionShape === 'ellipse' ? 'none' : '3,1',
+    )
+    .attr('stroke', props.collisionShape === 'ellipse' ? '#000' : '#555')
+    .attr('display', () => (props.debugInfo.showCollEllipse ? null : 'none'));
   // .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
   nodeGroup
     ?.selectAll<Element, WordNodeDatum>('polygon')
     .attr('points', (d) => d.be.vertices.map((v) => `${v.x},${v.y}`).join(' '))
-    .attr('display', () =>
-      props.collisionShape === 'ellipse' && props.debugInfo.showCollEllipse
-        ? null
-        : 'none',
-    );
+    .attr(
+      'stroke-dasharray',
+      props.collisionShape === 'ellipse' ? 'none' : '3,1',
+    )
+    .attr('stroke', props.collisionShape === 'ellipse' ? '#000' : '#555')
+    .attr('display', () => (props.debugInfo.showCollPolygon ? null : 'none'));
   // .attr('display', () =>
   //   props.collisionShape === 'ellipse' && props.debugInfo.showCollisionShape
   //     ? null

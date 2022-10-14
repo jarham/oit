@@ -1,5 +1,4 @@
-/**
- */
+import Flatten from '@flatten-js/core';
 
 /**
  * Calculate polygon approximation of an ellipse.
@@ -13,7 +12,7 @@
  * @param a Ellipse's major semi-axis
  * @param b Ellipse's minor semi-axis
  * @param th Ellipse's rotation in radians
- * @param N Number of polygon vertices
+ * @param nv Number of polygon vertices
  * @return Polygon vertices as array of [x, y] tuples
  */
 export function ellipse2poly(
@@ -49,4 +48,36 @@ export function ellipse2poly(
   }
 
   return p;
+}
+
+export function minVSegments(
+  a: Flatten.Segment,
+  b: Flatten.Segment,
+): {v: Flatten.Segment; d2: number} {
+  let minD2 = Number.POSITIVE_INFINITY;
+}
+
+export function minVSegmentArrays(
+  a: Flatten.Segment[],
+  b: Flatten.Segment[],
+): {v: Flatten.Segment; d2: number} {
+  let minV: Flatten.Segment;
+  let minD2 = Number.POSITIVE_INFINITY;
+  a.forEach((sa) => {
+    b.forEach((sb) => {
+      const {v, d2} = minVSegments(sa, sb);
+      if (d2 < minD2) {
+        minV = v;
+        minD2 = d2;
+      }
+    });
+  });
+
+  return {v: minV, d2: minD2};
+}
+
+export function minVRectangle(a: Flatten.Box, b: Flatten.Box): Flatten.Segment {
+  const sa = a.toSegments();
+  const sb = a.toSegments();
+  return minVSegmentArrays(sa, sb);
 }

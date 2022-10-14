@@ -15,9 +15,13 @@ export interface WordNodeDatum extends d3.SimulationNodeDatum {
   // Ellipse radii
   rx: number;
   ry: number;
-  // Velocity
+  // Total velocity
   vx: number;
   vy: number;
+  // Velocities created by forces
+  v: [number, number][];
+  // Absolute position changes created by forces
+  p: [number, number][];
   // Bounding box, including padding
   br: Flatten.Box;
   // Bounding ellipse approximation as a polygon, including padding
@@ -27,18 +31,22 @@ export interface WordNodeDatum extends d3.SimulationNodeDatum {
 export const wordCloudCollisionShapes = ['rectangle', 'ellipse'] as const;
 export type WordCloudCollisionShape = typeof wordCloudCollisionShapes[number];
 
-export interface WordCloudForceAlphaParams {
+export interface WordCloudForceAlphaSettings {
   target: number;
   decay: number;
   min: number;
 }
 
-export interface WordCloudBaseForceOpts {
+export interface WordCloudBaseForceParams {
   strength: number;
-  alpha: WordCloudForceAlphaParams;
 }
 
-export interface WordCloudSeparationForceOpts extends WordCloudBaseForceOpts {
+export interface WordCloudBaseForceOpts<T extends WordCloudBaseForceParams> {
+  params: T;
+  alpha: WordCloudForceAlphaSettings;
+}
+
+export interface WordCloudSeparationForceOpts extends WordCloudBaseForceParams {
   outwardsOnly: boolean;
   fnAlpha: 'direct' | 'bell' | 'bump' | 'ccc^3' | 'sigmoid';
 }
@@ -56,7 +64,7 @@ interface WordCloudProps {
     run: boolean;
     breakPoint: number | null;
     ellipseVertexCount: number;
-    alpha: WordCloudForceAlphaParams;
+    alpha: WordCloudForceAlphaSettings;
   };
   debugInfo?: {
     showCollRectangle: boolean;
@@ -66,12 +74,12 @@ interface WordCloudProps {
     showSepP: boolean;
     showSimInfo: boolean;
   };
-  fCharge?: WordCloudBaseForceOpts;
-  fX?: WordCloudBaseForceOpts;
-  fY?: WordCloudBaseForceOpts;
-  fSepV?: WordCloudSeparationForceOpts;
-  fSepP?: WordCloudSeparationForceOpts;
-  fKeepInVp?: WordCloudBaseForceOpts;
+  fCharge?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
+  fX?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
+  fY?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
+  fSepV?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
+  fSepP?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
+  fKeepInVp?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
 }
 
 export type WordCloudOpts = PartialDeep<Omit<WordCloudProps, 'words'>>;
@@ -99,7 +107,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     showSimInfo: false,
   },
   fCharge: {
-    strength: 1,
+    params: {strength: 1},
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -107,7 +115,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     },
   },
   fX: {
-    strength: 1,
+    params: {strength: 1},
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -115,7 +123,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     },
   },
   fY: {
-    strength: 1,
+    params: {strength: 1},
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -123,27 +131,31 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     },
   },
   fSepV: {
-    strength: 1,
+    params: {
+      strength: 1,
+      outwardsOnly: true,
+      fnAlpha: 'sigmoid',
+    },
     alpha: {
       target: 0,
       decay: 0.0228,
       min: 0.001,
     },
-    outwardsOnly: true,
-    fnAlpha: 'sigmoid',
   },
   fSepP: {
-    strength: 1,
+    params: {
+      strength: 1,
+      outwardsOnly: true,
+      fnAlpha: 'sigmoid',
+    },
     alpha: {
       target: 0,
       decay: 0.0228,
       min: 0.001,
     },
-    outwardsOnly: true,
-    fnAlpha: 'sigmoid',
   },
   fKeepInVp: {
-    strength: 1,
+    params: {strength: 1},
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -168,30 +180,57 @@ export default function useWordCloud(
   });
 }
 
-export abstract class ForceWordNodeDatum {
+export abstract class ForceWordNodeDatum<T extends WordCloudBaseForceParams> {
   protected nodes: WordNodeDatum[] = [];
 
-  constructor(private readonly opts: Ref<WordCloudBaseForceOpts>) {}
-  abstract apply(alpha: number): void;
+  constructor(
+    protected readonly p: Ref<T>,
+    private readonly cs: Ref<WordCloudCollisionShape>,
+  ) {}
+  abstract apply(alpha: number, t: number, fi: number): void;
 
   initialize(newNodes: WordNodeDatum[], random: () => number) {
     this.nodes = newNodes;
   }
-}
 
-class ForceChargeWordNodeDatum extends ForceWordNodeDatum {
-  apply(alpha: number) {}
+  protected d(wd1: WordNodeDatum, wd2: WordNodeDatum, dMin = 1): number {
+    const d =
+      this.cs.value === 'rectangle'
+        ? this.dRectangle(wd1, wd2)
+        : this.dEllipse(wd1, wd2);
+    return Math.max(d, dMin);
+  }
+
+  private dRectangle(wd1: WordNodeDatum, wd2: WordNodeDatum): number {
+    if (wd1.br.intersect(wd1.br)) return 0;
+    wd1.br.toSegments()[0].ps.y
+  }
+
+  private dEllipse(wd1: WordNodeDatum, wd2: WordNodeDatum): number {}
+}
+export type BaseWordNodeDatumForce =
+  ForceWordNodeDatum<WordCloudBaseForceParams>;
+
+export class ForceChargeWordNodeDatum extends ForceWordNodeDatum<WordCloudBaseForceParams> {
+  apply(alpha: number, t: number, fi: number) {
+    for (let i = 0; i < this.nodes.length; i++) {
+      for (let j = i + 1; j < this.nodes.length; j++) {
+        const wd1 = this.nodes[i];
+        const wd2 = this.nodes[j];
+      }
+    }
+  }
 }
 
 export interface ForceCombined extends d3.Force<WordNodeDatum, any> {
-  add(f: ForceWordNodeDatum, p: WordCloudForceAlphaParams): ForceCombined;
+  add(f: BaseWordNodeDatumForce, p: WordCloudForceAlphaSettings): ForceCombined;
   t(): number;
   alpha(alpha: number): ForceCombined;
 }
 
 interface ForceData {
-  f: ForceWordNodeDatum;
-  p: WordCloudForceAlphaParams;
+  f: BaseWordNodeDatumForce;
+  p: WordCloudForceAlphaSettings;
   alpha: number;
 }
 
@@ -200,17 +239,17 @@ export function forceCombined(): ForceCombined {
   const forceData: ForceData[] = [];
   let t = 0;
   const fn: ForceCombined = (alpha: number) => {
-    forceData.forEach((fd) => {
+    forceData.forEach((fd, fi) => {
       if (fd.alpha < fd.p.min) return;
-      fd.f.apply(fd.alpha);
+      fd.f.apply(fd.alpha, t, fi);
       fd.alpha += (fd.p.target - fd.alpha) * fd.p.decay;
     });
     t++;
   };
   fn.add = function (
     this: ForceCombined,
-    a: ForceWordNodeDatum,
-    p: WordCloudForceAlphaParams,
+    a: BaseWordNodeDatumForce,
+    p: WordCloudForceAlphaSettings,
   ) {
     forceData.push({f: a, p, alpha: 1});
     return this;
@@ -225,13 +264,18 @@ export function forceCombined(): ForceCombined {
     forceData.forEach((force) => {
       force.f.initialize && force.f.initialize(nodes, random);
     });
+    nodes.forEach((n) => {
+      n.v = Array.from(Array(forceData.length).keys()).map(() => [0, 0]);
+      n.p = Array.from(Array(forceData.length).keys()).map(() => [0, 0]);
+    });
   };
 
   return fn;
 }
 
 export function forceCharge(
-  opts: Ref<WordCloudBaseForceOpts>,
-): ForceWordNodeDatum {
-  return new ForceChargeWordNodeDatum(opts);
+  p: Ref<WordCloudBaseForceParams>,
+  cs: Ref<WordCloudCollisionShape>,
+): ForceChargeWordNodeDatum {
+  return new ForceChargeWordNodeDatum(p, cs);
 }
