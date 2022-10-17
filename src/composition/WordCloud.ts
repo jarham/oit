@@ -70,6 +70,11 @@ export interface WordCloudSeparationForceOpts extends WordCloudBaseForceParams {
   fnAlpha: 'direct' | 'bell' | 'bump' | 'ccc^3' | 'sigmoid';
 }
 
+export interface WordCloudCYForceParams extends WordCloudBaseForceParams {
+  x?: number | null;
+  y?: number | null;
+}
+
 // NOTE: because Vue doesn't support importing props interface until 3.3
 //       WordCloudProps if defined in files:
 //       - src/composition/WordCloud.ts
@@ -94,8 +99,8 @@ interface WordCloudProps {
     showSimInfo: boolean;
   };
   fCharge?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
-  fX?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
-  fY?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
+  fX?: WordCloudBaseForceOpts<WordCloudCYForceParams>;
+  fY?: WordCloudBaseForceOpts<WordCloudCYForceParams>;
   fSepV?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
   fSepP?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
   fKeepInVp?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
@@ -265,8 +270,10 @@ export class ForceChargeWordNodeDatum extends ForceWordNodeDatum<WordCloudBaseFo
         const [d, s] = this.d(wd1, wd2);
         segmentNormalize(s);
 
-        const fx = (this.p.value.strength * (s.end.x - s.start.x)) / (d * d);
-        const fy = (this.p.value.strength * (s.end.y - s.start.y)) / (d * d);
+        const fx =
+          (alpha * (this.p.value.strength * (s.end.x - s.start.x))) / (d * d);
+        const fy =
+          (alpha * (this.p.value.strength * (s.end.y - s.start.y))) / (d * d);
 
         v1[0] += fx;
         v1[1] += fy;
@@ -297,6 +304,59 @@ export class ForceChargeWordNodeDatum extends ForceWordNodeDatum<WordCloudBaseFo
     }
   }
 }
+export class ForceXYWordNodeDatum extends ForceWordNodeDatum<WordCloudCYForceParams> {
+  private readonly calcX: boolean;
+  private readonly calcY: boolean;
+  private readonly tx: number;
+  private readonly ty: number;
+
+  constructor(
+    p: Ref<WordCloudCYForceParams>,
+    cs: Ref<WordCloudCollisionShape>,
+  ) {
+    super(p, cs);
+    this.calcX =
+      typeof this.p.value.x === 'number' && Number.isFinite(this.p.value.x);
+    this.tx = this.p.value.x || 0;
+    this.calcY =
+      typeof this.p.value.y === 'number' && Number.isFinite(this.p.value.y);
+    this.ty = this.p.value.x || 0;
+  }
+
+  apply(alpha: number, t: number, fi: number, debugLines: DebugLineDatum[]) {
+    for (let i = 0; i < this.nodes.length; i++) {
+      const wd1 = this.nodes[i];
+      const v1 = wd1.v[fi];
+      // https://www.wolframalpha.com/input?i=plot+0.5%2F%281%2B2%5E%28-0.1x+%2B+10%29%29+from+-10+to+150
+      // const dv = (alpha * 0.5) / (1 + Math.pow(2, 0.1 * Math.abs(d) + 10));
+      if (this.calcX) {
+        const d = this.tx - wd1.x;
+        const dv =
+          this.p.value.strength *
+          alpha *
+          Math.log10(Math.abs(0.1 * d) + 1) *
+          Math.sign(d);
+        v1[0] += dv;
+      }
+      if (this.calcY) {
+        const d = this.ty - wd1.y;
+        const dv =
+          this.p.value.strength *
+          alpha *
+          Math.log10(Math.abs(0.1 * d) + 1) *
+          Math.sign(d);
+        v1[1] += dv || 0;
+      }
+    }
+  }
+
+  updateDebug(
+    alpha: number,
+    t: number,
+    fi: number,
+    debugLines: DebugLineDatum[],
+  ) {}
+}
 
 export interface ForceCombined extends d3.Force<WordNodeDatum, any> {
   add(
@@ -309,6 +369,7 @@ export interface ForceCombined extends d3.Force<WordNodeDatum, any> {
   debugLines(debugLines: DebugLineDatum[]): ForceCombined;
   updateDebug(): ForceCombined;
   alphas(): ForceAlphas;
+  velocityDecay(vd: number): ForceCombined;
 }
 
 interface ForceData {
@@ -323,7 +384,16 @@ export function forceCombined(): ForceCombined {
   let lines: DebugLineDatum[] = [];
   const forceData: ForceData[] = [];
   let t = 0;
+  let vd = 0.4;
   const fn: ForceCombined = (alpha: number) => {
+    if (t > 0) {
+      nodes.forEach((n) => {
+        n.v.forEach((v) => {
+          v[0] *= 1 - vd;
+          v[1] *= 1 - vd;
+        });
+      });
+    }
     forceData.forEach((fd, fi) => {
       if (fd.alpha < fd.p.min || !fd.f.enabled) return;
       fd.f.apply(fd.alpha, t, fi, lines);
@@ -378,6 +448,10 @@ export function forceCombined(): ForceCombined {
     Object.fromEntries(
       forceData.map((fd, i) => [fd.name || `f-${i}`, fd.alpha]),
     );
+  fn.velocityDecay = function (d: number) {
+    vd = d;
+    return this;
+  };
   return fn;
 }
 
@@ -386,4 +460,11 @@ export function forceCharge(
   cs: Ref<WordCloudCollisionShape>,
 ): ForceChargeWordNodeDatum {
   return new ForceChargeWordNodeDatum(p, cs);
+}
+
+export function forceXY(
+  p: Ref<WordCloudCYForceParams>,
+  cs: Ref<WordCloudCollisionShape>,
+): ForceChargeWordNodeDatum {
+  return new ForceXYWordNodeDatum(p, cs);
 }

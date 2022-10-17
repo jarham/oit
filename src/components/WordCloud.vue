@@ -13,6 +13,7 @@ import {
   forceCharge,
   ForceChargeWordNodeDatum,
   forceCombined,
+  forceXY,
   wordCloudDefaultOpts,
 } from '@/composition/WordCloud';
 import type {
@@ -25,6 +26,7 @@ import type {
   WordCloudForceAlphaSettings,
   WordCloudSeparationForceOpts,
   WordCloudBaseForceParams,
+  WordCloudCYForceParams,
   WordNodeDatum,
 } from '@/composition/WordCloud';
 import {ellipse2poly} from '@/lib/math-utils';
@@ -54,8 +56,8 @@ interface WordCloudProps {
     showSimInfo: boolean;
   };
   fCharge?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
-  fX?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
-  fY?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
+  fX?: WordCloudBaseForceOpts<WordCloudCYForceParams>;
+  fY?: WordCloudBaseForceOpts<WordCloudCYForceParams>;
   fSepV?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
   fSepP?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
   fKeepInVp?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
@@ -96,6 +98,8 @@ watch(
 const elWordCloud = ref<HTMLDivElement>();
 const collisionShape = toRef(props, 'collisionShape');
 const fChargeParams = ref(toRef(props, 'fCharge').value.params);
+const fXParams = ref(toRef(props, 'fX').value.params);
+const fYParams = ref(toRef(props, 'fY').value.params);
 
 let width = 0;
 let height = 0;
@@ -141,9 +145,13 @@ const create = () => {
   t = 0;
 
   fCharge = forceCharge(fChargeParams, collisionShape);
+  fX = forceXY(fXParams, collisionShape);
+  fY = forceXY(fYParams, collisionShape);
   fCombined = forceCombined()
     .debugLines(lines)
-    .add(fCharge, {...props.fCharge.alpha}, 'charge');
+    .add(fCharge, {...props.fCharge.alpha}, 'charge')
+    .add(fX, {...props.fX.alpha}, 'x')
+    .add(fY, {...props.fY.alpha}, 'y');
 
   simulation = d3
     .forceSimulation<WordNodeDatum>()

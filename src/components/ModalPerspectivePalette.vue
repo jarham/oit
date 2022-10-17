@@ -65,7 +65,36 @@ ModalBase.modal-perspective-palette(
           input#wc-f-charge-a-target.form-control(type='number' v-model='wcProps.fCharge.alpha.target' min='0' max='1' step='0.001')
           .input-group-text α
           .input-group-text(style='min-width: 10ch;') {{ alphas.charge }}
-          //- input#wc-f-charge-a.form-control(type='text' readonly v-model='wcProps.fCharge.alpha.target')
+    .d-flex
+      .input-group.input-group-sm.mb-2
+          label.input-group-text(for='wc-f-x') fX
+          .input-group-text
+            input#wc-f-x.form-check-input.mt-0(type='checkbox' v-model='wcProps.fX.params.enabled')
+          label.input-group-text(for='wc-f-x-str') Str
+          input#wc-f-x-str.form-control(type='number' v-model='wcProps.fX.params.strength')
+          label.input-group-text(for='wc-f-x-a-decay') α-decay
+          input#wc-f-x-a-decay.form-control(type='number' v-model='wcProps.fX.alpha.decay' min='0' max='1' step='0.001')
+          label.input-group-text(for='wc-f-x-a-min') α-min
+          input#wc-f-x-a-min.form-control(type='number' v-model='wcProps.fX.alpha.min' min='0' max='1' step='0.001')
+          label.input-group-text(for='wc-f-x-a-target') α-target
+          input#wc-f-x-a-target.form-control(type='number' v-model='wcProps.fX.alpha.target' min='0' max='1' step='0.001')
+          .input-group-text α
+          .input-group-text(style='min-width: 10ch;') {{ alphas.x }}
+    .d-flex
+      .input-group.input-group-sm.mb-2
+          label.input-group-text(for='wc-f-y') fY
+          .input-group-text
+            input#wc-f-y.form-check-input.mt-0(type='checkbox' v-model='wcProps.fY.params.enabled')
+          label.input-group-text(for='wc-f-y-str') Str
+          input#wc-f-y-str.form-control(type='number' v-model='wcProps.fY.params.strength')
+          label.input-group-text(for='wc-f-y-a-decay') α-decay
+          input#wc-f-y-a-decay.form-control(type='number' v-model='wcProps.fY.alpha.decay' min='0' max='1' step='0.001')
+          label.input-group-text(for='wc-f-y-a-min') α-min
+          input#wc-f-y-a-min.form-control(type='number' v-model='wcProps.fY.alpha.min' min='0' max='1' step='0.001')
+          label.input-group-text(for='wc-f-y-a-target') α-target
+          input#wc-f-y-a-target.form-control(type='number' v-model='wcProps.fY.alpha.target' min='0' max='1' step='0.001')
+          .input-group-text α
+          .input-group-text(style='min-width: 10ch;') {{ alphas.x }}
     //-   .d-flex.w-100
     //-     .input-group.input-group-sm.mb-2.flex-nowrap.me-2
     //-       label.input-group-text.w-100(for='wc-show-sep-v') Show SepV
@@ -174,12 +203,27 @@ import type {SimData} from '@/composition/WordCloud';
 const {t} = useI18n();
 const tc = (s: string) => t(`component.modal-perspective-palette.${s}`);
 
-const wcProps = useWordCloud(['aaaaa', 'aaaaa', 'aaaaa'], {
+const wcProps = useWordCloud(['aaaa1', 'aaaa2', 'aaaa3', 'aaaa3', 'aaaa3', 'aaaa3', 'aaaa3'], {
   collisionShape: 'ellipse',
   debugInfo: {showCollEllipse: true},
+  simulation: {
+    alpha: {
+      target: 0.1,
+    },
+  },
   fCharge: {
     params: {
       strength: -1,
+    },
+  },
+  fX: {
+    params: {
+      x: 0,
+    },
+  },
+  fY: {
+    params: {
+      y: 0,
     },
   },
 });
