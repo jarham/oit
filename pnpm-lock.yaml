@@ -15,6 +15,7 @@ specifiers:
   '@types/d3-cloud': ^1.2.5
   '@types/file-saver': ^2.0.5
   '@types/flat': ^5.0.2
+  '@types/lodash.clonedeep': ^4.5.7
   '@types/lodash.merge': ^4.6.7
   '@types/markdown-it': ^12.2.3
   '@types/mustache': ^4.2.1
@@ -41,6 +42,7 @@ specifiers:
   husky: ^8.0.1
   joi: ^17.6.0
   kld-intersections: ^0.7.0
+  lodash.clonedeep: ^4.5.0
   lodash.merge: ^4.6.2
   markdown-it: ^13.0.1
   mustache: ^4.2.0
@@ -72,6 +74,7 @@ dependencies:
   flat: 5.0.2
   htmlparser2: 8.0.1
   kld-intersections: 0.7.0
+  lodash.clonedeep: 4.5.0
   lodash.merge: 4.6.2
   markdown-it: 13.0.1
   mustache: 4.2.0
@@ -94,6 +97,7 @@ devDependencies:
   '@types/d3-cloud': 1.2.5
   '@types/file-saver': 2.0.5
   '@types/flat': 5.0.2
+  '@types/lodash.clonedeep': 4.5.7
   '@types/lodash.merge': 4.6.7
   '@types/markdown-it': 12.2.3
   '@types/mustache': 4.2.1
@@ -1076,6 +1080,12 @@ packages:
 
   /@types/linkify-it/3.0.2:
     resolution: {integrity: sha512-HZQYqbiFVWufzCwexrvh694SOim8z2d+xJl5UNamcvQFejLY/2YUtzXHYi3cHdI7PMlS8ejH2slRAOJQ32aNbA==}
+    dev: true
+
+  /@types/lodash.clonedeep/4.5.7:
+    resolution: {integrity: sha512-ccNqkPptFIXrpVqUECi60/DFxjNKsfoQxSQsgcBJCX/fuX1wgyQieojkcWH/KpE3xzLoWN/2k+ZeGqIN3paSvw==}
+    dependencies:
+      '@types/lodash': 4.14.186
     dev: true
 
   /@types/lodash.merge/4.6.7:
@@ -3718,6 +3728,10 @@ packages:
   /lodash.capitalize/4.2.1:
     resolution: {integrity: sha512-kZzYOKspf8XVX5AvmQF94gQW0lejFVgb80G85bU4ZWzoJ6C03PQg3coYAUpSTpQWelrZELd3XWgHzw4Ck5kaIw==}
     dev: true
+
+  /lodash.clonedeep/4.5.0:
+    resolution: {integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==}
+    dev: false
 
   /lodash.escaperegexp/4.1.2:
     resolution: {integrity: sha512-TM9YBvyC84ZxE3rgfefxUWiQKLilstD6k7PTGt6wfbtXF8ixIJLOL3VYyV/z+ZiPLsVxAsKAFVwWlWeb2Y8Yyw==}

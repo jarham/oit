@@ -9,8 +9,9 @@ ModalBase.modal-perspective-palette(
     WordCloud.mx-3(
       v-bind='wcProps'
       ref='wordCloud'
-      @breakpoint='simAutoRun = false'
-      @simulation-end='simStopped = true'
+      @breakpoint='wcProps.simulation.run = false'
+      @simulation-end='onSimulationEnd'
+      @simulation-update='onSimulationUpdate'
     )
     hr
     .input-group.input-group-sm.mb-2
@@ -35,7 +36,7 @@ ModalBase.modal-perspective-palette(
       input#wc-sim-ellipse-vertex-count.form-control(type='number' min='3' v-model='wcProps.simulation.ellipseVertexCount' style='max-width: 11ch;')
 
     .d-flex
-      .input-group.input-group-sm.mb-2.me-2
+      .input-group.input-group-sm.mb-2
           label.input-group-text(for='wc-shape-px') Padding X
           input#wc-shape-px.form-control(type='number' min='0' v-model='wcProps.px')
           label.input-group-text(for='wc-shape-px') Padding Y
@@ -50,12 +51,21 @@ ModalBase.modal-perspective-palette(
     //-       .input-group-text
     //-         input#wc-show-coll-shape.form-check-input.mt-0(type='checkbox' v-model='showCollisionShape')
     .d-flex
-      .input-group.input-group-sm.mb-2.me-2
-          label.input-group-text(for='wc-f-charge') Force: charge
+      .input-group.input-group-sm.mb-2
+          label.input-group-text(for='wc-f-charge') fCharge
           .input-group-text
-            input#wc-f-charge.form-check-input.mt-0(type='checkbox' v-model='fChargeEnable')
-          label.input-group-text(for='wc-f-charge-str') Strength
+            input#wc-f-charge.form-check-input.mt-0(type='checkbox' v-model='wcProps.fCharge.params.enabled')
+          label.input-group-text(for='wc-f-charge-str') Str
           input#wc-f-charge-str.form-control(type='number' v-model='wcProps.fCharge.params.strength')
+          label.input-group-text(for='wc-f-charge-a-decay') α-decay
+          input#wc-f-charge-a-decay.form-control(type='number' v-model='wcProps.fCharge.alpha.decay' min='0' max='1' step='0.001')
+          label.input-group-text(for='wc-f-charge-a-min') α-min
+          input#wc-f-charge-a-min.form-control(type='number' v-model='wcProps.fCharge.alpha.min' min='0' max='1' step='0.001')
+          label.input-group-text(for='wc-f-charge-a-target') α-target
+          input#wc-f-charge-a-target.form-control(type='number' v-model='wcProps.fCharge.alpha.target' min='0' max='1' step='0.001')
+          .input-group-text α
+          .input-group-text(style='min-width: 10ch;') {{ alphas.charge }}
+          //- input#wc-f-charge-a.form-control(type='text' readonly v-model='wcProps.fCharge.alpha.target')
     //-   .d-flex.w-100
     //-     .input-group.input-group-sm.mb-2.flex-nowrap.me-2
     //-       label.input-group-text.w-100(for='wc-show-sep-v') Show SepV
@@ -140,16 +150,16 @@ ModalBase.modal-perspective-palette(
           .input-group-text
             input#wc-sim-auto-run.form-check-input.mt-0(type='checkbox' v-model='simEnableBreakPoint')
           button.btn.btn-outline-primary(
-            @click='wordCloud?.create()'
+            @click='onReset'
           ) Reset simulation
           button.btn.btn-outline-primary(
             @click='onPlayPause'
             style='min-width: 7ch;'
           )
-            .bi.bi-play(v-show='!simAutoRun || simStopped')
-            .bi.bi-pause(v-show='simAutoRun && !simStopped')
+            .bi.bi-play(v-show='!wcProps.simulation.run || simStopped')
+            .bi.bi-pause(v-show='wcProps.simulation.run && !simStopped')
           .input-group-text.justify-content-center(style='min-width: 15ch;')
-            span {{ simStopped ? 'Stopped' : simAutoRun ? 'Running' : 'Paused' }}
+            span {{ simStopped ? 'Stopped' : wcProps.simulation.run ? 'Running' : 'Paused' }}
 </template>
 
 <script setup lang="ts">
@@ -159,13 +169,19 @@ import WordCloud from '@/components/WordCloud.vue';
 import ModalBase from '@/components/ModalBase.vue';
 import useModalBase from '@/composition/ModalBase';
 import useWordCloud, {wordCloudCollisionShapes} from '@/composition/WordCloud';
+import type {SimData} from '@/composition/WordCloud';
 
 const {t} = useI18n();
 const tc = (s: string) => t(`component.modal-perspective-palette.${s}`);
 
-const wcProps = useWordCloud(['aaaaa', 'aaaaa'], {
+const wcProps = useWordCloud(['aaaaa', 'aaaaa', 'aaaaa'], {
   collisionShape: 'ellipse',
   debugInfo: {showCollEllipse: true},
+  fCharge: {
+    params: {
+      strength: -1,
+    },
+  },
 });
 
 // const collisionShapes = ['rectangle', 'ellipse'] as const;
@@ -179,12 +195,17 @@ const wcProps = useWordCloud(['aaaaa', 'aaaaa'], {
 // const shapePx = ref(40);
 // const shapePy = ref(40);
 
-const fChargeEnable = ref(true);
-const fChargeStrength = ref(-100);
-const fXEnable = ref(true);
-const fXStrength = ref(0.005);
-const fYEnable = ref(true);
-const fYStrength = ref(0.02);
+const toFixed = (n: number | string, f: number) =>
+  parseFloat(n as any).toFixed(f);
+
+const alphas = ref({
+  charge: toFixed(1, 6),
+  x: toFixed(1, 6),
+  y: toFixed(1, 6),
+  sepV: toFixed(1, 6),
+  sepP: toFixed(1, 6),
+  keepInVp: toFixed(1, 6),
+});
 
 const sepAlphas = ['bell', 'bump', 'ccc^3', 'direct', 'sigmoid'] as const;
 const sepAlphaNames: Record<typeof sepAlphas[number], string> = {
@@ -241,21 +262,38 @@ const {modalInterface, bind} = useModalBase(modal, {
 });
 const wordCloud = ref<InstanceType<typeof WordCloud>>();
 
+const onSimulationEnd = () => {
+  wcProps.value.simulation.run = false;
+  simStopped.value = true;
+};
+
+const onReset = () => {
+  wordCloud.value?.create();
+};
+
 const onPlayPause = () => {
-  if (!simAutoRun.value || simStopped.value) {
+  if (!wcProps.value.simulation.run || simStopped.value) {
     // Play click
-    simAutoRun.value = true;
+    wcProps.value.simulation.run = true;
     simStopped.value = false;
     wordCloud.value?.start();
   } else {
     // Pause click
-    simAutoRun.value = false;
+    wcProps.value.simulation.run = false;
     wordCloud.value?.stop();
   }
 };
 const onStep = () => {
-  simAutoRun.value = false;
+  wcProps.value.simulation.run = false;
   wordCloud.value?.tick(simStepSize.value);
+};
+const onSimulationUpdate = (td: SimData) => {
+  alphas.value.charge = toFixed(td.alphas['charge'] || 0, 6);
+  alphas.value.x = toFixed(td.alphas['x'] || 0, 6);
+  alphas.value.y = toFixed(td.alphas['y'] || 0, 6);
+  alphas.value.sepV = toFixed(td.alphas['sepV'] || 0, 6);
+  alphas.value.sepP = toFixed(td.alphas['sepP'] || 0, 6);
+  alphas.value.keepInVp = toFixed(td.alphas['keepInVp'] || 0, 6);
 };
 
 defineExpose({

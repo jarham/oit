@@ -16,8 +16,10 @@ import {
   wordCloudDefaultOpts,
 } from '@/composition/WordCloud';
 import type {
+  DebugLineDatum,
   ForceCombined,
   BaseWordNodeDatumForce,
+  SimData,
   WordCloudBaseForceOpts,
   WordCloudCollisionShape,
   WordCloudForceAlphaSettings,
@@ -26,6 +28,7 @@ import type {
   WordNodeDatum,
 } from '@/composition/WordCloud';
 import {ellipse2poly} from '@/lib/math-utils';
+import cloneDeep from 'lodash.clonedeep';
 
 // NOTE: because Vue doesn't support importing props interface until 3.3
 //       WordCloudProps if defined in files:
@@ -63,16 +66,20 @@ const props = withDefaults(defineProps<WordCloudProps>(), {
   collisionShape: wordCloudDefaultOpts.collisionShape,
   px: wordCloudDefaultOpts.px,
   py: wordCloudDefaultOpts.py,
-  simulation: () => ({...wordCloudDefaultOpts.simulation}),
-  debugInfo: () => ({...wordCloudDefaultOpts.debugInfo}),
-  fCharge: () => ({...wordCloudDefaultOpts.fCharge}),
-  fX: () => ({...wordCloudDefaultOpts.fX}),
-  fY: () => ({...wordCloudDefaultOpts.fY}),
-  fSepV: () => ({...wordCloudDefaultOpts.fSepV}),
-  fSepP: () => ({...wordCloudDefaultOpts.fSepP}),
-  fKeepInVp: () => ({...wordCloudDefaultOpts.fKeepInVp}),
+  simulation: () => cloneDeep(wordCloudDefaultOpts.simulation),
+  debugInfo: () => cloneDeep(wordCloudDefaultOpts.debugInfo),
+  fCharge: () => cloneDeep(wordCloudDefaultOpts.fCharge),
+  fX: () => cloneDeep(wordCloudDefaultOpts.fX),
+  fY: () => cloneDeep(wordCloudDefaultOpts.fY),
+  fSepV: () => cloneDeep(wordCloudDefaultOpts.fSepV),
+  fSepP: () => cloneDeep(wordCloudDefaultOpts.fSepP),
+  fKeepInVp: () => cloneDeep(wordCloudDefaultOpts.fKeepInVp),
 });
-const emit = defineEmits(['breakpoint', 'simulation-end']);
+const emit = defineEmits<{
+  (event: 'breakpoint'): void;
+  (event: 'simulation-end'): void;
+  (event: 'simulation-update', simData: SimData): void;
+}>();
 
 watch(
   () => [
@@ -94,10 +101,12 @@ let width = 0;
 let height = 0;
 let t = 0;
 let nodes: WordNodeDatum[] = [];
+let lines: DebugLineDatum[] = [];
 
 let svg: d3.Selection<SVGSVGElement, undefined, null, undefined>;
 let simulation: d3.Simulation<WordNodeDatum, any>;
 let nodeGroup: d3.Selection<SVGGElement, WordNodeDatum, null, undefined>;
+let lineGroup: d3.Selection<SVGGElement, DebugLineDatum, null, undefined>;
 
 let fCombined: ForceCombined;
 let fCharge: BaseWordNodeDatumForce;
@@ -132,7 +141,9 @@ const create = () => {
   t = 0;
 
   fCharge = forceCharge(fChargeParams, collisionShape);
-  fCombined = forceCombined().add(fCharge, {...props.fCharge.alpha});
+  fCombined = forceCombined()
+    .debugLines(lines)
+    .add(fCharge, {...props.fCharge.alpha}, 'charge');
 
   simulation = d3
     .forceSimulation<WordNodeDatum>()
@@ -147,6 +158,16 @@ const create = () => {
     .attr('class', 'nodes') as unknown as d3.Selection<
     SVGGElement,
     WordNodeDatum,
+    null,
+    undefined
+  >;
+
+  // TODO: w/o cast
+  lineGroup = svg
+    .append<SVGGElement>('g')
+    .attr('class', 'lines') as unknown as d3.Selection<
+    SVGGElement,
+    DebugLineDatum,
     null,
     undefined
   >;
@@ -169,8 +190,8 @@ const dispose = () => {
 
 const update = (reheat = false) => {
   nodes = props.words.map((word, n) => {
-    const cx = Math.cos(n) * (n + 10) * 2;
-    const cy = Math.sin(n) * (n + 10) * 2;
+    const cx = Math.cos(n) * (n + 30) * 2;
+    const cy = Math.sin(n) * (n + 30) * 2;
     return {
       word: word,
       x: cx,
@@ -186,6 +207,15 @@ const update = (reheat = false) => {
       be: new Flatten.Polygon(),
     };
   });
+  lines = Array.from(Array(nodes.length * nodes.length).keys()).map(() => ({
+    x: 0,
+    y: 0,
+    x2: 0,
+    y2: 0,
+    stroke: '#0f0',
+    show: false,
+  }));
+  fCombined.debugLines(lines);
 
   if (props.simulation.run) simulation.restart();
   else simulation.stop();
@@ -241,61 +271,97 @@ const update = (reheat = false) => {
     },
   );
 
+  lineGroup.selectAll('line').data(lines).join('line');
+
   simulation
     .nodes(nodes)
     .on('tick', onTick)
     .on('end', () => emit('simulation-end'));
 
   draw();
+  emit('simulation-update', {
+    alphas: fCombined.alphas(),
+  });
 };
 
-const onTick = () => {};
+const onTick = () => {
+  draw();
+  emit('simulation-update', {
+    alphas: fCombined.alphas(),
+  });
+};
+
+const updateNodeDimensions = () => {
+  // Calculate bounding box and ellipse and update collision data
+  nodeGroup?.selectAll<Element, WordNodeDatum>('text').each((wd1, i, g) => {
+    const r = g[i].getBoundingClientRect();
+    wd1.rx = (r.width + props.px) / 2;
+    wd1.ry = (r.height + props.py) / 2;
+    wd1.br.xmin = wd1.x - wd1.rx;
+    wd1.br.ymin = wd1.y - wd1.ry;
+    wd1.br.xmax = wd1.br.xmin + r.width + props.px;
+    wd1.br.ymax = wd1.br.ymin + r.height + props.py;
+
+    wd1.be = new Flatten.Polygon(
+      ellipse2poly(
+        wd1.x,
+        wd1.y,
+        wd1.rx,
+        wd1.ry,
+        0,
+        props.simulation.ellipseVertexCount,
+      ),
+    );
+  });
+};
 
 const draw = () => {
   // Update svg text x and y, calculate bounding box and ellipse and update collision data
+  updateNodeDimensions();
+  fCombined.updateDebug();
   nodeGroup
     ?.selectAll<Element, WordNodeDatum>('text')
     .attr('x', (d) => d.x || 0)
-    .attr('y', (d) => d.y || 0)
-    // .attr('dx', (d) => ((d.x || 0) > scx ? '6' : '-6'))
-    .each((wd1, i, g) => {
-      const r = g[i].getBoundingClientRect();
-      wd1.rx = (r.width + props.px) / 2;
-      wd1.ry = (r.height + props.py) / 2;
-      wd1.br.xmin = wd1.x - wd1.rx;
-      wd1.br.ymin = wd1.y - wd1.ry;
-      wd1.br.xmax = wd1.br.xmin + r.width + props.px;
-      wd1.br.ymax = wd1.br.ymin + r.height + props.py;
+    .attr('y', (d) => d.y || 0);
+  // .attr('dx', (d) => ((d.x || 0) > scx ? '6' : '-6'))
+  // .each((wd1, i, g) => {
+  //   const r = g[i].getBoundingClientRect();
+  //   wd1.rx = (r.width + props.px) / 2;
+  //   wd1.ry = (r.height + props.py) / 2;
+  //   wd1.br.xmin = wd1.x - wd1.rx;
+  //   wd1.br.ymin = wd1.y - wd1.ry;
+  //   wd1.br.xmax = wd1.br.xmin + r.width + props.px;
+  //   wd1.br.ymax = wd1.br.ymin + r.height + props.py;
 
-      wd1.be = new Flatten.Polygon(
-        ellipse2poly(
-          wd1.x,
-          wd1.y,
-          wd1.rx,
-          wd1.ry,
-          0,
-          props.simulation.ellipseVertexCount,
-        ),
-      );
+  //   wd1.be = new Flatten.Polygon(
+  //     ellipse2poly(
+  //       wd1.x,
+  //       wd1.y,
+  //       wd1.rx,
+  //       wd1.ry,
+  //       0,
+  //       props.simulation.ellipseVertexCount,
+  //     ),
+  //   );
 
-      // wd1.el = kld.ShapeInfo.ellipse({
-      //   cx: wd1.br.xmin + (wd1.br.xmax - wd1.br.xmin) / 2,
-      //   cy: wd1.br.ymin + (wd1.br.ymax - wd1.br.ymin) / 2,
-      //   rx: (wd1.br.xmax - wd1.br.xmin) / 2,
-      //   ry: (wd1.br.ymax - wd1.br.ymin) / 2,
-      // });
+  //   // wd1.el = kld.ShapeInfo.ellipse({
+  //   //   cx: wd1.br.xmin + (wd1.br.xmax - wd1.br.xmin) / 2,
+  //   //   cy: wd1.br.ymin + (wd1.br.ymax - wd1.br.ymin) / 2,
+  //   //   rx: (wd1.br.xmax - wd1.br.xmin) / 2,
+  //   //   ry: (wd1.br.ymax - wd1.br.ymin) / 2,
+  //   // });
 
-      // for (let j = 0; j < i; j++) {
-      //   const wd2 = nodes[j];
-      //   const c =
-      //     props.collisionShape === 'rectangle'
-      //       ? wd1.br.intersect(wd2.br)
-      //       : kld.Intersection.intersect(wd1.el, wd2.el).status ===
-      //         'Intersection';
-      //   wd1.collision ||= c;
-      //   wd2.collision ||= c;
-      // }
-    });
+  //   // for (let j = 0; j < i; j++) {
+  //   //   const wd2 = nodes[j];
+  //   //   const c =
+  //   //     props.collisionShape === 'rectangle'
+  //   //       ? wd1.br.intersect(wd2.br)
+  //   //       : kld.Intersection.intersect(wd1.el, wd2.el).status ===
+  //   //         'Intersection';
+  //   //   wd1.collision ||= c;
+  //   //   wd2.collision ||= c;
+  //   // }
+  // });
   nodeGroup
     ?.selectAll<Element, WordNodeDatum>('rect')
     .attr('x', (d) => d.br.xmin)
@@ -337,6 +403,15 @@ const draw = () => {
   //     : 'none',
   // )
   // .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
+
+  lineGroup
+    .selectAll<Element, DebugLineDatum>('line')
+    .attr('x1', (d) => d.x)
+    .attr('y1', (d) => d.y)
+    .attr('x2', (d) => d.x2)
+    .attr('y2', (d) => d.y2)
+    .attr('stroke', (d) => d.stroke)
+    .attr('display', (d) => (d.show ? null : 'none'));
 };
 
 defineExpose({
@@ -344,8 +419,11 @@ defineExpose({
   // update,
   tick: (ticks?: number) => {
     // NOTE: simuation.tick()
-    simulation?.tick(ticks);
-    // onTick(ticks);
+    ticks = ticks || 1;
+    for (let i = 0; i < ticks; i++) {
+      simulation?.tick();
+    }
+    onTick();
   },
   stop: () => simulation?.stop(),
   start: () => simulation?.restart(),

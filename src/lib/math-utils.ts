@@ -29,8 +29,10 @@ export function ellipse2poly(
   const dPh = (2 * Math.PI) / (N - 1);
   const CT = Math.cos(th);
   const ST = Math.sin(th);
-  const CDP = Math.cos(dPh);
-  const SDP = Math.sin(dPh);
+  // Handle the special case of nv === 4 (ie. rectangle)
+  // NOTE: Using 0 as CDP causes algorith to fail (would need to handle Inf)
+  const CDP = nv === 4 ? Number.EPSILON : Math.cos(dPh);
+  const SDP = nv === 4 ? 1 : Math.sin(dPh);
   const A = CDP + SDP * ST * CT * (a / b - b / a);
   const B = (-SDP * (b * ST * (b * ST) + a * CT * (a * CT))) / (a * b);
   let C = (SDP * (b * CT * (b * CT) + a * ST * (a * ST))) / (a * b);
@@ -50,34 +52,55 @@ export function ellipse2poly(
   return p;
 }
 
-export function minVSegments(
-  a: Flatten.Segment,
-  b: Flatten.Segment,
-): {v: Flatten.Segment; d2: number} {
-  let minD2 = Number.POSITIVE_INFINITY;
-}
-
 export function minVSegmentArrays(
   a: Flatten.Segment[],
   b: Flatten.Segment[],
-): {v: Flatten.Segment; d2: number} {
-  let minV: Flatten.Segment;
-  let minD2 = Number.POSITIVE_INFINITY;
+): [number, Flatten.Segment] {
+  let minS = new Flatten.Segment();
+  let minD = Number.POSITIVE_INFINITY;
   a.forEach((sa) => {
     b.forEach((sb) => {
-      const {v, d2} = minVSegments(sa, sb);
-      if (d2 < minD2) {
-        minV = v;
-        minD2 = d2;
+      const [d, s] = sa.distanceTo(sb);
+      if (d < minD) {
+        minS = s;
+        minD = d;
       }
     });
   });
 
-  return {v: minV, d2: minD2};
+  return [minD, minS];
 }
 
-export function minVRectangle(a: Flatten.Box, b: Flatten.Box): Flatten.Segment {
+export function minVRectangle(
+  a: Flatten.Box,
+  b: Flatten.Box,
+): [number, Flatten.Segment] {
+  if (a.intersect(b)) {
+    return [0, new Flatten.Segment()];
+  }
   const sa = a.toSegments();
-  const sb = a.toSegments();
+  const sb = b.toSegments();
   return minVSegmentArrays(sa, sb);
+}
+
+export function minVPolygon(
+  a: Flatten.Polygon,
+  b: Flatten.Polygon,
+): [number, Flatten.Segment] {
+  if (a.intersect(b).length > 0) {
+    return [0, new Flatten.Segment()];
+  }
+  return a.distanceTo(b);
+}
+
+export function segmentNormalize(s: Flatten.Segment) {
+  const dx = s.end.x - s.start.x;
+  const dy = s.end.y - s.start.y;
+  const d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+  s.end.x = s.start.x + dx / d;
+  s.end.y = s.start.y + dy / d;
+  return {
+    p1: {x: 0, y: 0},
+    p2: {x: dx / d, y: dy / d},
+  };
 }

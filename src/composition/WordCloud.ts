@@ -6,6 +6,7 @@ import {ref} from 'vue';
 import type {Ref} from 'vue';
 import type {PartialDeep} from 'type-fest';
 import merge from 'lodash.merge';
+import {minVPolygon, minVRectangle, segmentNormalize} from '@/lib/math-utils';
 
 export interface WordNodeDatum extends d3.SimulationNodeDatum {
   word: string;
@@ -28,6 +29,23 @@ export interface WordNodeDatum extends d3.SimulationNodeDatum {
   be: Flatten.Polygon;
 }
 
+export interface DebugLineDatum extends d3.SimulationNodeDatum {
+  // start
+  x: number;
+  y: number;
+  // end
+  x2: number;
+  y2: number;
+  stroke: string;
+  show?: boolean;
+}
+
+export type ForceAlphas = Record<string, number>;
+
+export interface SimData {
+  alphas: ForceAlphas;
+}
+
 export const wordCloudCollisionShapes = ['rectangle', 'ellipse'] as const;
 export type WordCloudCollisionShape = typeof wordCloudCollisionShapes[number];
 
@@ -38,6 +56,7 @@ export interface WordCloudForceAlphaSettings {
 }
 
 export interface WordCloudBaseForceParams {
+  enabled: boolean;
   strength: number;
 }
 
@@ -107,7 +126,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     showSimInfo: false,
   },
   fCharge: {
-    params: {strength: 1},
+    params: {enabled: true, strength: 1},
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -115,7 +134,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     },
   },
   fX: {
-    params: {strength: 1},
+    params: {enabled: true, strength: 1},
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -123,7 +142,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     },
   },
   fY: {
-    params: {strength: 1},
+    params: {enabled: true, strength: 1},
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -132,6 +151,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
   },
   fSepV: {
     params: {
+      enabled: true,
       strength: 1,
       outwardsOnly: true,
       fnAlpha: 'sigmoid',
@@ -144,6 +164,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
   },
   fSepP: {
     params: {
+      enabled: true,
       strength: 1,
       outwardsOnly: true,
       fnAlpha: 'sigmoid',
@@ -155,7 +176,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     },
   },
   fKeepInVp: {
-    params: {strength: 1},
+    params: {enabled: true, strength: 1},
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -187,76 +208,160 @@ export abstract class ForceWordNodeDatum<T extends WordCloudBaseForceParams> {
     protected readonly p: Ref<T>,
     private readonly cs: Ref<WordCloudCollisionShape>,
   ) {}
-  abstract apply(alpha: number, t: number, fi: number): void;
+  abstract apply(
+    alpha: number,
+    t: number,
+    fi: number,
+    debugLines: DebugLineDatum[],
+  ): void;
+  abstract updateDebug(
+    alpha: number,
+    t: number,
+    fi: number,
+    debugLines: DebugLineDatum[],
+  ): void;
+
+  get enabled(): boolean {
+    return this.p.value.enabled;
+  }
 
   initialize(newNodes: WordNodeDatum[], random: () => number) {
     this.nodes = newNodes;
   }
 
-  protected d(wd1: WordNodeDatum, wd2: WordNodeDatum, dMin = 1): number {
-    const d =
+  protected d(
+    wd1: WordNodeDatum,
+    wd2: WordNodeDatum,
+    dMin = 1,
+  ): [number, Flatten.Segment] {
+    const [d, s] =
       this.cs.value === 'rectangle'
-        ? this.dRectangle(wd1, wd2)
-        : this.dEllipse(wd1, wd2);
-    return Math.max(d, dMin);
+        ? minVRectangle(wd1.br, wd2.br)
+        : minVPolygon(wd1.be, wd2.be);
+    if (d < 0.01 && this.cs.value === 'ellipse') {
+      // Overlap
+      const nd = Math.max(d, dMin);
+      const cs = new Flatten.Segment(
+        new Flatten.Point(wd1.x, wd1.y),
+        new Flatten.Point(wd2.x, wd2.y),
+      );
+      segmentNormalize(cs);
+      return [nd, cs];
+    }
+    return [Math.max(d, dMin), s];
   }
-
-  private dRectangle(wd1: WordNodeDatum, wd2: WordNodeDatum): number {
-    if (wd1.br.intersect(wd1.br)) return 0;
-    wd1.br.toSegments()[0].ps.y
-  }
-
-  private dEllipse(wd1: WordNodeDatum, wd2: WordNodeDatum): number {}
 }
 export type BaseWordNodeDatumForce =
   ForceWordNodeDatum<WordCloudBaseForceParams>;
 
 export class ForceChargeWordNodeDatum extends ForceWordNodeDatum<WordCloudBaseForceParams> {
-  apply(alpha: number, t: number, fi: number) {
-    for (let i = 0; i < this.nodes.length; i++) {
+  apply(alpha: number, t: number, fi: number, debugLines: DebugLineDatum[]) {
+    for (let i = 0; i < this.nodes.length - 1; i++) {
+      const wd1 = this.nodes[i];
+      const v1 = wd1.v[fi];
       for (let j = i + 1; j < this.nodes.length; j++) {
-        const wd1 = this.nodes[i];
         const wd2 = this.nodes[j];
+        const v2 = wd2.v[fi];
+        const [d, s] = this.d(wd1, wd2);
+        segmentNormalize(s);
+
+        const fx = (this.p.value.strength * (s.end.x - s.start.x)) / (d * d);
+        const fy = (this.p.value.strength * (s.end.y - s.start.y)) / (d * d);
+
+        v1[0] += fx;
+        v1[1] += fy;
+        v2[0] -= fx;
+        v2[1] -= fy;
+      }
+    }
+  }
+
+  updateDebug(
+    alpha: number,
+    t: number,
+    fi: number,
+    debugLines: DebugLineDatum[],
+  ) {
+    for (let i = 0; i < this.nodes.length - 1; i++) {
+      const wd1 = this.nodes[i];
+      for (let j = i + 1; j < this.nodes.length; j++) {
+        const wd2 = this.nodes[j];
+        const [d, s] = this.d(wd1, wd2);
+        const l = debugLines[i + j * this.nodes.length];
+        l.x = s.start.x;
+        l.y = s.start.y;
+        l.x2 = s.end.x;
+        l.y2 = s.end.y;
+        l.show = true;
       }
     }
   }
 }
 
 export interface ForceCombined extends d3.Force<WordNodeDatum, any> {
-  add(f: BaseWordNodeDatumForce, p: WordCloudForceAlphaSettings): ForceCombined;
+  add(
+    f: BaseWordNodeDatumForce,
+    p: WordCloudForceAlphaSettings,
+    name: string,
+  ): ForceCombined;
   t(): number;
   alpha(alpha: number): ForceCombined;
+  debugLines(debugLines: DebugLineDatum[]): ForceCombined;
+  updateDebug(): ForceCombined;
+  alphas(): ForceAlphas;
 }
 
 interface ForceData {
   f: BaseWordNodeDatumForce;
   p: WordCloudForceAlphaSettings;
   alpha: number;
+  name: string;
 }
 
 export function forceCombined(): ForceCombined {
   let nodes: WordNodeDatum[];
+  let lines: DebugLineDatum[] = [];
   const forceData: ForceData[] = [];
   let t = 0;
   const fn: ForceCombined = (alpha: number) => {
     forceData.forEach((fd, fi) => {
-      if (fd.alpha < fd.p.min) return;
-      fd.f.apply(fd.alpha, t, fi);
+      if (fd.alpha < fd.p.min || !fd.f.enabled) return;
+      fd.f.apply(fd.alpha, t, fi, lines);
       fd.alpha += (fd.p.target - fd.alpha) * fd.p.decay;
     });
     t++;
+    nodes.forEach((n) => {
+      const tv = n.v.reduce(
+        (prev, cur) => [cur[0] + prev[0], cur[1] + prev[1]],
+        [0, 0],
+      );
+      n.vx = tv[0];
+      n.vy = tv[1];
+    });
   };
   fn.add = function (
     this: ForceCombined,
     a: BaseWordNodeDatumForce,
     p: WordCloudForceAlphaSettings,
+    name: string,
   ) {
-    forceData.push({f: a, p, alpha: 1});
+    forceData.push({f: a, p, alpha: 1, name});
     return this;
   };
   fn.t = () => t;
   fn.alpha = function (alpha: number) {
     forceData.forEach((fd) => (fd.alpha = alpha));
+    return this;
+  };
+  fn.debugLines = function (debugLines: DebugLineDatum[]) {
+    lines = debugLines;
+    return this;
+  };
+  fn.updateDebug = function () {
+    forceData.forEach((fd, fi) => {
+      if (fd.alpha < fd.p.min) return;
+      fd.f.updateDebug(fd.alpha, t, fi, lines);
+    });
     return this;
   };
   fn.initialize = (newNodes: WordNodeDatum[], random: () => number) => {
@@ -269,7 +374,10 @@ export function forceCombined(): ForceCombined {
       n.p = Array.from(Array(forceData.length).keys()).map(() => [0, 0]);
     });
   };
-
+  fn.alphas = () =>
+    Object.fromEntries(
+      forceData.map((fd, i) => [fd.name || `f-${i}`, fd.alpha]),
+    );
   return fn;
 }
 
