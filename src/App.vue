@@ -149,8 +149,29 @@ watch(dirty, (dirty) => {
 </script>
 
 <style lang="scss">
-@use '../node_modules/bootstrap' as bs;
 @use '../node_modules/bootstrap-icons' as bsi;
+@use 'sass:color';
+
+// font-size-base and (h1-h6)-font-size are the same as in
+// bootstrap. added h7*
+$font-size-base: 1rem;
+$h1-font-size: $font-size-base * 2.5;
+$h2-font-size: $font-size-base * 2;
+$h3-font-size: $font-size-base * 1.75;
+$h4-font-size: $font-size-base * 1.5;
+$h5-font-size: $font-size-base * 1.25;
+$h6-font-size: $font-size-base;
+$h7-font-size: $font-size-base * 0.875;
+$font-sizes: (
+  1: $h1-font-size,
+  2: $h2-font-size,
+  3: $h3-font-size,
+  4: $h4-font-size,
+  5: $h5-font-size,
+  6: $h6-font-size,
+  7: $h7-font-size,
+);
+@import '../node_modules/bootstrap/scss/bootstrap';
 
 .me-2-last-0 {
   @extend .me-2;
@@ -188,5 +209,41 @@ watch(dirty, (dirty) => {
     @extend .border-dark;
     @extend .rounded;
   }
+}
+.bg-teal {
+  background-color: $teal;
+}
+.bg-teal-light {
+  background-color: color.adjust($teal, $lightness: +30%);
+}
+.input-group-force > :first-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: -1px;
+}
+.input-group-force:not(:first-child) {
+  margin-top: -1px;
+}
+.input-group-force:first-child:not(:last-child) > :last-child {
+  // border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.input-group-force:not(:first-child):not(:last-child) > :last-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.input-group-force:not(:first-child):last-child > :last-child {
+  border-top-right-radius: 0;
+  // border-bottom-right-radius: 0;
+}
+.label-force {
+  @extend .input-group-text;
+  @extend .fs-7;
+  @extend .py-1;
+  @extend .px-2;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  width: 9ch;
+  display: inline-block;
 }
 </style>

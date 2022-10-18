@@ -41,9 +41,10 @@ ModalBase.modal-perspective-palette(
           .input-group-text.justify-content-center(style='min-width: 15ch;')
             span {{ simStopped ? 'Stopped' : wcProps.simulation.run ? 'Running' : 'Paused' }}
     //- Forces
-    .d-flex
-      .input-group.input-group-sm.mb-2
-          label.input-group-text(for='wc-f-charge') fCharge
+    .d-flex.mb-2
+      label.label-force(for='wc-f-charge' style='width: 9ch;') fCharge
+      .d-flex.flex-column
+        .input-group.input-group-sm.input-group-force
           .input-group-text
             input#wc-f-charge.form-check-input.mt-0(type='checkbox' v-model='wcProps.fCharge.params.enabled')
           label.input-group-text(for='wc-f-charge-str') Str
@@ -55,37 +56,37 @@ ModalBase.modal-perspective-palette(
           label.input-group-text(for='wc-f-charge-a-target') α-target
           input#wc-f-charge-a-target.form-control(type='number' v-model='wcProps.fCharge.alpha.target' min='0' max='1' step='0.001')
           .input-group-text α
-          .input-group-text(style='min-width: 10ch;') {{ alphas.charge }}
+          .input-group-text(:class='{"bg-teal-light": fRunning.charge}' style='min-width: 10ch;') {{ toFixed(alphas.charge) }}
     .d-flex
       .input-group.input-group-sm.mb-2
-          label.input-group-text(for='wc-f-x') fX
-          .input-group-text
-            input#wc-f-x.form-check-input.mt-0(type='checkbox' v-model='wcProps.fX.params.enabled')
-          label.input-group-text(for='wc-f-x-str') Str
-          input#wc-f-x-str.form-control(type='number' v-model='wcProps.fX.params.strength')
-          label.input-group-text(for='wc-f-x-a-decay') α-decay
-          input#wc-f-x-a-decay.form-control(type='number' v-model='wcProps.fX.alpha.decay' min='0' max='1' step='0.001')
-          label.input-group-text(for='wc-f-x-a-min') α-min
-          input#wc-f-x-a-min.form-control(type='number' v-model='wcProps.fX.alpha.min' min='0' max='1' step='0.001')
-          label.input-group-text(for='wc-f-x-a-target') α-target
-          input#wc-f-x-a-target.form-control(type='number' v-model='wcProps.fX.alpha.target' min='0' max='1' step='0.001')
-          .input-group-text α
-          .input-group-text(style='min-width: 10ch;') {{ alphas.x }}
+        label.input-group-text(for='wc-f-x' style='width: 9ch;') fX
+        .input-group-text
+          input#wc-f-x.form-check-input.mt-0(type='checkbox' v-model='wcProps.fX.params.enabled')
+        label.input-group-text(for='wc-f-x-str') Str
+        input#wc-f-x-str.form-control(type='number' v-model='wcProps.fX.params.strength')
+        label.input-group-text(for='wc-f-x-a-decay') α-decay
+        input#wc-f-x-a-decay.form-control(type='number' v-model='wcProps.fX.alpha.decay' min='0' max='1' step='0.001')
+        label.input-group-text(for='wc-f-x-a-min') α-min
+        input#wc-f-x-a-min.form-control(type='number' v-model='wcProps.fX.alpha.min' min='0' max='1' step='0.001')
+        label.input-group-text(for='wc-f-x-a-target') α-target
+        input#wc-f-x-a-target.form-control(type='number' v-model='wcProps.fX.alpha.target' min='0' max='1' step='0.001')
+        .input-group-text α
+        .input-group-text(:class='{"bg-teal-light": fRunning.x}' style='min-width: 10ch;') {{ toFixed(alphas.x) }}
     .d-flex
       .input-group.input-group-sm.mb-2
-          label.input-group-text(for='wc-f-y') fY
-          .input-group-text
-            input#wc-f-y.form-check-input.mt-0(type='checkbox' v-model='wcProps.fY.params.enabled')
-          label.input-group-text(for='wc-f-y-str') Str
-          input#wc-f-y-str.form-control(type='number' v-model='wcProps.fY.params.strength')
-          label.input-group-text(for='wc-f-y-a-decay') α-decay
-          input#wc-f-y-a-decay.form-control(type='number' v-model='wcProps.fY.alpha.decay' min='0' max='1' step='0.001')
-          label.input-group-text(for='wc-f-y-a-min') α-min
-          input#wc-f-y-a-min.form-control(type='number' v-model='wcProps.fY.alpha.min' min='0' max='1' step='0.001')
-          label.input-group-text(for='wc-f-y-a-target') α-target
-          input#wc-f-y-a-target.form-control(type='number' v-model='wcProps.fY.alpha.target' min='0' max='1' step='0.001')
-          .input-group-text α
-          .input-group-text(style='min-width: 10ch;') {{ alphas.x }}
+        label.input-group-text(for='wc-f-y' style='width: 9ch;') fY
+        .input-group-text
+          input#wc-f-y.form-check-input.mt-0(type='checkbox' v-model='wcProps.fY.params.enabled')
+        label.input-group-text(for='wc-f-y-str') Str
+        input#wc-f-y-str.form-control(type='number' v-model='wcProps.fY.params.strength')
+        label.input-group-text(for='wc-f-y-a-decay') α-decay
+        input#wc-f-y-a-decay.form-control(type='number' v-model='wcProps.fY.alpha.decay' min='0' max='1' step='0.001')
+        label.input-group-text(for='wc-f-y-a-min') α-min
+        input#wc-f-y-a-min.form-control(type='number' v-model='wcProps.fY.alpha.min' min='0' max='1' step='0.001')
+        label.input-group-text(for='wc-f-y-a-target') α-target
+        input#wc-f-y-a-target.form-control(type='number' v-model='wcProps.fY.alpha.target' min='0' max='1' step='0.001')
+        .input-group-text α
+        .input-group-text(:class='{"bg-teal-light": fRunning.y}' style='min-width: 10ch;') {{ toFixed(alphas.x) }}
     //- Collision shape settings
     .input-group.input-group-sm.mb-2
       label.input-group-text(for='wc-coll-shape') Collision shape
@@ -171,16 +172,23 @@ const wcProps = useWordCloud(words, {
 // const shapePx = ref(40);
 // const shapePy = ref(40);
 
-const toFixed = (n: number | string, f: number) =>
-  parseFloat(n as any).toFixed(f);
+const toFixed = (n: number | string, f = 6) => parseFloat(n as any).toFixed(f);
 
 const alphas = ref({
-  charge: toFixed(1, 6),
-  x: toFixed(1, 6),
-  y: toFixed(1, 6),
-  sepV: toFixed(1, 6),
-  sepP: toFixed(1, 6),
-  keepInVp: toFixed(1, 6),
+  charge: 1,
+  x: 1,
+  y: 1,
+  sepV: 1,
+  sepP: 1,
+  keepInVp: 1,
+});
+const fRunning = ref({
+  charge: true,
+  x: true,
+  y: true,
+  sepV: true,
+  sepP: true,
+  keepInVp: true,
 });
 
 const sepAlphas = ['bell', 'bump', 'ccc^3', 'direct', 'sigmoid'] as const;
@@ -264,12 +272,21 @@ const onStep = () => {
   wordCloud.value?.tick(simStepSize.value);
 };
 const onSimulationUpdate = (td: SimData) => {
-  alphas.value.charge = toFixed(td.alphas['charge'] || 0, 6);
-  alphas.value.x = toFixed(td.alphas['x'] || 0, 6);
-  alphas.value.y = toFixed(td.alphas['y'] || 0, 6);
-  alphas.value.sepV = toFixed(td.alphas['sepV'] || 0, 6);
-  alphas.value.sepP = toFixed(td.alphas['sepP'] || 0, 6);
-  alphas.value.keepInVp = toFixed(td.alphas['keepInVp'] || 0, 6);
+  alphas.value.charge = td.alphas['charge'] || 0;
+  alphas.value.x = td.alphas['x'] || 0;
+  alphas.value.y = td.alphas['y'] || 0;
+  alphas.value.sepV = td.alphas['sepV'] || 0;
+  alphas.value.sepP = td.alphas['sepP'] || 0;
+  alphas.value.keepInVp = td.alphas['keepInVp'] || 0;
+
+  fRunning.value.charge =
+    alphas.value.charge >= wcProps.value.fCharge.alpha.min;
+  fRunning.value.x = alphas.value.x >= wcProps.value.fX.alpha.min;
+  fRunning.value.y = alphas.value.y >= wcProps.value.fY.alpha.min;
+  fRunning.value.sepV = alphas.value.sepV >= wcProps.value.fSepV.alpha.min;
+  fRunning.value.sepP = alphas.value.sepP >= wcProps.value.fSepP.alpha.min;
+  fRunning.value.keepInVp =
+    alphas.value.keepInVp >= wcProps.value.fKeepInVp.alpha.min;
 };
 
 defineExpose({
