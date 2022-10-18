@@ -91,9 +91,11 @@ interface WordCloudProps {
     alpha: WordCloudForceAlphaSettings;
   };
   debugInfo?: {
+    hideAll: boolean;
     showCollRectangle: boolean;
     showCollEllipse: boolean;
     showCollPolygon: boolean;
+    showLineDist: boolean;
     showSepV: boolean;
     showSepP: boolean;
     showSimInfo: boolean;
@@ -123,9 +125,11 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     },
   },
   debugInfo: {
+    hideAll: false,
     showCollRectangle: false,
     showCollEllipse: false,
     showCollPolygon: false,
+    showLineDist: false,
     showSepV: false,
     showSepP: false,
     showSimInfo: false,

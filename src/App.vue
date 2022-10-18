@@ -248,4 +248,10 @@ $font-sizes: (
 .input-group-title-sm {
   @extend .fs-7;
 }
+.input-group-text-for-cb {
+  border-right: none;
+}
+.input-group-text-for-cb + .input-group-text {
+  border-left: none;
+}
 </style>

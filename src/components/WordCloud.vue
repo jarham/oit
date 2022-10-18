@@ -48,9 +48,11 @@ interface WordCloudProps {
     alpha: WordCloudForceAlphaSettings;
   };
   debugInfo?: {
+    hideAll: boolean;
     showCollRectangle: boolean;
     showCollEllipse: boolean;
     showCollPolygon: boolean;
+    showLineDist: boolean;
     showSepV: boolean;
     showSepP: boolean;
     showSimInfo: boolean;
@@ -384,7 +386,11 @@ const draw = () => {
       props.collisionShape === 'rectangle' ? 'none' : '3,1',
     )
     .attr('stroke', props.collisionShape === 'rectangle' ? '#000' : '#555')
-    .attr('display', () => (props.debugInfo.showCollRectangle ? null : 'none'));
+    .attr('display', () =>
+      !props.debugInfo.hideAll && props.debugInfo.showCollRectangle
+        ? null
+        : 'none',
+    );
   // .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
   nodeGroup
     ?.selectAll<Element, WordNodeDatum>('ellipse')
@@ -397,7 +403,11 @@ const draw = () => {
       props.collisionShape === 'ellipse' ? 'none' : '3,1',
     )
     .attr('stroke', props.collisionShape === 'ellipse' ? '#000' : '#555')
-    .attr('display', () => (props.debugInfo.showCollEllipse ? null : 'none'));
+    .attr('display', () =>
+      !props.debugInfo.hideAll && props.debugInfo.showCollEllipse
+        ? null
+        : 'none',
+    );
   // .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
   nodeGroup
     ?.selectAll<Element, WordNodeDatum>('polygon')
@@ -407,7 +417,11 @@ const draw = () => {
       props.collisionShape === 'ellipse' ? 'none' : '3,1',
     )
     .attr('stroke', props.collisionShape === 'ellipse' ? '#000' : '#555')
-    .attr('display', () => (props.debugInfo.showCollPolygon ? null : 'none'));
+    .attr('display', () =>
+      !props.debugInfo.hideAll && props.debugInfo.showCollPolygon
+        ? null
+        : 'none',
+    );
   // .attr('display', () =>
   //   props.collisionShape === 'ellipse' && props.debugInfo.showCollisionShape
   //     ? null
@@ -422,7 +436,11 @@ const draw = () => {
     .attr('x2', (d) => d.x2)
     .attr('y2', (d) => d.y2)
     .attr('stroke', (d) => d.stroke)
-    .attr('display', (d) => (d.show ? null : 'none'));
+    .attr('display', (d) =>
+      d.show && !props.debugInfo.hideAll && props.debugInfo.showLineDist
+        ? null
+        : 'none',
+    );
 };
 
 defineExpose({

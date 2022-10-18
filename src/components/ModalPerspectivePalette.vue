@@ -104,17 +104,30 @@ ModalBase.modal-perspective-palette(
       label.input-group-text(for='wc-sim-ellipse-vertex-count') Ellipse approx. vertex count
       input#wc-sim-ellipse-vertex-count.form-control(type='number' min='3' v-model='wcProps.simulation.ellipseVertexCount' style='max-width: 11ch;')
     //- Debug settings
-    .input-group.input-group-sm.mb-2
-      .input-group-text Show coll. shape:
-      label.input-group-text(for='wc-dbg-show-rectangle') Rectangle
-      .input-group-text
-        input#wc-dbg-show-rectangle.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollRectangle')
-      label.input-group-text(for='wc-dbg-show-ellipse') Ellipse
-      .input-group-text
-        input#wc-dbg-show-ellipse.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollEllipse')
-      label.input-group-text(for='wc-dbg-show-polygon') Polygon
-      .input-group-text
-        input#wc-dbg-show-polygon.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollPolygon')
+    .d-flex.mb-2
+      .input-group-title.input-group-title-sm Debug
+      .d-flex.flex-column
+        .input-group.input-group-sm.input-group-titled
+          label.input-group-text.input-group-text-for-cb(for='wc-dbg-hide-all') Hide all
+          .input-group-text
+            input#wc-dbg-hide-all.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.hideAll')
+          .input-group-text Show collision shape:
+          label.input-group-text.input-group-text-for-cb(for='wc-dbg-show-rectangle') Rectangle
+          .input-group-text
+            input#wc-dbg-show-rectangle.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollRectangle')
+          label.input-group-text.input-group-text-for-cb(for='wc-dbg-show-ellipse') Ellipse
+          .input-group-text
+            input#wc-dbg-show-ellipse.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollEllipse')
+          label.input-group-text.input-group-text-for-cb(for='wc-dbg-show-polygon') Polygon
+          .input-group-text
+            input#wc-dbg-show-polygon.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollPolygon')
+          input.form-control(type='text' disabled)
+        .input-group.input-group-sm.input-group-titled
+          .input-group-text Show lines:
+          label.input-group-text.input-group-text-for-cb(for='wc-dbg-show-line-dist') Distance
+          .input-group-text
+            input#wc-dbg-show-line-dist.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showLineDist')
+          input.form-control(type='text' disabled)
 </template>
 
 <script setup lang="ts">
@@ -137,7 +150,7 @@ const words = tc('text.perspectives')
 
 const wcProps = useWordCloud(words, {
   collisionShape: 'ellipse',
-  debugInfo: {showCollPolygon: true},
+  debugInfo: {showCollPolygon: true, showLineDist: true},
   simulation: {
     ellipseVertexCount: 16,
     alpha: {
