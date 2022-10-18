@@ -216,34 +216,36 @@ $font-sizes: (
 .bg-teal-light {
   background-color: color.adjust($teal, $lightness: +30%);
 }
-.input-group-force > :first-child {
+.input-group-titled > :first-child {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   margin-left: -1px;
 }
-.input-group-force:not(:first-child) {
+.input-group-titled:not(:first-child) {
   margin-top: -1px;
 }
-.input-group-force:first-child:not(:last-child) > :last-child {
+.input-group-titled:first-child:not(:last-child) > :last-child {
   // border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
-.input-group-force:not(:first-child):not(:last-child) > :last-child {
+.input-group-titled:not(:first-child):not(:last-child) > :last-child {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
-.input-group-force:not(:first-child):last-child > :last-child {
+.input-group-titled:not(:first-child):last-child > :last-child {
   border-top-right-radius: 0;
   // border-bottom-right-radius: 0;
 }
-.label-force {
+.input-group-title {
   @extend .input-group-text;
-  @extend .fs-7;
   @extend .py-1;
   @extend .px-2;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
-  width: 9ch;
   display: inline-block;
+  text-align: left;
+}
+.input-group-title-sm {
+  @extend .fs-7;
 }
 </style>
