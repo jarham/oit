@@ -14,42 +14,33 @@ ModalBase.modal-perspective-palette(
       @simulation-update='onSimulationUpdate'
     )
     hr
-    .input-group.input-group-sm.mb-2
-      label.input-group-text(for='wc-coll-shape') Collision shape
-      select#wc-coll-shape.form-select(v-model='wcProps.collisionShape')
-        option(
-          v-for='cs in wordCloudCollisionShapes'
-          :value='cs'
-        ) {{ cs }}
-      .input-group-text Show coll. shape:
-      label.input-group-text(for='wc-dbg-show-rectangle') Rectangle
-      .input-group-text
-        input#wc-dbg-show-rectangle.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollRectangle')
-      label.input-group-text(for='wc-dbg-show-ellipse') Ellipse
-      .input-group-text
-        input#wc-dbg-show-ellipse.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollEllipse')
-      label.input-group-text(for='wc-dbg-show-polygon') Polygon
-      .input-group-text
-        input#wc-dbg-show-polygon.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollPolygon')
-    .input-group.input-group-sm.mb-2
-      label.input-group-text(for='wc-sim-ellipse-vertex-count') Ellipse approx. vertex count
-      input#wc-sim-ellipse-vertex-count.form-control(type='number' min='3' v-model='wcProps.simulation.ellipseVertexCount' style='max-width: 11ch;')
-
+    //- Simulation controls
     .d-flex
       .input-group.input-group-sm.mb-2
-          label.input-group-text(for='wc-shape-px') Padding X
-          input#wc-shape-px.form-control(type='number' min='0' v-model='wcProps.px')
-          label.input-group-text(for='wc-shape-px') Padding Y
-          input#wc-shape-px.form-control(type='number' min='0' v-model='wcProps.py')
-    //-   .d-flex.w-100
-    //-     .input-group.input-group-sm.mb-2.flex-nowrap.me-2
-    //-       label.input-group-text.w-100(for='wc-show-debug') Show debug
-    //-       .input-group-text
-    //-         input#wc-show-debug.form-check-input.mt-0(type='checkbox' v-model='showDebugInfo')
-    //-     .input-group.input-group-sm.mb-2.flex-nowrap
-    //-       label.input-group-text.w-100(for='wc-show-coll-shape') Show collision shape
-    //-       .input-group-text
-    //-         input#wc-show-coll-shape.form-check-input.mt-0(type='checkbox' v-model='showCollisionShape')
+          button.btn.btn-outline-primary(
+            @click='onStep'
+          ) Step
+          input#sim-step-count.form-control(type='number' min='0' v-model='simStepSize')
+          label.input-group-text(for='wc-sim-step-count') steps
+          label.input-group-text(for='wc-sim-break-point') Break at
+          input#wc-sim-break-point.form-control(
+            :disabled='!simEnableBreakPoint'
+            type='number' min='0' v-model='simBreakPoint'
+          )
+          .input-group-text
+            input#wc-sim-auto-run.form-check-input.mt-0(type='checkbox' v-model='simEnableBreakPoint')
+          button.btn.btn-outline-primary(
+            @click='onReset'
+          ) Reset simulation
+          button.btn.btn-outline-primary(
+            @click='onPlayPause'
+            style='min-width: 7ch;'
+          )
+            .bi.bi-play(v-show='!wcProps.simulation.run || simStopped')
+            .bi.bi-pause(v-show='wcProps.simulation.run && !simStopped')
+          .input-group-text.justify-content-center(style='min-width: 15ch;')
+            span {{ simStopped ? 'Stopped' : wcProps.simulation.run ? 'Running' : 'Paused' }}
+    //- Forces
     .d-flex
       .input-group.input-group-sm.mb-2
           label.input-group-text(for='wc-f-charge') fCharge
@@ -95,100 +86,32 @@ ModalBase.modal-perspective-palette(
           input#wc-f-y-a-target.form-control(type='number' v-model='wcProps.fY.alpha.target' min='0' max='1' step='0.001')
           .input-group-text α
           .input-group-text(style='min-width: 10ch;') {{ alphas.x }}
-    //-   .d-flex.w-100
-    //-     .input-group.input-group-sm.mb-2.flex-nowrap.me-2
-    //-       label.input-group-text.w-100(for='wc-show-sep-v') Show SepV
-    //-       .input-group-text
-    //-         input#wc-show-sep-v.form-check-input.mt-0(type='checkbox' v-model='showSepV')
-    //-     .input-group.input-group-sm.mb-2.flex-nowrap
-    //-       label.input-group-text.w-100(for='wc-show-sep-p') Show SepP
-    //-       .input-group-text
-    //-         input#wc-show-sep-p.form-check-input.mt-0(type='checkbox' v-model='showSepP')
-    //- .d-flex
-    //-   .input-group.input-group-sm.mb-2.flex-nowrap
-    //-       label.input-group-text(for='wc-f-x') Force: X
-    //-       .input-group-text
-    //-         input#wc-f-x.form-check-input.mt-0(type='checkbox' v-model='fXEnable')
-    //-       label.input-group-text(for='wc-f-x-str') Strength
-    //-       input#wc-f-x-str.form-control(type='number' min='0' v-model='fXStrength')
-    //-       label.input-group-text(for='wc-f-y') Force: Y
-    //-       .input-group-text
-    //-         input#wc-f-y.form-check-input.mt-0(type='checkbox' v-model='fYEnable')
-    //-       label.input-group-text(for='wc-f-y-str') Strength
-    //-       input#wc-f-y-str.form-control(type='number' min='0' v-model='fYStrength')
-    //- .d-flex
-    //-   .input-group.input-group-sm.mb-2
-    //-       label.input-group-text(for='wc-f-sep-v') Force: Separate V
-    //-       .input-group-text
-    //-         input#wc-f-sep-v.form-check-input.mt-0(type='checkbox' v-model='fSepVEnable')
-    //-       label.input-group-text(for='wc-f-sep-v-str') Strength
-    //-       input#wc-f-sep-v-str.form-control(type='number' min='0' v-model='fSepVStrength' style='max-width: 11ch;')
-    //-       label.input-group-text(for='wc-f-sep-v-out-only') Outwards only
-    //-       .input-group-text
-    //-         input#wc-f-sep-v-out-only.form-check-input.mt-0(type='checkbox' v-model='fSepVOutOnly')
-    //-       label.input-group-text(for='wc-f-sep-v-alpha') Alpha fn
-    //-       select#wc-f-sep-v-alpha.form-select(v-model='fSepVAlpha')
-    //-         option(
-    //-           v-for='sa in sepAlphas'
-    //-           :value='sa'
-    //-         ) {{ sepAlphaNames[sa] }}
-    //- .d-flex
-    //-   .input-group.input-group-sm.mb-2
-    //-       label.input-group-text(for='wc-f-sep-p') Force: Separate P
-    //-       .input-group-text
-    //-         input#wc-f-sep-p.form-check-input.mt-0(type='checkbox' v-model='fSepPEnable')
-    //-       label.input-group-text(for='wc-f-sep-p-str') Strength
-    //-       input#wc-f-sep-p-str.form-control(type='number' min='0' v-model='fSepPStrength' style='max-width: 11ch;')
-    //-       label.input-group-text(for='wc-f-sep-p-out-only') Outwards only
-    //-       .input-group-text
-    //-         input#wc-f-sep-p-out-only.form-check-input.mt-0(type='checkbox' v-model='fSepPOutOnly')
-    //-       label.input-group-text(for='wc-f-sep-p-alpha') Alpha fn
-    //-       select#wc-f-sep-p-alpha.form-select(v-model='fSepPAlpha')
-    //-         option(
-    //-           v-for='sa in sepAlphas'
-    //-           :value='sa'
-    //-         ) {{ sepAlphaNames[sa] }}
-    //- .d-flex
-    //-   .input-group.input-group-sm.mb-2
-    //-       label.input-group-text(for='wc-f-keep-in-vp') Force: Keep in Viewport
-    //-       .input-group-text
-    //-         input#wc-keep-in-vp.form-check-input.mt-0(type='checkbox' v-model='fKeepInVpEnable')
-    //-       label.input-group-text(for='wc-f-keep-in-vp') Strength
-    //-       input#wc-f-keep-in-vp.form-control(type='number' min='0' v-model='fKeepInVpStrength' style='max-width: 11ch;')
-    //- .d-flex
-    //-   .input-group.input-group-sm.mb-2.flex-nowrap.me-2
-    //-       label.input-group-text(for='wc-shape-px') Alpha settings
-    //-       label.input-group-text(for='wc-shape-px') Target
-    //-       input#wc-shape-px.form-control(type='number' min='0' max='1' step='0.01' v-model='simAlphaTarget')
-    //-       label.input-group-text(for='wc-shape-px') Decay
-    //-       input#wc-shape-px.form-control(type='number' min='0' max='1' step='0.01' v-model='simAlphaDecay')
-    //-       label.input-group-text(for='wc-shape-px') Min
-    //-       input#wc-shape-px.form-control(type='number' min='0' max='1' step='0.01' v-model='simAlphaMin ')
-    .d-flex
-      .input-group.input-group-sm.mb-2
-          button.btn.btn-outline-primary(
-            @click='onStep'
-          ) Step
-          input#sim-step-count.form-control(type='number' min='0' v-model='simStepSize')
-          label.input-group-text(for='wc-sim-step-count') steps
-          label.input-group-text(for='wc-sim-break-point') Break at
-          input#wc-sim-break-point.form-control(
-            :disabled='!simEnableBreakPoint'
-            type='number' min='0' v-model='simBreakPoint'
-          )
-          .input-group-text
-            input#wc-sim-auto-run.form-check-input.mt-0(type='checkbox' v-model='simEnableBreakPoint')
-          button.btn.btn-outline-primary(
-            @click='onReset'
-          ) Reset simulation
-          button.btn.btn-outline-primary(
-            @click='onPlayPause'
-            style='min-width: 7ch;'
-          )
-            .bi.bi-play(v-show='!wcProps.simulation.run || simStopped')
-            .bi.bi-pause(v-show='wcProps.simulation.run && !simStopped')
-          .input-group-text.justify-content-center(style='min-width: 15ch;')
-            span {{ simStopped ? 'Stopped' : wcProps.simulation.run ? 'Running' : 'Paused' }}
+    //- Collision shape settings
+    .input-group.input-group-sm.mb-2
+      label.input-group-text(for='wc-coll-shape') Collision shape
+      select#wc-coll-shape.form-select(v-model='wcProps.collisionShape')
+        option(
+          v-for='cs in wordCloudCollisionShapes'
+          :value='cs'
+        ) {{ cs }}
+      label.input-group-text(for='wc-shape-px') Pad X
+      input#wc-shape-px.form-control(type='number' min='0' v-model='wcProps.px')
+      label.input-group-text(for='wc-shape-px') Pad Y
+      input#wc-shape-px.form-control(type='number' min='0' v-model='wcProps.py')
+      label.input-group-text(for='wc-sim-ellipse-vertex-count') Ellipse approx. vertex count
+      input#wc-sim-ellipse-vertex-count.form-control(type='number' min='3' v-model='wcProps.simulation.ellipseVertexCount' style='max-width: 11ch;')
+    //- Debug settings
+    .input-group.input-group-sm.mb-2
+      .input-group-text Show coll. shape:
+      label.input-group-text(for='wc-dbg-show-rectangle') Rectangle
+      .input-group-text
+        input#wc-dbg-show-rectangle.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollRectangle')
+      label.input-group-text(for='wc-dbg-show-ellipse') Ellipse
+      .input-group-text
+        input#wc-dbg-show-ellipse.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollEllipse')
+      label.input-group-text(for='wc-dbg-show-polygon') Polygon
+      .input-group-text
+        input#wc-dbg-show-polygon.form-check-input.mt-0(type='checkbox' v-model='wcProps.debugInfo.showCollPolygon')
 </template>
 
 <script setup lang="ts">
@@ -203,26 +126,35 @@ import type {SimData} from '@/composition/WordCloud';
 const {t} = useI18n();
 const tc = (s: string) => t(`component.modal-perspective-palette.${s}`);
 
-const wcProps = useWordCloud(['aaaa1', 'aaaa2', 'aaaa3', 'aaaa3', 'aaaa3', 'aaaa3', 'aaaa3'], {
+const words = tc('text.perspectives')
+  .split('\n')
+  .map((w) => w.trim())
+  .filter((w) => !!w);
+// const words = ['aaaa1', 'aaaa2', 'aaaa3'];
+
+const wcProps = useWordCloud(words, {
   collisionShape: 'ellipse',
-  debugInfo: {showCollEllipse: true},
+  debugInfo: {showCollPolygon: true},
   simulation: {
+    ellipseVertexCount: 16,
     alpha: {
       target: 0.1,
     },
   },
   fCharge: {
     params: {
-      strength: -1,
+      strength: -8,
     },
   },
   fX: {
     params: {
+      strength: 3,
       x: 0,
     },
   },
   fY: {
     params: {
+      strength: 3,
       y: 0,
     },
   },

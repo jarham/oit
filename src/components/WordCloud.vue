@@ -198,8 +198,8 @@ const dispose = () => {
 
 const update = (reheat = false) => {
   nodes = props.words.map((word, n) => {
-    const cx = Math.cos(n) * (n + 30) * 2;
-    const cy = Math.sin(n) * (n + 30) * 2;
+    const cx = Math.cos(n) * (n + 5) * 2;
+    const cy = Math.sin(n) * (n + 5) * 2;
     return {
       word: word,
       x: cx,
@@ -297,6 +297,9 @@ const onTick = () => {
   emit('simulation-update', {
     alphas: fCombined.alphas(),
   });
+  if (!fCombined.running()) {
+    emit('simulation-end');
+  }
 };
 
 const updateNodeDimensions = () => {

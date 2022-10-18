@@ -370,6 +370,7 @@ export interface ForceCombined extends d3.Force<WordNodeDatum, any> {
   updateDebug(): ForceCombined;
   alphas(): ForceAlphas;
   velocityDecay(vd: number): ForceCombined;
+  running(): boolean;
 }
 
 interface ForceData {
@@ -385,6 +386,7 @@ export function forceCombined(): ForceCombined {
   const forceData: ForceData[] = [];
   let t = 0;
   let vd = 0.4;
+  let running = true;
   const fn: ForceCombined = (alpha: number) => {
     if (t > 0) {
       nodes.forEach((n) => {
@@ -394,11 +396,14 @@ export function forceCombined(): ForceCombined {
         });
       });
     }
+    let run = false;
     forceData.forEach((fd, fi) => {
       if (fd.alpha < fd.p.min || !fd.f.enabled) return;
       fd.f.apply(fd.alpha, t, fi, lines);
       fd.alpha += (fd.p.target - fd.alpha) * fd.p.decay;
+      run = true;
     });
+    running = run;
     t++;
     nodes.forEach((n) => {
       const tv = n.v.reduce(
@@ -452,6 +457,7 @@ export function forceCombined(): ForceCombined {
     vd = d;
     return this;
   };
+  fn.running = () => running;
   return fn;
 }
 
