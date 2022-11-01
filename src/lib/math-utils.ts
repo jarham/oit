@@ -71,11 +71,17 @@ export function minVSegmentArrays(
   return [minD, minS];
 }
 
+export function boxContainsBox(a: Flatten.Box, b: Flatten.Box): boolean {
+  return (
+    a.xmin >= b.xmin && a.xmax <= b.xmax && a.ymin >= b.ymin && a.ymax <= b.ymax
+  );
+}
+
 export function minVRectangle(
   a: Flatten.Box,
   b: Flatten.Box,
 ): [number, Flatten.Segment] {
-  if (a.intersect(b)) {
+  if (a.intersect(b) || boxContainsBox(a, b) || boxContainsBox(b, a)) {
     return [0, new Flatten.Segment()];
   }
   const sa = a.toSegments();
@@ -87,7 +93,7 @@ export function minVPolygon(
   a: Flatten.Polygon,
   b: Flatten.Polygon,
 ): [number, Flatten.Segment] {
-  if (a.intersect(b).length > 0) {
+  if (a.intersect(b).length > 0 || a.contains(b) || b.contains(a)) {
     return [0, new Flatten.Segment()];
   }
   return a.distanceTo(b);

@@ -13,6 +13,7 @@ import {
   forceCharge,
   ForceChargeWordNodeDatum,
   forceCombined,
+  forceSep,
   forceXY,
   wordCloudDefaultOpts,
 } from '@/composition/WordCloud';
@@ -86,15 +87,16 @@ const emit = defineEmits<{
 }>();
 
 watch(
-  () => [
-    props.collisionShape,
-    props.debugInfo,
-    props.simulation,
-    props.px,
-    props.py,
-  ],
+  () => [props.debugInfo, props.simulation, props.px, props.py],
   () => draw(),
   {deep: true},
+);
+watch(
+  () => [props.collisionShape],
+  () => {
+    fCombined.collisionShape(props.collisionShape);
+    draw();
+  },
 );
 
 const elWordCloud = ref<HTMLDivElement>();
@@ -102,6 +104,8 @@ const collisionShape = toRef(props, 'collisionShape');
 const fChargeParams = ref(toRef(props, 'fCharge').value.params);
 const fXParams = ref(toRef(props, 'fX').value.params);
 const fYParams = ref(toRef(props, 'fY').value.params);
+const fSepVParams = ref(toRef(props, 'fSepV').value.params);
+const fSepPParams = ref(toRef(props, 'fSepP').value.params);
 
 let width = 0;
 let height = 0;
@@ -149,8 +153,11 @@ const create = () => {
   fCharge = forceCharge(fChargeParams, collisionShape);
   fX = forceXY(fXParams, collisionShape);
   fY = forceXY(fYParams, collisionShape);
+  fSepV = forceSep('velocity', fSepVParams, collisionShape);
+  fSepP = forceSep('position', fSepPParams, collisionShape);
   fCombined = forceCombined()
     .debugLines(lines)
+    .collisionShape(props.collisionShape)
     .add(fCharge, {...props.fCharge.alpha}, 'charge')
     .add(fX, {...props.fX.alpha}, 'x')
     .add(fY, {...props.fY.alpha}, 'y');
@@ -215,6 +222,12 @@ const update = (reheat = false) => {
       // We get real values later after text has been added
       br: new Flatten.Box(cx, cy, cx, cy),
       be: new Flatten.Polygon(),
+      cColl: Array.from(Array(props.words.length).keys()).map(() => false),
+      cDist: Array.from(Array(props.words.length).keys()).map(() => [
+        0,
+        new Flatten.Segment(),
+        new Flatten.Segment(),
+      ]),
     };
   });
   lines = Array.from(Array(nodes.length * nodes.length).keys()).map(() => ({

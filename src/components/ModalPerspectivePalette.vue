@@ -146,7 +146,7 @@ const words = tc('text.perspectives')
   .split('\n')
   .map((w) => w.trim())
   .filter((w) => !!w);
-// const words = ['aaaa1', 'aaaa2', 'aaaa3'];
+// const words = ['aaaa1', 'aaaa2', 'aaaa3', 'aaaa4'];
 
 const wcProps = useWordCloud(words, {
   collisionShape: 'ellipse',
