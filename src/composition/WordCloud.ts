@@ -1,45 +1,38 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro
 import * as d3 from 'd3';
-import Flatten from '@flatten-js/core';
 import {ref} from 'vue';
 import type {Ref} from 'vue';
 import type {PartialDeep} from 'type-fest';
 import merge from 'lodash.merge';
-import {minVPolygon, minVRectangle, segmentNormalize} from '@/lib/math-utils';
+import {Body, Collision, Detector} from 'matter-js';
+import {Vec2} from '@/lib/math-utils';
 
-export interface WordNodeDatum extends d3.SimulationNodeDatum {
+export interface WordNode extends d3.SimulationNodeDatum {
+  id: string;
   word: string;
   // Center coordinates
-  x: number;
-  y: number;
-  // Ellipse radii
-  rx: number;
-  ry: number;
-  // Total velocity
-  vx: number;
-  vy: number;
+  pos: Vec2;
+  // Half width and height; and ellipse radii (note: ellipse is approximated)
+  h: Vec2;
   // Velocities created by forces
-  v: [number, number][];
-  // Absolute position changes created by forces
-  p: [number, number][];
-  // Bounding box, including padding
-  br: Flatten.Box;
-  // Bounding ellipse approximation as a polygon, including padding
-  be: Flatten.Polygon;
-  // distances cache, updated before running forces (distance, normalized segment, segment)
-  cDist: [number, Flatten.Segment, Flatten.Segment][];
-  // collision cache, updated before running forces
-  cColl: boolean[];
+  v: Record<string, Vec2>;
+  // Total velocity
+  vt: Vec2;
+  // Absolute position changes created by "forces"
+  p: Record<string, Vec2>;
+  // Total absolute position change
+  pt: Vec2;
+  // Ellipse approximation vertices
+  vertices: Vec2[];
+  body?: Body;
 }
 
 export interface DebugLineDatum extends d3.SimulationNodeDatum {
   // start
-  x: number;
-  y: number;
+  a: Vec2;
   // end
-  x2: number;
-  y2: number;
+  b: Vec2;
   stroke: string;
   show?: boolean;
 }
@@ -50,11 +43,7 @@ export interface SimData {
   alphas: ForceAlphas;
 }
 
-export const wordCloudCollisionShapes = [
-  'rectangle',
-  'polygon',
-  'ellipse',
-] as const;
+export const wordCloudCollisionShapes = ['rectangle', 'polygon'] as const;
 export type WordCloudCollisionShape = typeof wordCloudCollisionShapes[number];
 
 export interface WordCloudForceAlphaSettings {
@@ -75,7 +64,6 @@ export interface WordCloudBaseForceOpts<T extends WordCloudBaseForceParams> {
 
 export interface WordCloudSeparationForceOpts extends WordCloudBaseForceParams {
   outwardsOnly: boolean;
-  fnAlpha: 'direct' | 'bell' | 'bump' | 'ccc^3' | 'sigmoid';
 }
 
 export interface WordCloudCYForceParams extends WordCloudBaseForceParams {
@@ -90,23 +78,17 @@ export interface WordCloudCYForceParams extends WordCloudBaseForceParams {
 interface WordCloudProps {
   words: string[];
   collisionShape?: WordCloudCollisionShape;
-  px?: number;
-  py?: number;
+  shapePadding?: Vec2;
+  shapePolyVertexCount: number;
   simulation?: {
     run: boolean;
     breakPoint: number | null;
-    ellipseVertexCount: number;
-    alpha: WordCloudForceAlphaSettings;
   };
   debugInfo?: {
     hideAll: boolean;
     showCollRectangle: boolean;
     showCollEllipse: boolean;
     showCollPolygon: boolean;
-    showLineDist: boolean;
-    showSepV: boolean;
-    showSepP: boolean;
-    showSimInfo: boolean;
   };
   fCharge?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
   fX?: WordCloudBaseForceOpts<WordCloudCYForceParams>;
@@ -120,30 +102,23 @@ export type WordCloudOpts = PartialDeep<Omit<WordCloudProps, 'words'>>;
 
 export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
   collisionShape: 'rectangle',
-  px: 40,
-  py: 40,
+  shapePadding: {
+    x: 40,
+    y: 40,
+  },
+  shapePolyVertexCount: 32,
   simulation: {
     run: false,
     breakPoint: null,
-    ellipseVertexCount: 10,
-    alpha: {
-      target: 0,
-      decay: 0.0228,
-      min: 0.001,
-    },
   },
   debugInfo: {
     hideAll: false,
     showCollRectangle: false,
     showCollEllipse: false,
     showCollPolygon: false,
-    showLineDist: false,
-    showSepV: false,
-    showSepP: false,
-    showSimInfo: false,
   },
   fCharge: {
-    params: {enabled: true, strength: 1},
+    params: {enabled: false, strength: 1},
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -151,7 +126,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     },
   },
   fX: {
-    params: {enabled: true, strength: 1},
+    params: {enabled: false, strength: 1},
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -159,7 +134,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     },
   },
   fY: {
-    params: {enabled: true, strength: 1},
+    params: {enabled: false, strength: 1},
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -171,7 +146,6 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
       enabled: true,
       strength: 1,
       outwardsOnly: true,
-      fnAlpha: 'sigmoid',
     },
     alpha: {
       target: 0,
@@ -184,7 +158,6 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
       enabled: true,
       strength: 1,
       outwardsOnly: true,
-      fnAlpha: 'sigmoid',
     },
     alpha: {
       target: 0,
@@ -218,133 +191,85 @@ export default function useWordCloud(
   });
 }
 
-function distWordNodeDatum(
-  wd1: WordNodeDatum,
-  wd2: WordNodeDatum,
-  cs: WordCloudCollisionShape,
-  collisionThreshold = 0.01,
-  dMin = 0,
-): [number, Flatten.Segment] {
-  const [d, s] =
-    cs === 'rectangle'
-      ? minVRectangle(wd1.br, wd2.br)
-      : minVPolygon(wd1.be, wd2.be);
-  if (d < collisionThreshold && cs === 'ellipse') {
-    // Overlap
-    const nd = Math.max(d, dMin);
-    const cs = new Flatten.Segment(
-      new Flatten.Point(wd1.x, wd1.y),
-      new Flatten.Point(wd2.x, wd2.y),
-    );
-    segmentNormalize(cs);
-    return [nd, cs];
-  }
-  return [Math.max(d, dMin), s];
-}
-
-export abstract class ForceWordNodeDatum<T extends WordCloudBaseForceParams> {
-  protected nodes: WordNodeDatum[] = [];
+let forceCounter = 0;
+export abstract class ForceBase<T extends WordCloudBaseForceParams> {
+  readonly id = `force-${forceCounter++}`;
+  protected nodes: WordNode[] = [];
 
   constructor(
     protected readonly p: Ref<T>,
     private readonly cs: Ref<WordCloudCollisionShape>,
   ) {}
+
   abstract apply(
     alpha: number,
     t: number,
-    fi: number,
-    debugLines: DebugLineDatum[],
-  ): void;
-  abstract updateDebug(
-    alpha: number,
-    t: number,
-    fi: number,
-    debugLines: DebugLineDatum[],
+    collisionData: Map<string, NodeCollisionData>,
   ): void;
 
   get enabled(): boolean {
     return this.p.value.enabled;
   }
 
-  initialize(newNodes: WordNodeDatum[], random: () => number) {
+  initialize(newNodes: WordNode[]) {
     this.nodes = newNodes;
   }
 
-  protected d(
-    wd1: WordNodeDatum,
-    wd2: WordNodeDatum,
-    dMin = 1,
-  ): [number, Flatten.Segment] {
-    const [d, s] =
-      this.cs.value === 'rectangle'
-        ? minVRectangle(wd1.br, wd2.br)
-        : minVPolygon(wd1.be, wd2.be);
-    if (d < 0.01 && this.cs.value === 'ellipse') {
-      // Overlap
-      const nd = Math.max(d, dMin);
-      const cs = new Flatten.Segment(
-        new Flatten.Point(wd1.x, wd1.y),
-        new Flatten.Point(wd2.x, wd2.y),
-      );
-      segmentNormalize(cs);
-      return [nd, cs];
-    }
-    return [Math.max(d, dMin), s];
+  clear() {
+    this.nodes.splice(0, this.nodes.length);
   }
 }
-export type BaseWordNodeDatumForce =
-  ForceWordNodeDatum<WordCloudBaseForceParams>;
 
-export class ForceChargeWordNodeDatum extends ForceWordNodeDatum<WordCloudBaseForceParams> {
-  apply(alpha: number, t: number, fi: number, debugLines: DebugLineDatum[]) {
+export type BaseWordNodeDatumForce = ForceBase<WordCloudBaseForceParams>;
+
+export class ForceChargeWordNodeDatum extends ForceBase<WordCloudBaseForceParams> {
+  apply(alpha: number, t: number) {
     for (let i = 0; i < this.nodes.length - 1; i++) {
       const wd1 = this.nodes[i];
-      const v1 = wd1.v[fi];
-      for (let j = i + 1; j < this.nodes.length; j++) {
-        const wd2 = this.nodes[j];
-        const v2 = wd2.v[fi];
-        // const [d, s] = this.d(wd1, wd2);
-        // segmentNormalize(s);
-        const [dn, s] = wd1.cDist[j];
-        const d = Math.max(1, dn);
+      // for (let j = i + 1; j < this.nodes.length; j++) {
+      //   const wd2 = this.nodes[j];
+      //   const v2 = wd2.v[fi];
+      //   // const [d, s] = this.d(wd1, wd2);
+      //   // segmentNormalize(s);
+      //   const [dn, s] = wd1.cDist[j];
+      //   const d = Math.max(1, dn);
 
-        const fx =
-          (alpha * (this.p.value.strength * (s.end.x - s.start.x))) / (d * d);
-        const fy =
-          (alpha * (this.p.value.strength * (s.end.y - s.start.y))) / (d * d);
+      //   const fx =
+      //     (alpha * (this.p.value.strength * (s.end.x - s.start.x))) / (d * d);
+      //   const fy =
+      //     (alpha * (this.p.value.strength * (s.end.y - s.start.y))) / (d * d);
 
-        v1[0] += fx;
-        v1[1] += fy;
-        v2[0] -= fx;
-        v2[1] -= fy;
-      }
+      //   v1[0] += fx;
+      //   v1[1] += fy;
+      //   v2[0] -= fx;
+      //   v2[1] -= fy;
+      // }
     }
   }
 
-  updateDebug(
-    alpha: number,
-    t: number,
-    fi: number,
-    debugLines: DebugLineDatum[],
-  ) {
-    for (let i = 0; i < this.nodes.length - 1; i++) {
-      const wd1 = this.nodes[i];
-      for (let j = i + 1; j < this.nodes.length; j++) {
-        const wd2 = this.nodes[j];
-        // const [d, s] = this.d(wd1, wd2);
-        const [_, __, s] = wd1.cDist[j];
-
-        const l = debugLines[i + j * this.nodes.length];
-        l.x = s.start.x;
-        l.y = s.start.y;
-        l.x2 = s.end.x;
-        l.y2 = s.end.y;
-        l.show = true;
-      }
-    }
-  }
+  // updateDebug(
+  //   alpha: number,
+  //   t: number,
+  //   fi: number,
+  //   debugLines: DebugLineDatum[],
+  // ) {
+  //   // for (let i = 0; i < this.nodes.length - 1; i++) {
+  //   //   const wd1 = this.nodes[i];
+  //   //   for (let j = i + 1; j < this.nodes.length; j++) {
+  //   //     const wd2 = this.nodes[j];
+  //   //     // const [d, s] = this.d(wd1, wd2);
+  //   //     const [_, __, s] = wd1.cDist[j];
+  //   //     const l = debugLines[i + j * this.nodes.length];
+  //   //     l.x = s.start.x;
+  //   //     l.y = s.start.y;
+  //   //     l.x2 = s.end.x;
+  //   //     l.y2 = s.end.y;
+  //   //     l.show = true;
+  //   //   }
+  //   // }
+  // }
 }
-export class ForceXYWordNodeDatum extends ForceWordNodeDatum<WordCloudCYForceParams> {
+export class ForceXYWordNodeDatum extends ForceBase<WordCloudCYForceParams> {
   private readonly calcX: boolean;
   private readonly calcY: boolean;
   private readonly tx: number;
@@ -363,41 +288,34 @@ export class ForceXYWordNodeDatum extends ForceWordNodeDatum<WordCloudCYForcePar
     this.ty = this.p.value.x || 0;
   }
 
-  apply(alpha: number, t: number, fi: number, debugLines: DebugLineDatum[]) {
+  apply(alpha: number, t: number) {
     for (let i = 0; i < this.nodes.length; i++) {
       const wd1 = this.nodes[i];
-      const v1 = wd1.v[fi];
       // https://www.wolframalpha.com/input?i=plot+0.5%2F%281%2B2%5E%28-0.1x+%2B+10%29%29+from+-10+to+150
       // const dv = (alpha * 0.5) / (1 + Math.pow(2, 0.1 * Math.abs(d) + 10));
+      const v = wd1.v[this.id];
       if (this.calcX) {
-        const d = this.tx - wd1.x;
+        const d = this.tx - wd1.pos.x;
         const dv =
           this.p.value.strength *
           alpha *
           Math.log10(Math.abs(0.1 * d) + 1) *
           Math.sign(d);
-        v1[0] += dv;
+        v.x += dv;
       }
       if (this.calcY) {
-        const d = this.ty - wd1.y;
+        const d = this.ty - wd1.pos.y;
         const dv =
           this.p.value.strength *
           alpha *
           Math.log10(Math.abs(0.1 * d) + 1) *
           Math.sign(d);
-        v1[1] += dv || 0;
+        v.y += dv || 0;
       }
     }
   }
-
-  updateDebug(
-    alpha: number,
-    t: number,
-    fi: number,
-    debugLines: DebugLineDatum[],
-  ) {}
 }
-export class ForceSepWordNodeDatum extends ForceWordNodeDatum<WordCloudSeparationForceOpts> {
+export class ForceSepWordNodeDatum extends ForceBase<WordCloudSeparationForceOpts> {
   constructor(
     private readonly type: 'velocity' | 'position',
     p: Ref<WordCloudSeparationForceOpts>,
@@ -406,89 +324,32 @@ export class ForceSepWordNodeDatum extends ForceWordNodeDatum<WordCloudSeparatio
     super(p, cs);
   }
 
-  apply(alpha: number, t: number, fi: number, debugLines: DebugLineDatum[]) {
-    for (let i = 0; i < this.nodes.length - 1; i++) {
-      const wd1 = this.nodes[i];
-      const v1 = wd1.v[fi];
-      for (let j = i + 1; j < this.nodes.length; j++) {
-        const wd2 = this.nodes[j];
-
-        const c = wd1.cColl[j];
-        if (!c) continue;
-
-        const v2 = wd2.v[fi];
-
-        const [dn, s] = wd1.cDist[j];
-        const d = Math.max(1, dn);
-
-        const dx = wd1.x - wd2.x;
-        const dy = wd1.y - wd2.y;
-
-        const outwardsX = Math.sign(wd1.x) === Math.sign(dx);
-        const outwardsY = Math.sign(wd1.y) === Math.sign(dy);
-
-        const tot = Math.abs(dx) / d + Math.abs(dy) / d;
-        const mx = Math.abs(dx / d / tot);
-        const my = Math.abs(dy / d / tot);
-        const ff = (() => {
-          if (this.p.value.fnAlpha === 'ccc^3') {
-            return Math.min(Math.pow(t, 3), 30);
-          } else if (this.p.value.fnAlpha === 'bell') {
-            // Needs a bit of scaling (compared to 'ccc^3')
-            return (
-              10 *
-              ((1 / (0.2 * Math.sqrt(2 * Math.PI))) *
-                Math.pow(Math.E, -0.5 * Math.pow((2 * alpha - 1) / 2, 2)))
-            );
-          } else if (this.p.value.fnAlpha === 'bump') {
-            // Needs a bit of scaling (compared to 'ccc^3')
-            return alpha > 0.2 && alpha < 1
-              ? Math.exp(1 / (1 - Math.pow(2.5 * (1 - alpha) - 1.5, 2))) * 2
-              : 0;
-          } else if (this.p.value.fnAlpha === 'sigmoid') {
-            // Needs a bit of scaling (compared to 'ccc^3')
-            return (1 / (1 + Math.pow(Math.E, -12 * (1 - alpha - 0.5)))) * 50;
-          }
-          // Needs a bit of scaling (compared to 'ccc^3')
-          return alpha * 25;
-        })();
-        const f = (1 / (dx * dx + dy * dy)) * ff;
-        const af = Math.max(c ? f : 0);
-
-        const fx = this.p.value.strength * af * (mx * dx);
-        const fy = this.p.value.strength * af * (my * dy);
-
-        if (outwardsX || !this.p.value.outwardsOnly) {
-          if (this.type === 'velocity') {
-            v1[0] += fx;
-            v2[0] -= fx;
-          } else {
-            wd1.x += fx;
-            wd2.x -= fx;
-          }
-        }
-        if (outwardsY || !this.p.value.outwardsOnly) {
-          if (this.type === 'velocity') {
-            v1[1] += fy;
-            v2[1] -= fy;
-          } else {
-            wd1.y += fy;
-            wd2.y -= fy;
-          }
-        }
-      }
-    }
-  }
-
-  updateDebug(
+  apply(
     alpha: number,
     t: number,
-    fi: number,
-    debugLines: DebugLineDatum[],
-  ) {}
+    collisionData: Map<string, NodeCollisionData>,
+  ) {
+    for (let i = 0; i < this.nodes.length; i++) {
+      const node = this.nodes[i];
+      const vp = this.type === 'velocity' ? node.v[this.id] : node.p[this.id];
+      const cd = collisionData.get(node.id);
+      if (!cd || cd.collisions.length === 0) continue;
+
+      cd.collisions.forEach((c) => {
+        const m = Math.max((alpha * c.depth) / 2, 1);
+        if (c.bodyA.label === node.id) {
+          vp.x += m * c.normal.x;
+          vp.y += m * c.normal.y;
+        } else {
+          vp.x -= m * c.normal.x;
+          vp.y -= m * c.normal.y;
+        }
+      });
+    }
+  }
 }
 
-export interface ForceCombined extends d3.Force<WordNodeDatum, any> {
+export interface ForceCombined extends d3.Force<WordNode, any> {
   beforeTick(): ForceCombined;
   add(
     f: BaseWordNodeDatumForce,
@@ -512,124 +373,298 @@ interface ForceData {
   name: string;
 }
 
-export function forceCombined(): ForceCombined {
-  let nodes: WordNodeDatum[];
-  let lines: DebugLineDatum[] = [];
-  const forceData: ForceData[] = [];
-  const collisionThreshold = 1;
-  let t = 0;
-  let vd = 0.4;
-  let lastVd = 0;
-  let running = true;
-  let cs: WordCloudCollisionShape = 'rectangle';
-  const fn: ForceCombined = function (alpha: number) {
-    fn.beforeTick();
+interface NodeCollisionData {
+  // time of last update
+  t: number;
+  // Collisions of the node
+  collisions: Collision[];
+}
 
-    let run = false;
-    forceData.forEach((fd, fi) => {
-      if (fd.alpha < fd.p.min || !fd.f.enabled) return;
-      fd.f.apply(fd.alpha, t, fi, lines);
-      fd.alpha += (fd.p.target - fd.alpha) * fd.p.decay;
-      run = true;
+export class Simulation {
+  private nodes: WordNode[] = [];
+  private bodies: Body[] = [];
+  private data = new Map<string, {node: WordNode; body: Body}>();
+  private detector = Detector.create();
+  private collisionData = new Map<string, NodeCollisionData>();
+  private forces: ForceBase<WordCloudBaseForceParams>[] = [];
+  private alphas: ForceAlphas = {};
+  private t = 0;
+  private vDecay = 0.4;
+
+  private static resetNodeForce(
+    n: WordNode,
+    f: ForceBase<WordCloudBaseForceParams>,
+  ) {
+    n.v[f.id] = n.v[f.id] || {x: 0, y: 0};
+    n.v[f.id].x = 0;
+    n.v[f.id].y = 0;
+    n.p[f.id] = n.p[f.id] || {x: 0, y: 0};
+    n.p[f.id].x = 0;
+    n.p[f.id].y = 0;
+  }
+
+  get time(): number {
+    return this.t;
+  }
+
+  private updateBodies() {
+    this.bodies.splice(0, this.bodies.length);
+    this.data.clear();
+    this.collisionData.clear();
+
+    this.nodes.forEach((n) => {
+      const body = Body.create({
+        label: n.id,
+        type: 'poly',
+        position: {x: n.pos.x, y: n.pos.y},
+        vertices: n.vertices.map((v) => ({x: v.x, y: v.y})),
+      });
+      this.bodies.push(body);
+      this.data.set(n.id, {node: n, body});
+      n.body = body;
     });
-    running = run;
-    t++;
-    nodes.forEach((n) => {
-      const tv = n.v.reduce(
-        (prev, cur) => [cur[0] + prev[0], cur[1] + prev[1]],
-        [0, 0],
-      );
-      n.vx = tv[0];
-      n.vy = tv[1];
+    Detector.clear(this.detector);
+    Detector.setBodies(this.detector, this.bodies);
+  }
+
+  addForce(f: ForceBase<WordCloudBaseForceParams>) {
+    this.forces.push(f);
+  }
+
+  clear() {
+    this.t = 0;
+    Detector.clear(this.detector);
+    this.forces.forEach((f) => f.clear());
+    this.forces.splice(0, this.forces.length);
+    this.nodes.splice(0, this.nodes.length);
+    this.bodies.splice(0, this.bodies.length);
+    this.data.clear();
+    this.collisionData.clear();
+  }
+
+  initialize(newNodes: WordNode[]) {
+    this.nodes = newNodes;
+    this.updateBodies();
+    this.forces.forEach((f) => f.initialize(this.nodes));
+    this.reset();
+  }
+
+  reset() {
+    this.t = 0;
+    this.forces.forEach((f) => {
+      this.alphas[f.id] = 1;
+      this.nodes.forEach((n) => {
+        Simulation.resetNodeForce(n, f);
+        for (const nf of Object.keys(n.v)) {
+          if (this.forces.findIndex((f) => f.id === nf) === -1) {
+            delete n.v[nf];
+          }
+        }
+        for (const nf of Object.keys(n.p)) {
+          if (this.forces.findIndex((f) => f.id === nf) === -1) {
+            delete n.p[nf];
+          }
+        }
+      });
     });
-  };
-  fn.beforeTick = function () {
-    for (let i = 0; i < nodes.length; i++) {
-      const wd1 = nodes[i];
+  }
 
-      // Velocity decay
-      if (t > lastVd) {
-        wd1.v.forEach((v) => {
-          v[0] *= 1 - vd;
-          v[1] *= 1 - vd;
-        });
-        lastVd = t;
-      }
+  private updateCollisionData(coll: Collision, node: WordNode) {
+    let cdata = this.collisionData.get(node.id);
+    if (!cdata) {
+      cdata = {
+        t: this.t,
+        collisions: [],
+      };
+      this.collisionData.set(node.id, cdata);
+    } else if (cdata.t < this.t) {
+      cdata.t = this.t;
+      cdata.collisions.splice(0, cdata.collisions.length);
+    }
 
-      // Distance + collision to self
-      wd1.cDist[i] = [0, new Flatten.Segment(), new Flatten.Segment()];
-      wd1.cColl[i] = true;
+    cdata.collisions.push(coll);
+  }
 
-      // Distance + collision to others
-      for (let j = i + 1; j < nodes.length; j++) {
-        const wd2 = nodes[j];
-        const [d, s] = distWordNodeDatum(wd1, wd2, cs);
-        const ns = s.clone();
-        segmentNormalize(ns);
+  tick() {
+    console.log('tick');
+    // Update collisions
+    const collisions = Detector.collisions(this.detector);
+    collisions.forEach((c) => {
+      if (!c.collided) return;
 
-        wd1.cDist[j][0] = d;
-        wd1.cDist[j][1] = ns;
-        wd1.cDist[j][2] = s;
-        wd1.cColl[j] = d < collisionThreshold;
-
-        wd2.cDist[i][0] = d;
-        wd2.cDist[i][1] = ns.reverse();
-        wd2.cDist[i][2] = s.reverse();
-        wd2.cColl[i] = d < collisionThreshold;
+      let data = this.data.get(c.bodyA.label);
+      if (data) this.updateCollisionData(c, data.node);
+      data = this.data.get(c.bodyB.label);
+      if (data) this.updateCollisionData(c, data.node);
+    });
+    for (const cdata of this.collisionData.values()) {
+      if (cdata.t < this.t) {
+        cdata.t = this.t;
+        cdata.collisions.splice(0, cdata.collisions.length);
       }
     }
-    return this;
-  };
-  fn.add = function (
-    this: ForceCombined,
-    a: BaseWordNodeDatumForce,
-    p: WordCloudForceAlphaSettings,
-    name: string,
-  ) {
-    forceData.push({f: a, p, alpha: 1, name});
-    return this;
-  };
-  fn.t = () => t;
-  fn.alpha = function (alpha: number) {
-    forceData.forEach((fd) => (fd.alpha = alpha));
-    return this;
-  };
-  fn.debugLines = function (debugLines: DebugLineDatum[]) {
-    lines = debugLines;
-    return this;
-  };
-  fn.updateDebug = function () {
-    fn.beforeTick();
-    forceData.forEach((fd, fi) => {
-      fd.f.updateDebug(fd.alpha, t, fi, lines);
-    });
-    return this;
-  };
-  fn.initialize = (newNodes: WordNodeDatum[], random: () => number) => {
-    nodes = newNodes;
-    forceData.forEach((force) => {
-      force.f.initialize && force.f.initialize(nodes, random);
-    });
-    nodes.forEach((n) => {
-      n.v = Array.from(Array(forceData.length).keys()).map(() => [0, 0]);
-      n.p = Array.from(Array(forceData.length).keys()).map(() => [0, 0]);
-    });
-  };
-  fn.alphas = () =>
-    Object.fromEntries(
-      forceData.map((fd, i) => [fd.name || `f-${i}`, fd.alpha]),
+
+    // Apply forces
+    this.forces.forEach((f) =>
+      f.apply(this.alphas[f.id], this.t, this.collisionData),
     );
-  fn.velocityDecay = function (d: number) {
-    vd = d;
-    return this;
-  };
-  fn.running = () => running;
-  fn.collisionShape = function (s: WordCloudCollisionShape) {
-    cs = s;
-    return this;
-  };
-  return fn;
+
+    // Update nodes' totals and position
+    this.nodes.forEach((n) => {
+      n.vt.x = 0;
+      n.vt.y = 0;
+      Object.values(n.v).forEach((v) => {
+        n.vt.x += v.x;
+        n.vt.y += v.y;
+
+        // Velocity decay
+        v.x *= 1 - this.vDecay;
+        v.y *= 1 - this.vDecay;
+      });
+
+      n.pt.x = 0;
+      n.pt.y = 0;
+      Object.values(n.p).forEach((p) => {
+        n.pt.x += p.x;
+        n.pt.y += p.y;
+
+        // Position change doesn't "carry over"
+        p.x = 0;
+        p.y = 0;
+      });
+
+      const dx = n.vt.x + n.pt.x;
+      const dy = n.vt.y + n.pt.y;
+
+      n.pos.x += dx;
+      n.pos.y += dy;
+      if (n.body) Body.translate(n.body, {x: dx, y: dy});
+    });
+
+    // Update alphas
+
+    this.t++;
+  }
 }
+
+// export function forceCombined(): ForceCombined {
+//   let nodes: WordNode[];
+//   let lines: DebugLineDatum[] = [];
+//   const forceData: ForceData[] = [];
+//   const collisionThreshold = 1;
+//   let t = 0;
+//   let vd = 0.4;
+//   let lastVd = 0;
+//   let running = true;
+//   let cs: WordCloudCollisionShape = 'rectangle';
+//   const fn: ForceCombined = function (alpha: number) {
+//     fn.beforeTick();
+
+//     let run = false;
+//     forceData.forEach((fd, fi) => {
+//       if (fd.alpha < fd.p.min || !fd.f.enabled) return;
+//       fd.f.apply(fd.alpha, t, fi, lines);
+//       fd.alpha += (fd.p.target - fd.alpha) * fd.p.decay;
+//       run = true;
+//     });
+//     running = run;
+//     t++;
+//     nodes.forEach((n) => {
+//       const tv = n.v.reduce(
+//         (prev, cur) => [cur[0] + prev[0], cur[1] + prev[1]],
+//         [0, 0],
+//       );
+//       n.vx = tv[0];
+//       n.vy = tv[1];
+//     });
+//   };
+//   fn.beforeTick = function () {
+//     for (let i = 0; i < nodes.length; i++) {
+//       const wd1 = nodes[i];
+
+//       // Velocity decay
+//       if (t > lastVd) {
+//         wd1.v.forEach((v) => {
+//           v[0] *= 1 - vd;
+//           v[1] *= 1 - vd;
+//         });
+//         lastVd = t;
+//       }
+
+//       // Distance + collision to self
+//       wd1.cDist[i] = [0, new Flatten.Segment(), new Flatten.Segment()];
+//       wd1.cColl[i] = true;
+
+//       // Distance + collision to others
+//       for (let j = i + 1; j < nodes.length; j++) {
+//         const wd2 = nodes[j];
+//         const [d, s] = distWordNodeDatum(wd1, wd2, cs);
+//         const ns = s.clone();
+//         segmentNormalize(ns);
+
+//         wd1.cDist[j][0] = d;
+//         wd1.cDist[j][1] = ns;
+//         wd1.cDist[j][2] = s;
+//         wd1.cColl[j] = d < collisionThreshold;
+
+//         wd2.cDist[i][0] = d;
+//         wd2.cDist[i][1] = ns.reverse();
+//         wd2.cDist[i][2] = s.reverse();
+//         wd2.cColl[i] = d < collisionThreshold;
+//       }
+//     }
+//     return this;
+//   };
+//   fn.add = function (
+//     this: ForceCombined,
+//     a: BaseWordNodeDatumForce,
+//     p: WordCloudForceAlphaSettings,
+//     name: string,
+//   ) {
+//     forceData.push({f: a, p, alpha: 1, name});
+//     return this;
+//   };
+//   fn.t = () => t;
+//   fn.alpha = function (alpha: number) {
+//     forceData.forEach((fd) => (fd.alpha = alpha));
+//     return this;
+//   };
+//   fn.debugLines = function (debugLines: DebugLineDatum[]) {
+//     lines = debugLines;
+//     return this;
+//   };
+//   fn.updateDebug = function () {
+//     fn.beforeTick();
+//     forceData.forEach((fd, fi) => {
+//       fd.f.updateDebug(fd.alpha, t, fi, lines);
+//     });
+//     return this;
+//   };
+//   fn.initialize = (newNodes: WordNode[], random: () => number) => {
+//     nodes = newNodes;
+//     forceData.forEach((force) => {
+//       force.f.initialize && force.f.initialize(nodes, random);
+//     });
+//     nodes.forEach((n) => {
+//       n.v = Array.from(Array(forceData.length).keys()).map(() => [0, 0]);
+//       n.p = Array.from(Array(forceData.length).keys()).map(() => [0, 0]);
+//     });
+//   };
+//   fn.alphas = () =>
+//     Object.fromEntries(
+//       forceData.map((fd, i) => [fd.name || `f-${i}`, fd.alpha]),
+//     );
+//   fn.velocityDecay = function (d: number) {
+//     vd = d;
+//     return this;
+//   };
+//   fn.running = () => running;
+//   fn.collisionShape = function (s: WordCloudCollisionShape) {
+//     cs = s;
+//     return this;
+//   };
+//   return fn;
+// }
 
 export function forceCharge(
   p: Ref<WordCloudBaseForceParams>,
@@ -649,7 +684,7 @@ export function forceSep(
   type: 'velocity' | 'position',
   p: Ref<WordCloudSeparationForceOpts>,
   cs: Ref<WordCloudCollisionShape>,
-): ForceChargeWordNodeDatum {
+): ForceSepWordNodeDatum {
   return new ForceSepWordNodeDatum(type, p, cs);
 }
 

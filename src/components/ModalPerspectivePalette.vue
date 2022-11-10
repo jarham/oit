@@ -267,7 +267,7 @@ const onSimulationEnd = () => {
 };
 
 const onReset = () => {
-  wordCloud.value?.create();
+  wordCloud.value?.reset();
 };
 
 const onPlayPause = () => {
@@ -312,7 +312,7 @@ defineExpose({
     if (wordCloud.value) {
       // simAutoRun.value = true;
       // simStopped.value = false;
-      wordCloud.value.create();
+      wordCloud.value.reset();
       // wordCloud.value.start( );
     }
   },

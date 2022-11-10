@@ -3,7 +3,6 @@ lockfileVersion: 5.4
 specifiers:
   '@commitlint/cli': ^17.0.3
   '@commitlint/config-conventional': ^17.0.3
-  '@flatten-js/core': ^1.3.5
   '@intlify/vite-plugin-vue-i18n': ^6.0.1
   '@popperjs/core': ^2.11.6
   '@rollup/plugin-yaml': ^3.1.0
@@ -18,6 +17,7 @@ specifiers:
   '@types/lodash.clonedeep': ^4.5.7
   '@types/lodash.merge': ^4.6.7
   '@types/markdown-it': ^12.2.3
+  '@types/matter-js': ^0.18.2
   '@types/mustache': ^4.2.1
   '@types/node': ^16.11.56
   '@types/yargs': ^17.0.11
@@ -41,10 +41,10 @@ specifiers:
   htmlparser2: ^8.0.1
   husky: ^8.0.1
   joi: ^17.6.0
-  kld-intersections: ^0.7.0
   lodash.clonedeep: ^4.5.0
   lodash.merge: ^4.6.2
   markdown-it: ^13.0.1
+  matter-js: ^0.18.0
   mustache: ^4.2.0
   pinia: ^2.0.20
   prettier: ^2.7.1
@@ -64,7 +64,6 @@ specifiers:
   yargs: ^17.5.1
 
 dependencies:
-  '@flatten-js/core': 1.3.5
   '@popperjs/core': 2.11.6
   bootstrap: 5.2.0_@popperjs+core@2.11.6
   bootstrap-icons: 1.8.3
@@ -73,10 +72,10 @@ dependencies:
   file-saver: 2.0.5
   flat: 5.0.2
   htmlparser2: 8.0.1
-  kld-intersections: 0.7.0
   lodash.clonedeep: 4.5.0
   lodash.merge: 4.6.2
   markdown-it: 13.0.1
+  matter-js: 0.18.0
   mustache: 4.2.0
   pinia: 2.0.20_j6bzmzd4ujpabbp5objtwxyjp4
   sass: 1.54.5
@@ -100,6 +99,7 @@ devDependencies:
   '@types/lodash.clonedeep': 4.5.7
   '@types/lodash.merge': 4.6.7
   '@types/markdown-it': 12.2.3
+  '@types/matter-js': 0.18.2
   '@types/mustache': 4.2.1
   '@types/node': 16.11.56
   '@types/yargs': 17.0.11
@@ -368,17 +368,6 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: true
-
-  /@flatten-js/core/1.3.5:
-    resolution: {integrity: sha512-XwJ7+K/7SlStlXoZ3MULnKZzAtC3xt/M/Cy8F2OsQNjOYpEXjdei3P/U/nVX0M868Hxd3e3+uFmQ4V4Sw3E1NA==}
-    engines: {node: '>=4.2.4'}
-    dependencies:
-      '@flatten-js/interval-tree': 1.0.19
-    dev: false
-
-  /@flatten-js/interval-tree/1.0.19:
-    resolution: {integrity: sha512-E+uCpmzAP6EL1L0VDligIg2oUnwbzhSMRXts8Ct7OQ+i+dFEgefExcKnTwGFa+MUZGYAIKHBoUWo/f/lhqc1Ew==}
-    dev: false
 
   /@hapi/hoek/9.3.0:
     resolution: {integrity: sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ==}
@@ -1103,6 +1092,10 @@ packages:
     dependencies:
       '@types/linkify-it': 3.0.2
       '@types/mdurl': 1.0.2
+    dev: true
+
+  /@types/matter-js/0.18.2:
+    resolution: {integrity: sha512-W9UC9DOPNBRTUocqqPZmzX3cbHmlZBI9jLn6SuxZz0n5QrPk382Ig3hbBWHqYU8TRUmTCJJhuanXeyMTavF7Mg==}
     dev: true
 
   /@types/mdurl/1.0.2:
@@ -3651,30 +3644,6 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /kld-affine/2.1.1:
-    resolution: {integrity: sha512-NIS9sph8ZKdnQxZa5TcggaFs/Qr9zX3brFlGwE0+0Z4EzFIvAFuqLSwNeU4GkEpaX8ndh3ggGmWV7BPPcS3vjQ==}
-    engines: {node: '>= 10.15.3'}
-    dev: false
-
-  /kld-intersections/0.7.0:
-    resolution: {integrity: sha512-/KuBU7Y5bRPGfc0yQ3QIoXPKqOQ6cBWDRl1XVMMa3pm4V6Ydbgy9e2fZoRxlSIU0gZSBt1c6gWLOzSGKbU8I3A==}
-    engines: {node: '>= 10.15.3'}
-    dependencies:
-      kld-affine: 2.1.1
-      kld-path-parser: 0.2.1
-      kld-polynomial: 0.3.0
-    dev: false
-
-  /kld-path-parser/0.2.1:
-    resolution: {integrity: sha512-C1EqY6vzqv5tdKeMF31L+JXq97n5zo67LiSEhZf4sPq8YeM+8ytp/qMGSKN8VdSPvFa6h1SR35aF4+T2JtxZww==}
-    engines: {node: '>= 10.15.3'}
-    dev: false
-
-  /kld-polynomial/0.3.0:
-    resolution: {integrity: sha512-PEfxjQ6tsxL9DHBIhM2UZsSes0GI+OIMjbE0kj60jr80Biq/xXl1eGfnyzmfoackAMdKZtw2060L09HdjkPP5w==}
-    engines: {node: '>= 10.15.3'}
-    dev: false
-
   /levn/0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
@@ -3834,6 +3803,10 @@ packages:
     engines: {node: '>= 12'}
     hasBin: true
     dev: true
+
+  /matter-js/0.18.0:
+    resolution: {integrity: sha512-/ZVem4WygUnbmo/iE4oHZpZS97btfBtYy5Iwn1396vUZU7YhgVEN8J4UWwfZwY1ZqoTYlPgjvSw9WXauuXL0mg==}
+    dev: false
 
   /mdurl/1.0.1:
     resolution: {integrity: sha1-/oWy7HWlkDfyrf7BAP1sYBdhFS4=}

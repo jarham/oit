@@ -7,14 +7,10 @@
 
 <script setup lang="ts">
 import * as d3 from 'd3';
-import Flatten from '@flatten-js/core';
-import {computed, onBeforeUnmount, onMounted, ref, toRef, watch} from 'vue';
+import {computed, nextTick, onBeforeUnmount, onMounted, ref, toRef, watch} from 'vue';
 import {
-  forceCharge,
-  ForceChargeWordNodeDatum,
-  forceCombined,
   forceSep,
-  forceXY,
+  Simulation,
   wordCloudDefaultOpts,
 } from '@/composition/WordCloud';
 import type {
@@ -28,9 +24,10 @@ import type {
   WordCloudSeparationForceOpts,
   WordCloudBaseForceParams,
   WordCloudCYForceParams,
-  WordNodeDatum,
+  WordNode,
 } from '@/composition/WordCloud';
 import {ellipse2poly} from '@/lib/math-utils';
+import type {Vec2} from '@/lib/math-utils';
 import cloneDeep from 'lodash.clonedeep';
 
 // NOTE: because Vue doesn't support importing props interface until 3.3
@@ -40,23 +37,17 @@ import cloneDeep from 'lodash.clonedeep';
 interface WordCloudProps {
   words: string[];
   collisionShape?: WordCloudCollisionShape;
-  px?: number;
-  py?: number;
+  shapePadding?: Vec2;
+  shapePolyVertexCount: number;
   simulation?: {
     run: boolean;
     breakPoint: number | null;
-    ellipseVertexCount: number;
-    alpha: WordCloudForceAlphaSettings;
   };
   debugInfo?: {
     hideAll: boolean;
     showCollRectangle: boolean;
     showCollEllipse: boolean;
     showCollPolygon: boolean;
-    showLineDist: boolean;
-    showSepV: boolean;
-    showSepP: boolean;
-    showSimInfo: boolean;
   };
   fCharge?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
   fX?: WordCloudBaseForceOpts<WordCloudCYForceParams>;
@@ -69,8 +60,7 @@ interface WordCloudProps {
 // withDefaults doesn't seem to support ...wordCloudDefaultOpts
 const props = withDefaults(defineProps<WordCloudProps>(), {
   collisionShape: wordCloudDefaultOpts.collisionShape,
-  px: wordCloudDefaultOpts.px,
-  py: wordCloudDefaultOpts.py,
+  shapePadding: () => cloneDeep(wordCloudDefaultOpts.shapePadding),
   simulation: () => cloneDeep(wordCloudDefaultOpts.simulation),
   debugInfo: () => cloneDeep(wordCloudDefaultOpts.debugInfo),
   fCharge: () => cloneDeep(wordCloudDefaultOpts.fCharge),
@@ -87,15 +77,19 @@ const emit = defineEmits<{
 }>();
 
 watch(
-  () => [props.debugInfo, props.simulation, props.px, props.py],
-  () => draw(),
+  () => [props.debugInfo, props.simulation, props.shapePadding],
+  () => {
+    updateDimensions();
+    updateData();
+  },
   {deep: true},
 );
 watch(
   () => [props.collisionShape],
   () => {
     fCombined.collisionShape(props.collisionShape);
-    draw();
+    updateDimensions();
+    updateData();
   },
 );
 
@@ -107,23 +101,37 @@ const fYParams = ref(toRef(props, 'fY').value.params);
 const fSepVParams = ref(toRef(props, 'fSepV').value.params);
 const fSepPParams = ref(toRef(props, 'fSepP').value.params);
 
+const simulation = new Simulation();
+// simulation.addForce(forceSep('position', fSepVParams, collisionShape));
+// Just for timing, with 0 decay it'll run until manually stoppped
+const d3Simulation = d3.forceSimulation().alphaDecay(0).stop();
+d3Simulation.on('tick', () => onTick());
+let running = false;
+let skipStep = false;
+
+let nodeCounter = 0;
+
 let width = 0;
 let height = 0;
-let t = 0;
-let nodes: WordNodeDatum[] = [];
-let lines: DebugLineDatum[] = [];
+let nodes: WordNode[] = [];
 
 let svg: d3.Selection<SVGSVGElement, undefined, null, undefined>;
-let simulation: d3.Simulation<WordNodeDatum, any>;
-let nodeGroup: d3.Selection<SVGGElement, WordNodeDatum, null, undefined>;
-let lineGroup: d3.Selection<SVGGElement, DebugLineDatum, null, undefined>;
+let nodeGroup: d3.Selection<SVGGElement, WordNode, null, undefined>;
 
 let fCombined: ForceCombined;
 let fCharge: BaseWordNodeDatumForce;
 let fX: BaseWordNodeDatumForce;
 let fY: BaseWordNodeDatumForce;
-let fSepV: BaseWordNodeDatumForce;
-let fSepP: BaseWordNodeDatumForce;
+let fSepV: BaseWordNodeDatumForce = forceSep(
+  'velocity',
+  fSepVParams,
+  collisionShape,
+);
+let fSepP: BaseWordNodeDatumForce = forceSep(
+  'position',
+  fSepPParams,
+  collisionShape,
+);
 let fKeepInVp: BaseWordNodeDatumForce;
 
 /**
@@ -142,49 +150,35 @@ const updateDimensions = () => {
  * Create word cloud.
  */
 const create = () => {
-  dispose();
-
   if (!elWordCloud.value) return;
   svg = d3.create('svg').attr('viewBox', [0, 0, width, height]);
-  updateDimensions();
+  simulation.addForce(fSepP);
 
-  t = 0;
+  // fCharge = forceCharge(fChargeParams, collisionShape);
+  // fX = forceXY(fXParams, collisionShape);
+  // fY = forceXY(fYParams, collisionShape);
+  // fSepV = forceSep('velocity', fSepVParams, collisionShape);
+  // fSepP = forceSep('position', fSepPParams, collisionShape);
+  // fCombined = forceCombined()
+  //   .debugLines(lines)
+  //   .collisionShape(props.collisionShape)
+  //   .add(fCharge, {...props.fCharge.alpha}, 'charge')
+  //   .add(fX, {...props.fX.alpha}, 'x')
+  //   .add(fY, {...props.fY.alpha}, 'y');
 
-  fCharge = forceCharge(fChargeParams, collisionShape);
-  fX = forceXY(fXParams, collisionShape);
-  fY = forceXY(fYParams, collisionShape);
-  fSepV = forceSep('velocity', fSepVParams, collisionShape);
-  fSepP = forceSep('position', fSepPParams, collisionShape);
-  fCombined = forceCombined()
-    .debugLines(lines)
-    .collisionShape(props.collisionShape)
-    .add(fCharge, {...props.fCharge.alpha}, 'charge')
-    .add(fX, {...props.fX.alpha}, 'x')
-    .add(fY, {...props.fY.alpha}, 'y');
-
-  simulation = d3
-    .forceSimulation<WordNodeDatum>()
-    .alphaTarget(props.simulation.alpha.target)
-    .alphaDecay(props.simulation.alpha.decay)
-    .alphaMin(props.simulation.alpha.min)
-    .force('combined', fCombined);
+  // simulation = d3
+  //   .forceSimulation<WordNode>()
+  //   .alphaTarget(props.simulation.alpha.target)
+  //   .alphaDecay(props.simulation.alpha.decay)
+  //   .alphaMin(props.simulation.alpha.min)
+  //   .force('combined', fCombined);
 
   // TODO: w/o cast
   nodeGroup = svg
     .append<SVGGElement>('g')
-    .attr('class', 'nodes') as unknown as d3.Selection<
+    .attr('class', 'word-nodes') as unknown as d3.Selection<
     SVGGElement,
-    WordNodeDatum,
-    null,
-    undefined
-  >;
-
-  // TODO: w/o cast
-  lineGroup = svg
-    .append<SVGGElement>('g')
-    .attr('class', 'lines') as unknown as d3.Selection<
-    SVGGElement,
-    DebugLineDatum,
+    WordNode,
     null,
     undefined
   >;
@@ -193,282 +187,171 @@ const create = () => {
   if (n) elWordCloud.value.appendChild(n);
   else return dispose();
 
-  update(true);
+  reset();
 };
 
 /**
  * Dispose word cloud
  */
 const dispose = () => {
-  if (simulation) simulation.stop();
+  // if (simulation) simulation.stop();
+  if (nodeGroup) nodeGroup.node()?.remove();
   if (svg) svg.node()?.remove();
   nodes.splice(0, nodes.length);
+  simulation.clear();
+  d3Simulation.stop();
+  d3Simulation.on('tick', null);
 };
 
-const update = (reheat = false) => {
+onMounted(create);
+onBeforeUnmount(dispose);
+
+/**
+ * Reset to starting state.
+ */
+const reset = () => {
+  simulation.reset();
   nodes = props.words.map((word, n) => {
     const cx = Math.cos(n) * (n + 5) * 2;
     const cy = Math.sin(n) * (n + 5) * 2;
     return {
+      id: `word-node-${nodeCounter++}`,
       word: word,
-      x: cx,
-      y: cy,
-      rx: 0,
-      ry: 0,
-      vx: 0,
-      vy: 0,
-      v: [],
-      p: [],
-      // We get real values later after text has been added
-      br: new Flatten.Box(cx, cy, cx, cy),
-      be: new Flatten.Polygon(),
-      cColl: Array.from(Array(props.words.length).keys()).map(() => false),
-      cDist: Array.from(Array(props.words.length).keys()).map(() => [
-        0,
-        new Flatten.Segment(),
-        new Flatten.Segment(),
-      ]),
+      pos: {
+        x: cx,
+        y: cy,
+      },
+      h: {
+        x: 0,
+        y: 0,
+      },
+      v: {},
+      vt: {
+        x: cx,
+        y: cy,
+      },
+      p: {},
+      pt: {
+        x: cx,
+        y: cy,
+      },
+      vertices: [],
     };
   });
-  lines = Array.from(Array(nodes.length * nodes.length).keys()).map(() => ({
-    x: 0,
-    y: 0,
-    x2: 0,
-    y2: 0,
-    stroke: '#0f0',
-    show: false,
-  }));
-  fCombined.debugLines(lines);
 
-  if (props.simulation.run) simulation.restart();
-  else simulation.stop();
+  updateDimensions();
+  updateData();
+  simulation.initialize(nodes);
+};
 
-  if (reheat) {
-    simulation.alpha(1);
-    fCombined.alpha(1);
-  }
+const updateData = () => {
+  console.log('updateData');
+  nodeGroup
+    .selectAll<SVGTextElement, WordNode>('text')
+    .data(nodes)
+    .join(
+      (enter) => {
+        return enter
+          .append('text')
+          .attr('text-anchor', 'middle')
+          .attr('dy', '0.3em')
+          .attr('x', (d) => d.pos.x)
+          .attr('y', (d) => d.pos.y)
+          .text((d) => d.word);
+      },
+      (update) => {
+        return update.attr('x', (d) => d.pos.x).attr('y', (d) => d.pos.y);
+      },
+    );
 
-  // Using join instead of enter/exit/merge
-  // See: https://observablehq.com/@d3/selection-join
-  const ngs = nodeGroup.selectAll<Element, WordNodeDatum>('g').data(nodes);
-  ngs.join(
-    // Using enter fn prevents "doule adding titles"
-    (enter) => {
-      const g = enter
-        .append('g')
-        // .style('pointer-events', (d) =>
-        //   d.type === gtypes.server ? 'none' : 'auto',
-        // )
-        // .style('user-select', 'none')
-        .style('cursor', 'default');
-      // .call(drag(simulation));
-      g.append('text')
-        .attr('stroke', '#000')
-        .attr('stroke-width', 0.5)
-        .attr('dy', '0.3em')
-        .attr('text-anchor', 'middle')
-        .text((d) => d.word);
-      g.append('rect')
-        .attr('fill', 'none')
-        .attr('stroke', '#000')
-        .attr('stroke-width', 0.5);
-      g.append('ellipse')
-        .attr('fill', 'none')
-        .attr('stroke', '#000')
-        .attr('stroke-width', 0.5);
-      g.append('polygon')
-        .attr('fill', 'none')
-        .attr('stroke', '#000')
-        .attr('stroke-width', 0.5);
-      // g.append('line')
-      //   .attr('class', 'f-sep-v')
-      //   .attr('stroke', '#f00')
-      //   .attr('stroke-width', 2.5);
-      // g.append('line')
-      //   .attr('class', 'f-sep-p')
-      //   .attr('stroke', '#0f0')
-      //   .attr('stroke-width', 2.5);
-    },
-    (update) => {
-      update.selectAll<Element, WordNodeDatum>('text').text((d) => d.word);
-    },
-  );
+  if (simulation.time === 0) updateNodeDimensions();
 
-  lineGroup.selectAll('line').data(lines).join('line');
-
-  simulation
-    .nodes(nodes)
-    .on('tick', onTick)
-    .on('end', () => emit('simulation-end'));
-
-  draw();
-  emit('simulation-update', {
-    alphas: fCombined.alphas(),
-  });
+  nodeGroup
+    .selectAll<SVGEllipseElement, WordNode>('ellipse')
+    .data(nodes)
+    .join(
+      (enter) => {
+        return enter
+          .append('ellipse')
+          .attr('cursor', 'pointer')
+          .attr('rx', (d) => d.h.x)
+          .attr('ry', (d) => d.h.y)
+          .attr('cx', (d) => d.pos.x)
+          .attr('cy', (d) => d.pos.y)
+          .attr('stroke', '#000')
+          .attr('stroke-width', 0.5)
+          .attr('fill', 'transparent');
+      },
+      (update) => {
+        return update
+          .attr('rx', (d) => d.h.x)
+          .attr('ry', (d) => d.h.y)
+          .attr('cx', (d) => d.pos.x)
+          .attr('cy', (d) => d.pos.y);
+      },
+    );
 };
 
 const onTick = () => {
-  draw();
-  emit('simulation-update', {
-    alphas: fCombined.alphas(),
-  });
-  if (!fCombined.running()) {
-    emit('simulation-end');
+  if (skipStep) {
+    skipStep = false;
+    return;
   }
+  simulation.tick();
+  updateData();
+  // emit('simulation-update', {
+  //   alphas: fCombined.alphas(),
+  // });
+  // if (!fCombined.running()) {
+  //   emit('simulation-end');
+  // }
 };
 
 const updateNodeDimensions = () => {
-  // Calculate bounding box and ellipse and update collision data
-  nodeGroup?.selectAll<Element, WordNodeDatum>('text').each((wd1, i, g) => {
+  console.log('updateNodeDimensions');
+  nodeGroup?.selectAll<Element, WordNode>('text').each((wd1, i, g) => {
     const r = g[i].getBoundingClientRect();
-    wd1.rx = (r.width + props.px) / 2;
-    wd1.ry = (r.height + props.py) / 2;
-    wd1.br.xmin = wd1.x - wd1.rx;
-    wd1.br.ymin = wd1.y - wd1.ry;
-    wd1.br.xmax = wd1.br.xmin + r.width + props.px;
-    wd1.br.ymax = wd1.br.ymin + r.height + props.py;
+    wd1.h.x = (r.width + props.shapePadding.x) / 2;
+    wd1.h.y = (r.height + props.shapePadding.y) / 2;
 
-    wd1.be = new Flatten.Polygon(
-      ellipse2poly(
-        wd1.x,
-        wd1.y,
-        wd1.rx,
-        wd1.ry,
-        0,
-        props.simulation.ellipseVertexCount,
-      ),
+    wd1.vertices = ellipse2poly(
+      wd1.pos.x,
+      wd1.pos.y,
+      wd1.h.x,
+      wd1.h.y,
+      0,
+      props.shapePolyVertexCount,
     );
   });
 };
 
-const draw = () => {
-  // Update svg text x and y, calculate bounding box and ellipse and update collision data
-  updateNodeDimensions();
-  fCombined.updateDebug();
-  nodeGroup
-    ?.selectAll<Element, WordNodeDatum>('text')
-    .attr('x', (d) => d.x || 0)
-    .attr('y', (d) => d.y || 0);
-  // .attr('dx', (d) => ((d.x || 0) > scx ? '6' : '-6'))
-  // .each((wd1, i, g) => {
-  //   const r = g[i].getBoundingClientRect();
-  //   wd1.rx = (r.width + props.px) / 2;
-  //   wd1.ry = (r.height + props.py) / 2;
-  //   wd1.br.xmin = wd1.x - wd1.rx;
-  //   wd1.br.ymin = wd1.y - wd1.ry;
-  //   wd1.br.xmax = wd1.br.xmin + r.width + props.px;
-  //   wd1.br.ymax = wd1.br.ymin + r.height + props.py;
+const start = () => {
+  running = true;
+  skipStep = false;
+  d3Simulation.restart();
+};
 
-  //   wd1.be = new Flatten.Polygon(
-  //     ellipse2poly(
-  //       wd1.x,
-  //       wd1.y,
-  //       wd1.rx,
-  //       wd1.ry,
-  //       0,
-  //       props.simulation.ellipseVertexCount,
-  //     ),
-  //   );
-
-  //   // wd1.el = kld.ShapeInfo.ellipse({
-  //   //   cx: wd1.br.xmin + (wd1.br.xmax - wd1.br.xmin) / 2,
-  //   //   cy: wd1.br.ymin + (wd1.br.ymax - wd1.br.ymin) / 2,
-  //   //   rx: (wd1.br.xmax - wd1.br.xmin) / 2,
-  //   //   ry: (wd1.br.ymax - wd1.br.ymin) / 2,
-  //   // });
-
-  //   // for (let j = 0; j < i; j++) {
-  //   //   const wd2 = nodes[j];
-  //   //   const c =
-  //   //     props.collisionShape === 'rectangle'
-  //   //       ? wd1.br.intersect(wd2.br)
-  //   //       : kld.Intersection.intersect(wd1.el, wd2.el).status ===
-  //   //         'Intersection';
-  //   //   wd1.collision ||= c;
-  //   //   wd2.collision ||= c;
-  //   // }
-  // });
-  nodeGroup
-    ?.selectAll<Element, WordNodeDatum>('rect')
-    .attr('x', (d) => d.br.xmin)
-    .attr('y', (d) => d.br.ymin)
-    .attr('width', (d) => d.br.xmax - d.br.xmin)
-    .attr('height', (d) => d.br.ymax - d.br.ymin)
-    .attr(
-      'stroke-dasharray',
-      props.collisionShape === 'rectangle' ? 'none' : '3,1',
-    )
-    .attr('stroke', props.collisionShape === 'rectangle' ? '#000' : '#555')
-    .attr('display', () =>
-      !props.debugInfo.hideAll && props.debugInfo.showCollRectangle
-        ? null
-        : 'none',
-    );
-  // .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
-  nodeGroup
-    ?.selectAll<Element, WordNodeDatum>('ellipse')
-    .attr('cx', (d) => d.x)
-    .attr('cy', (d) => d.y)
-    .attr('rx', (d) => d.rx)
-    .attr('ry', (d) => d.ry)
-    .attr(
-      'stroke-dasharray',
-      props.collisionShape === 'ellipse' ? 'none' : '3,1',
-    )
-    .attr('stroke', props.collisionShape === 'ellipse' ? '#000' : '#555')
-    .attr('display', () =>
-      !props.debugInfo.hideAll && props.debugInfo.showCollEllipse
-        ? null
-        : 'none',
-    );
-  // .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
-  nodeGroup
-    ?.selectAll<Element, WordNodeDatum>('polygon')
-    .attr('points', (d) => d.be.vertices.map((v) => `${v.x},${v.y}`).join(' '))
-    .attr(
-      'stroke-dasharray',
-      props.collisionShape === 'ellipse' ? 'none' : '3,1',
-    )
-    .attr('stroke', props.collisionShape === 'ellipse' ? '#000' : '#555')
-    .attr('display', () =>
-      !props.debugInfo.hideAll && props.debugInfo.showCollPolygon
-        ? null
-        : 'none',
-    );
-  // .attr('display', () =>
-  //   props.collisionShape === 'ellipse' && props.debugInfo.showCollisionShape
-  //     ? null
-  //     : 'none',
-  // )
-  // .attr('stroke', (d) => (d.collision ? '#f00' : '#000'));
-
-  lineGroup
-    .selectAll<Element, DebugLineDatum>('line')
-    .attr('x1', (d) => d.x)
-    .attr('y1', (d) => d.y)
-    .attr('x2', (d) => d.x2)
-    .attr('y2', (d) => d.y2)
-    .attr('stroke', (d) => d.stroke)
-    .attr('display', (d) =>
-      d.show && !props.debugInfo.hideAll && props.debugInfo.showLineDist
-        ? null
-        : 'none',
-    );
+const stop = () => {
+  running = false;
+  skipStep = false;
+  d3Simulation.stop();
 };
 
 defineExpose({
-  create,
-  // update,
   tick: (ticks?: number) => {
-    // NOTE: simuation.tick()
     ticks = ticks || 1;
     for (let i = 0; i < ticks; i++) {
-      simulation?.tick();
+      onTick();
     }
-    onTick();
   },
-  stop: () => simulation?.stop(),
-  start: () => simulation?.restart(),
+  reset: () => {
+    reset();
+    if (running) {
+      skipStep = true;
+    }
+  },
+  stop,
+  start,
 });
 </script>
 <style lang="scss">
