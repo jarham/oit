@@ -103,7 +103,8 @@ watch(
 const elWordCloud = ref<HTMLDivElement>();
 const collisionShape = toRef(props, 'collisionShape');
 
-const simulation = new Simulation();
+let debugPolys: Vec2[][] = [];
+const simulation = new Simulation(debugPolys);
 // simulation.addForce(forceSep('position', fSepVParams, collisionShape));
 // Just for timing, with 0 decay it'll run until manually stoppped
 const d3Simulation = d3.forceSimulation().alphaDecay(0).stop();
@@ -121,6 +122,14 @@ const svg = d3.create('svg').attr('viewBox', [0, 0, width, height]);
 const nodeGroup = svg
   .append<SVGGElement>('g')
   .attr('class', 'word-nodes') as unknown as d3.Selection<
+  SVGGElement,
+  WordNode,
+  null,
+  undefined
+>;
+const debugPolysGroup = svg
+  .append<SVGGElement>('g')
+  .attr('class', 'debug-polys') as unknown as d3.Selection<
   SVGGElement,
   WordNode,
   null,
@@ -185,6 +194,7 @@ const create = () => {
  */
 const dispose = () => {
   nodeGroup.node()?.remove();
+  debugPolysGroup.node()?.remove();
   svg.node()?.remove();
   nodes.splice(0, nodes.length);
   simulation.clear();
@@ -228,6 +238,8 @@ const reset = () => {
         y: cy,
       },
       vertices: [],
+      vms: [],
+      vmsn: [],
     };
   });
 
@@ -363,6 +375,31 @@ const updateData = () => {
           );
       },
     );
+
+  debugPolysGroup
+    .selectAll<SVGPolygonElement, WordNode>('polygon')
+    .data(debugPolys)
+    .join(
+      (enter) => {
+        return enter
+          .append('polygon')
+          .attr('cursor', 'pointer')
+          .attr('points', (d) => d.map((v) => `${v.x},${v.y}`).join(' '))
+          .attr('stroke', '#0f0')
+          .attr('stroke-width', 0.5)
+          .attr('fill', 'transparent')
+          .attr('display', () =>
+            !props.debugInfo.hideAll && props.debugInfo.showCollPolygon
+              ? null
+              : 'none',
+          );
+      },
+      (update) => {
+        return update.attr('points', (d) =>
+          d.map((v) => `${v.x},${v.y}`).join(' '),
+        );
+      },
+    );
 };
 
 const onTick = () => {
@@ -402,6 +439,8 @@ const updateNodeDimensions = () => {
       0,
       props.shapePolyVertexCount,
     );
+    wd1.vms = cloneDeep(wd1.vertices);
+    wd1.vmsn = wd1.vertices.map((v) => ({x: -v.x, y: -v.y}));
   });
 };
 

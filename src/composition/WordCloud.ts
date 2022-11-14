@@ -6,7 +6,8 @@ import type {Ref} from 'vue';
 import type {PartialDeep} from 'type-fest';
 import merge from 'lodash.merge';
 import {Body, Collision, Detector} from 'matter-js';
-import {Vec2} from '@/lib/math-utils';
+import {minkowskiSum, pointInPoly, Vec2} from '@/lib/math-utils';
+import cloneDeep from 'lodash.clonedeep';
 
 export interface WordNode extends d3.SimulationNodeDatum {
   id: string;
@@ -25,6 +26,10 @@ export interface WordNode extends d3.SimulationNodeDatum {
   pt: Vec2;
   // Ellipse approximation vertices
   vertices: Vec2[];
+  // Mikowski sum vertices (ordered bu polar coordinates)
+  vms: Vec2[];
+  // Negated Mikowski sum vertices (ordered bu polar coordinates)
+  vmsn: Vec2[];
   body?: Body;
 }
 
@@ -410,6 +415,8 @@ export class Simulation {
   private t = 0;
   private vDecay = 0.4;
 
+  constructor(private debugPolys: Vec2[][]) {}
+
   private static resetNodeForce(
     n: WordNode,
     f: ForceBase<WordCloudBaseForceParams>,
@@ -533,6 +540,36 @@ export class Simulation {
       if (cdata.t < this.t) {
         cdata.t = this.t;
         cdata.collisions.splice(0, cdata.collisions.length);
+      }
+    }
+
+    // Update Minkowski sums (or Minkowski differences as we use P + -Q)
+    let k = 0;
+    this.debugPolys[k] = [
+      {x: -1, y: -1},
+      {x: 1, y: -1},
+      {x: 1, y: 1},
+      {x: -1, y: 1},
+    ];
+    k++;
+    for (let i = 0; i < this.nodes.length - 1; i++) {
+      for (let j = i + 1; j < this.nodes.length; j++) {
+        const a = this.nodes[i];
+        const b = this.nodes[j];
+
+        // a.vmx = P
+        a.vms = a.vertices.map((v) => ({x: v.x + a.pos.x, y: v.y + a.pos.y}));
+        // b.vmsn = -Q
+        b.vmsn = b.vertices.map((v) => ({
+          x: -(v.x + b.pos.x),
+          y: -(v.y + b.pos.y),
+        }));
+
+        if (!this.debugPolys[k]) this.debugPolys[k] = [];
+        minkowskiSum(a.vms, b.vmsn, this.debugPolys[k]);
+        const coll = pointInPoly({x: 0, y: 0}, this.debugPolys[k]);
+        k++;
+        console.log('coll:', coll);
       }
     }
 

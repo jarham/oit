@@ -58,3 +58,59 @@ export interface Vec2 {
 export function toFixed(n: number | string, f = 6) {
   return parseFloat(n as any).toFixed(f);
 }
+
+function lowestIndex(p: Vec2[]): number {
+  let i = 0;
+  p.forEach((v, j) => {
+    if (v.y < p[i].y || (v.y === p[i].y && v.x < p[i].x)) i = j;
+  });
+  return i;
+}
+
+export function minkowskiSum(p: Vec2[], q: Vec2[], r?: Vec2[]): Vec2[] {
+  if (!r) r = [];
+
+  const si = lowestIndex(p);
+  let i = 0;
+  let i2 = 0;
+  const sj = lowestIndex(q);
+  let j = 0;
+  let j2 = 0;
+  let k = 0;
+
+  while (i < p.length || j < q.length) {
+    const pa = p[(si + i) % p.length];
+    const qa = q[(sj + j) % q.length];
+    i2 = (si + i + 1) % p.length;
+    j2 = (sj + j + 1) % q.length;
+    const pb = p[i2];
+    const qb = q[j2];
+    const pc = {x: pb.x - pa.x, y: pb.y - pa.y};
+    const qc = {x: qb.x - qa.x, y: qb.y - qa.y};
+
+    r[k++] = {x: pa.x + qa.x, y: pa.y + qa.y};
+
+    // "perp dot product"
+    const pdp = pc.x * qc.y - pc.y * qc.x;
+    if (pdp >= 0) i++;
+    if (pdp <= 0) j++;
+  }
+
+  return r;
+}
+
+export function pointInPoly(pt: Vec2, poly: Vec2[]): boolean {
+  // "Always on the same side" check
+  let p = 0;
+  let n = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const v1 = poly[i];
+    const v2 = poly[i === poly.length - 1 ? 0 : i + 1];
+    const pdp = (pt.x - v1.x) * (v2.y - v1.y) - (pt.y - v1.y) * (v2.x - v1.x);
+    if (pdp > 0) p++;
+    if (pdp < 0) n++;
+    if (p > 0 && n > 0) return false;
+  }
+
+  return true;
+}
