@@ -258,6 +258,41 @@ const updateData = () => {
   if (simulation.time === 0) updateNodeDimensions();
 
   nodeGroup
+    .selectAll<SVGRectElement, WordNode>('rect')
+    .data(nodes)
+    .join(
+      (enter) => {
+        return enter
+          .append('rect')
+          .attr('cursor', 'pointer')
+          .attr('x', (d) => d.pos.x - d.h.x)
+          .attr('y', (d) => d.pos.y - d.h.y)
+          .attr('width', (d) => d.h.x * 2)
+          .attr('height', (d) => d.h.y * 2)
+          .attr('stroke', '#000')
+          .attr('stroke-width', 0.5)
+          .attr('fill', 'transparent')
+          .attr('display', () =>
+            !props.debugInfo.hideAll && props.debugInfo.showCollRectangle
+              ? null
+              : 'none',
+          );
+      },
+      (update) => {
+        return update
+          .attr('x', (d) => d.pos.x - d.h.x)
+          .attr('y', (d) => d.pos.y - d.h.y)
+          .attr('width', (d) => d.h.x * 2)
+          .attr('height', (d) => d.h.y * 2)
+          .attr('display', () =>
+            !props.debugInfo.hideAll && props.debugInfo.showCollRectangle
+              ? null
+              : 'none',
+          );
+      },
+    );
+
+  nodeGroup
     .selectAll<SVGEllipseElement, WordNode>('ellipse')
     .data(nodes)
     .join(
@@ -271,14 +306,61 @@ const updateData = () => {
           .attr('cy', (d) => d.pos.y)
           .attr('stroke', '#000')
           .attr('stroke-width', 0.5)
-          .attr('fill', 'transparent');
+          .attr('fill', 'transparent')
+          .attr('display', () =>
+            !props.debugInfo.hideAll && props.debugInfo.showCollEllipse
+              ? null
+              : 'none',
+          );
       },
       (update) => {
         return update
           .attr('rx', (d) => d.h.x)
           .attr('ry', (d) => d.h.y)
           .attr('cx', (d) => d.pos.x)
-          .attr('cy', (d) => d.pos.y);
+          .attr('cy', (d) => d.pos.y)
+          .attr('display', () =>
+            !props.debugInfo.hideAll && props.debugInfo.showCollEllipse
+              ? null
+              : 'none',
+          );
+      },
+    );
+
+  nodeGroup
+    .selectAll<SVGPolygonElement, WordNode>('polygon')
+    .data(nodes)
+    .join(
+      (enter) => {
+        return enter
+          .append('polygon')
+          .attr('cursor', 'pointer')
+          .attr('points', (d) =>
+            d.vertices
+              .map((v) => `${d.pos.x + v.x},${d.pos.y + v.y}`)
+              .join(' '),
+          )
+          .attr('stroke', '#000')
+          .attr('stroke-width', 0.5)
+          .attr('fill', 'transparent')
+          .attr('display', () =>
+            !props.debugInfo.hideAll && props.debugInfo.showCollPolygon
+              ? null
+              : 'none',
+          );
+      },
+      (update) => {
+        return update
+          .attr('points', (d) =>
+            d.vertices
+              .map((v) => `${d.pos.x + v.x},${d.pos.y + v.y}`)
+              .join(' '),
+          )
+          .attr('display', () =>
+            !props.debugInfo.hideAll && props.debugInfo.showCollPolygon
+              ? null
+              : 'none',
+          );
       },
     );
 };
@@ -313,8 +395,8 @@ const updateNodeDimensions = () => {
     wd1.h.y = (r.height + props.shapePadding.y) / 2;
 
     wd1.vertices = ellipse2poly(
-      wd1.pos.x,
-      wd1.pos.y,
+      0,
+      0,
       wd1.h.x,
       wd1.h.y,
       0,

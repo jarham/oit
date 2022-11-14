@@ -106,7 +106,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     x: 40,
     y: 40,
   },
-  shapePolyVertexCount: 32,
+  shapePolyVertexCount: 16,
   simulation: {
     run: false,
     breakPoint: null,
