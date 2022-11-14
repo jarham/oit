@@ -90,7 +90,7 @@ interface WordCloudProps {
     showCollEllipse: boolean;
     showCollPolygon: boolean;
   };
-  fCharge?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
+  fGravity?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
   fX?: WordCloudBaseForceOpts<WordCloudCYForceParams>;
   fY?: WordCloudBaseForceOpts<WordCloudCYForceParams>;
   fSepV?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
@@ -117,7 +117,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     showCollEllipse: false,
     showCollPolygon: false,
   },
-  fCharge: {
+  fGravity: {
     params: {enabled: false, strength: 1},
     alpha: {
       target: 0,
@@ -197,7 +197,7 @@ export abstract class ForceBase<T extends WordCloudBaseForceParams> {
   protected nodes: WordNode[] = [];
 
   constructor(
-    protected readonly p: Ref<T>,
+    protected readonly p: T,
     private readonly cs: Ref<WordCloudCollisionShape>,
   ) {}
 
@@ -208,7 +208,11 @@ export abstract class ForceBase<T extends WordCloudBaseForceParams> {
   ): void;
 
   get enabled(): boolean {
-    return this.p.value.enabled;
+    return this.p.enabled;
+  }
+
+  updateParams(p: T) {
+    Object.assign(this.p, p);
   }
 
   initialize(newNodes: WordNode[]) {
@@ -222,7 +226,7 @@ export abstract class ForceBase<T extends WordCloudBaseForceParams> {
 
 export type BaseWordNodeDatumForce = ForceBase<WordCloudBaseForceParams>;
 
-export class ForceChargeWordNodeDatum extends ForceBase<WordCloudBaseForceParams> {
+export class ForceGravity extends ForceBase<WordCloudBaseForceParams> {
   apply(alpha: number, t: number) {
     for (let i = 0; i < this.nodes.length - 1; i++) {
       const wd1 = this.nodes[i];
@@ -275,17 +279,12 @@ export class ForceXYWordNodeDatum extends ForceBase<WordCloudCYForceParams> {
   private readonly tx: number;
   private readonly ty: number;
 
-  constructor(
-    p: Ref<WordCloudCYForceParams>,
-    cs: Ref<WordCloudCollisionShape>,
-  ) {
+  constructor(p: WordCloudCYForceParams, cs: Ref<WordCloudCollisionShape>) {
     super(p, cs);
-    this.calcX =
-      typeof this.p.value.x === 'number' && Number.isFinite(this.p.value.x);
-    this.tx = this.p.value.x || 0;
-    this.calcY =
-      typeof this.p.value.y === 'number' && Number.isFinite(this.p.value.y);
-    this.ty = this.p.value.x || 0;
+    this.calcX = typeof this.p.x === 'number' && Number.isFinite(this.p.x);
+    this.tx = this.p.x || 0;
+    this.calcY = typeof this.p.y === 'number' && Number.isFinite(this.p.y);
+    this.ty = this.p.x || 0;
   }
 
   apply(alpha: number, t: number) {
@@ -297,7 +296,7 @@ export class ForceXYWordNodeDatum extends ForceBase<WordCloudCYForceParams> {
       if (this.calcX) {
         const d = this.tx - wd1.pos.x;
         const dv =
-          this.p.value.strength *
+          this.p.strength *
           alpha *
           Math.log10(Math.abs(0.1 * d) + 1) *
           Math.sign(d);
@@ -306,7 +305,7 @@ export class ForceXYWordNodeDatum extends ForceBase<WordCloudCYForceParams> {
       if (this.calcY) {
         const d = this.ty - wd1.pos.y;
         const dv =
-          this.p.value.strength *
+          this.p.strength *
           alpha *
           Math.log10(Math.abs(0.1 * d) + 1) *
           Math.sign(d);
@@ -315,10 +314,11 @@ export class ForceXYWordNodeDatum extends ForceBase<WordCloudCYForceParams> {
     }
   }
 }
+
 export class ForceSepWordNodeDatum extends ForceBase<WordCloudSeparationForceOpts> {
   constructor(
     private readonly type: 'velocity' | 'position',
-    p: Ref<WordCloudSeparationForceOpts>,
+    p: WordCloudSeparationForceOpts,
     cs: Ref<WordCloudCollisionShape>,
   ) {
     super(p, cs);
@@ -336,7 +336,8 @@ export class ForceSepWordNodeDatum extends ForceBase<WordCloudSeparationForceOpt
       if (!cd || cd.collisions.length === 0) continue;
 
       cd.collisions.forEach((c) => {
-        const m = Math.max((alpha * c.depth) / 2, 1);
+        const str = this.p.strength / 100;
+        const m = Math.max((alpha * str * c.depth) / 2, 1);
         if (c.bodyA.label === node.id) {
           vp.x += m * c.normal.x;
           vp.y += m * c.normal.y;
@@ -349,21 +350,38 @@ export class ForceSepWordNodeDatum extends ForceBase<WordCloudSeparationForceOpt
   }
 }
 
-export interface ForceCombined extends d3.Force<WordNode, any> {
-  beforeTick(): ForceCombined;
-  add(
-    f: BaseWordNodeDatumForce,
-    p: WordCloudForceAlphaSettings,
-    name: string,
-  ): ForceCombined;
-  t(): number;
-  alpha(alpha: number): ForceCombined;
-  debugLines(debugLines: DebugLineDatum[]): ForceCombined;
-  updateDebug(): ForceCombined;
-  alphas(): ForceAlphas;
-  velocityDecay(vd: number): ForceCombined;
-  running(): boolean;
-  collisionShape(cs: WordCloudCollisionShape): ForceCombined;
+export class ForceKeepInVP extends ForceBase<WordCloudBaseForceParams> {
+  constructor(p: WordCloudBaseForceParams, cs: Ref<WordCloudCollisionShape>) {
+    super(p, cs);
+  }
+
+  apply(
+    alpha: number,
+    t: number,
+    collisionData: Map<string, NodeCollisionData>,
+  ) {
+    // This is a very special force: it'll "nullify" the effect of
+    // other forces pushing node outside of the viewport. It should
+    // be the last force applied.
+    this.nodes.forEach((n) => {
+      let dx = 0;
+      let dy = 0;
+      Object.entries(n.v).forEach(([id, v]) => {
+        if (id !== this.id) {
+          dx += v.x;
+          dy += v.y;
+        }
+      });
+      Object.entries(n.p).forEach(([id, p]) => {
+        if (id !== this.id) {
+          dx += p.x;
+          dy += p.y;
+        }
+      });
+
+      const newPos = {x: n.pos.x + dx, y: n.pos.y + dy};
+    });
+  }
 }
 
 interface ForceData {
@@ -388,6 +406,7 @@ export class Simulation {
   private collisionData = new Map<string, NodeCollisionData>();
   private forces: ForceBase<WordCloudBaseForceParams>[] = [];
   private alphas: ForceAlphas = {};
+  private alphaSettings = new Map<string, WordCloudForceAlphaSettings>();
   private t = 0;
   private vDecay = 0.4;
 
@@ -405,6 +424,10 @@ export class Simulation {
 
   get time(): number {
     return this.t;
+  }
+
+  get forceAlphas(): ForceAlphas {
+    return {...this.alphas};
   }
 
   private updateBodies() {
@@ -427,8 +450,16 @@ export class Simulation {
     Detector.setBodies(this.detector, this.bodies);
   }
 
-  addForce(f: ForceBase<WordCloudBaseForceParams>) {
+  addForce(
+    f: ForceBase<WordCloudBaseForceParams>,
+    a: WordCloudForceAlphaSettings,
+  ): this {
     this.forces.push(f);
+    this.alphaSettings.set(f.id, a);
+    // if (this.forces.length === 6) {
+    //   setInterval(() => console.log(`sim fkeep alpha decay: ${a.decay}`), 1000);
+    // }
+    return this;
   }
 
   clear() {
@@ -440,6 +471,7 @@ export class Simulation {
     this.bodies.splice(0, this.bodies.length);
     this.data.clear();
     this.collisionData.clear();
+    this.alphaSettings.clear();
   }
 
   initialize(newNodes: WordNode[]) {
@@ -505,9 +537,13 @@ export class Simulation {
     }
 
     // Apply forces
-    this.forces.forEach((f) =>
-      f.apply(this.alphas[f.id], this.t, this.collisionData),
-    );
+    this.forces.forEach((f) => {
+      const a = this.alphas[f.id];
+      const aMin = this.alphaSettings.get(f.id)?.min || 0;
+      if (f.enabled && a >= aMin) {
+        f.apply(a, this.t, this.collisionData);
+      }
+    });
 
     // Update nodes' totals and position
     this.nodes.forEach((n) => {
@@ -542,6 +578,15 @@ export class Simulation {
     });
 
     // Update alphas
+    this.forces.forEach((f) => {
+      const s = this.alphaSettings.get(f.id);
+      if (!s) return;
+
+      const aMin = s.min || 0;
+      if (this.alphas[f.id] < aMin) return;
+
+      this.alphas[f.id] += (s.target - this.alphas[f.id]) * s.decay;
+    });
 
     this.t++;
   }
@@ -666,26 +711,35 @@ export class Simulation {
 //   return fn;
 // }
 
-export function forceCharge(
-  p: Ref<WordCloudBaseForceParams>,
+export function forceGravity(
+  p: WordCloudBaseForceParams,
   cs: Ref<WordCloudCollisionShape>,
-): ForceChargeWordNodeDatum {
-  return new ForceChargeWordNodeDatum(p, cs);
+): ForceGravity {
+  return new ForceGravity(p, cs);
 }
 
 export function forceXY(
-  p: Ref<WordCloudCYForceParams>,
+  p: WordCloudCYForceParams,
   cs: Ref<WordCloudCollisionShape>,
-): ForceChargeWordNodeDatum {
+): ForceXYWordNodeDatum {
   return new ForceXYWordNodeDatum(p, cs);
 }
 
 export function forceSep(
   type: 'velocity' | 'position',
-  p: Ref<WordCloudSeparationForceOpts>,
+  p: WordCloudSeparationForceOpts,
   cs: Ref<WordCloudCollisionShape>,
 ): ForceSepWordNodeDatum {
   return new ForceSepWordNodeDatum(type, p, cs);
+}
+
+export function forceKeepInVP(
+  p: WordCloudBaseForceParams,
+  cs: Ref<WordCloudCollisionShape>,
+): ForceKeepInVP {
+  // setInterval(() => console.log('ForceKeepInVP:this.enabled', p.enabled), 1000);
+  // setInterval(() => console.log('ForceKeepInVP:this.strength', p.strength), 1000);
+  return new ForceKeepInVP(p, cs);
 }
 
 export function time<T>(id: string, fn: () => T) {

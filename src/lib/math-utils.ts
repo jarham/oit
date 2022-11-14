@@ -54,3 +54,7 @@ export interface Vec2 {
   x: number;
   y: number;
 }
+
+export function toFixed(n: number | string, f = 6) {
+  return parseFloat(n as any).toFixed(f);
+}

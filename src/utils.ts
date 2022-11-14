@@ -16,6 +16,10 @@ export function isHtmlTextareaElement(o: any): o is HTMLTextAreaElement {
   return !!o && typeof o === 'object' && o.tagName === 'TEXTAREA';
 }
 
+export function isHtmlInputElement(o: any): o is HTMLInputElement {
+  return !!o && typeof o === 'object' && o.tagName === 'INPUT';
+}
+
 interface ParserTagData {
   name: string;
   attribs: Record<string, string>;

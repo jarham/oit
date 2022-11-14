@@ -7,20 +7,28 @@
 
 <script setup lang="ts">
 import * as d3 from 'd3';
-import {computed, nextTick, onBeforeUnmount, onMounted, ref, toRef, watch} from 'vue';
 import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  toRef,
+  watch,
+} from 'vue';
+import {
+  forceGravity,
+  forceKeepInVP,
   forceSep,
+  forceXY,
   Simulation,
   wordCloudDefaultOpts,
 } from '@/composition/WordCloud';
 import type {
-  DebugLineDatum,
-  ForceCombined,
   BaseWordNodeDatumForce,
   SimData,
   WordCloudBaseForceOpts,
   WordCloudCollisionShape,
-  WordCloudForceAlphaSettings,
   WordCloudSeparationForceOpts,
   WordCloudBaseForceParams,
   WordCloudCYForceParams,
@@ -49,7 +57,7 @@ interface WordCloudProps {
     showCollEllipse: boolean;
     showCollPolygon: boolean;
   };
-  fCharge?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
+  fGravity?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
   fX?: WordCloudBaseForceOpts<WordCloudCYForceParams>;
   fY?: WordCloudBaseForceOpts<WordCloudCYForceParams>;
   fSepV?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
@@ -63,7 +71,7 @@ const props = withDefaults(defineProps<WordCloudProps>(), {
   shapePadding: () => cloneDeep(wordCloudDefaultOpts.shapePadding),
   simulation: () => cloneDeep(wordCloudDefaultOpts.simulation),
   debugInfo: () => cloneDeep(wordCloudDefaultOpts.debugInfo),
-  fCharge: () => cloneDeep(wordCloudDefaultOpts.fCharge),
+  fGravity: () => cloneDeep(wordCloudDefaultOpts.fGravity),
   fX: () => cloneDeep(wordCloudDefaultOpts.fX),
   fY: () => cloneDeep(wordCloudDefaultOpts.fY),
   fSepV: () => cloneDeep(wordCloudDefaultOpts.fSepV),
@@ -87,7 +95,6 @@ watch(
 watch(
   () => [props.collisionShape],
   () => {
-    fCombined.collisionShape(props.collisionShape);
     updateDimensions();
     updateData();
   },
@@ -95,17 +102,11 @@ watch(
 
 const elWordCloud = ref<HTMLDivElement>();
 const collisionShape = toRef(props, 'collisionShape');
-const fChargeParams = ref(toRef(props, 'fCharge').value.params);
-const fXParams = ref(toRef(props, 'fX').value.params);
-const fYParams = ref(toRef(props, 'fY').value.params);
-const fSepVParams = ref(toRef(props, 'fSepV').value.params);
-const fSepPParams = ref(toRef(props, 'fSepP').value.params);
 
 const simulation = new Simulation();
 // simulation.addForce(forceSep('position', fSepVParams, collisionShape));
 // Just for timing, with 0 decay it'll run until manually stoppped
 const d3Simulation = d3.forceSimulation().alphaDecay(0).stop();
-d3Simulation.on('tick', () => onTick());
 let running = false;
 let skipStep = false;
 
@@ -115,24 +116,32 @@ let width = 0;
 let height = 0;
 let nodes: WordNode[] = [];
 
-let svg: d3.Selection<SVGSVGElement, undefined, null, undefined>;
-let nodeGroup: d3.Selection<SVGGElement, WordNode, null, undefined>;
+const svg = d3.create('svg').attr('viewBox', [0, 0, width, height]);
+// TODO: w/o cast
+const nodeGroup = svg
+  .append<SVGGElement>('g')
+  .attr('class', 'word-nodes') as unknown as d3.Selection<
+  SVGGElement,
+  WordNode,
+  null,
+  undefined
+>;
 
-let fCombined: ForceCombined;
-let fCharge: BaseWordNodeDatumForce;
-let fX: BaseWordNodeDatumForce;
-let fY: BaseWordNodeDatumForce;
-let fSepV: BaseWordNodeDatumForce = forceSep(
-  'velocity',
-  fSepVParams,
-  collisionShape,
-);
-let fSepP: BaseWordNodeDatumForce = forceSep(
-  'position',
-  fSepPParams,
-  collisionShape,
-);
-let fKeepInVp: BaseWordNodeDatumForce;
+const fGravity = forceGravity(props.fGravity.params, collisionShape);
+const fX = forceXY(props.fX.params, collisionShape);
+const fY = forceXY(props.fY.params, collisionShape);
+const fSepV = forceSep('velocity', props.fSepV.params, collisionShape);
+const fSepP = forceSep('position', props.fSepP.params, collisionShape);
+const fKeepInVp = forceKeepInVP(props.fKeepInVp.params, collisionShape);
+
+const fIdNameMapping = {
+  [fGravity.id]: 'gravity',
+  [fX.id]: 'x',
+  [fY.id]: 'y',
+  [fSepV.id]: 'sepV',
+  [fSepP.id]: 'sepP',
+  [fKeepInVp.id]: 'keepInVp',
+} as const;
 
 /**
  * Update viewbox dimensions.
@@ -141,7 +150,7 @@ const updateDimensions = () => {
   if (!elWordCloud.value || !svg) return;
   const div = elWordCloud.value;
   const r = div.getBoundingClientRect();
-  width = r.width;
+  width = Math.max(r.width, 10);
   height = 500;
   svg.attr('viewBox', [-width / 2, -height / 2, width, height]);
 };
@@ -151,56 +160,37 @@ const updateDimensions = () => {
  */
 const create = () => {
   if (!elWordCloud.value) return;
-  svg = d3.create('svg').attr('viewBox', [0, 0, width, height]);
-  simulation.addForce(fSepP);
-
-  // fCharge = forceCharge(fChargeParams, collisionShape);
-  // fX = forceXY(fXParams, collisionShape);
-  // fY = forceXY(fYParams, collisionShape);
-  // fSepV = forceSep('velocity', fSepVParams, collisionShape);
-  // fSepP = forceSep('position', fSepPParams, collisionShape);
-  // fCombined = forceCombined()
-  //   .debugLines(lines)
-  //   .collisionShape(props.collisionShape)
-  //   .add(fCharge, {...props.fCharge.alpha}, 'charge')
-  //   .add(fX, {...props.fX.alpha}, 'x')
-  //   .add(fY, {...props.fY.alpha}, 'y');
-
-  // simulation = d3
-  //   .forceSimulation<WordNode>()
-  //   .alphaTarget(props.simulation.alpha.target)
-  //   .alphaDecay(props.simulation.alpha.decay)
-  //   .alphaMin(props.simulation.alpha.min)
-  //   .force('combined', fCombined);
-
-  // TODO: w/o cast
-  nodeGroup = svg
-    .append<SVGGElement>('g')
-    .attr('class', 'word-nodes') as unknown as d3.Selection<
-    SVGGElement,
-    WordNode,
-    null,
-    undefined
-  >;
 
   const n = svg.node();
   if (n) elWordCloud.value.appendChild(n);
   else return dispose();
 
+  simulation
+    .addForce(fGravity, props.fGravity.alpha)
+    .addForce(fX, props.fX.alpha)
+    .addForce(fY, props.fY.alpha)
+    .addForce(fSepP, props.fSepP.alpha)
+    .addForce(fSepV, props.fSepV.alpha)
+    .addForce(fKeepInVp, props.fKeepInVp.alpha);
+
   reset();
+
+  d3Simulation.on('tick', onTick);
+
+  // requestAnimationFrame(ani);
 };
 
 /**
  * Dispose word cloud
  */
 const dispose = () => {
-  // if (simulation) simulation.stop();
-  if (nodeGroup) nodeGroup.node()?.remove();
-  if (svg) svg.node()?.remove();
+  nodeGroup.node()?.remove();
+  svg.node()?.remove();
   nodes.splice(0, nodes.length);
   simulation.clear();
   d3Simulation.stop();
   d3Simulation.on('tick', null);
+  tPrev = Number.POSITIVE_INFINITY;
 };
 
 onMounted(create);
@@ -211,6 +201,8 @@ onBeforeUnmount(dispose);
  */
 const reset = () => {
   simulation.reset();
+  updateDimensions();
+
   nodes = props.words.map((word, n) => {
     const cx = Math.cos(n) * (n + 5) * 2;
     const cy = Math.sin(n) * (n + 5) * 2;
@@ -239,13 +231,12 @@ const reset = () => {
     };
   });
 
-  updateDimensions();
   updateData();
   simulation.initialize(nodes);
 };
 
 const updateData = () => {
-  console.log('updateData');
+  // console.log('updateData');
   nodeGroup
     .selectAll<SVGTextElement, WordNode>('text')
     .data(nodes)
@@ -293,24 +284,31 @@ const updateData = () => {
 };
 
 const onTick = () => {
-  if (skipStep) {
-    skipStep = false;
-    return;
+  // ani(performance.now());
+  if (!skipStep) {
+    simulation.tick();
+    updateData();
   }
-  simulation.tick();
-  updateData();
-  // emit('simulation-update', {
-  //   alphas: fCombined.alphas(),
-  // });
-  // if (!fCombined.running()) {
-  //   emit('simulation-end');
-  // }
+  skipStep = false;
+  emitAlphas();
+};
+
+const emitAlphas = () => {
+  const alphas = Object.fromEntries(
+    Object.entries(simulation.forceAlphas).map(([k, a]) => [
+      fIdNameMapping[k] || k,
+      a,
+    ]),
+  );
+  emit('simulation-update', {
+    alphas,
+  });
 };
 
 const updateNodeDimensions = () => {
   console.log('updateNodeDimensions');
-  nodeGroup?.selectAll<Element, WordNode>('text').each((wd1, i, g) => {
-    const r = g[i].getBoundingClientRect();
+  nodeGroup.selectAll<SVGTextElement, WordNode>('text').each((wd1, i, g) => {
+    const r = g[i].getBBox();
     wd1.h.x = (r.width + props.shapePadding.x) / 2;
     wd1.h.y = (r.height + props.shapePadding.y) / 2;
 
@@ -337,6 +335,20 @@ const stop = () => {
   d3Simulation.stop();
 };
 
+let tPrev: number;
+let tTotal = 0;
+let tCount = 0;
+const ani = (t: number) => {
+  if (tPrev === undefined) tPrev = t;
+  else {
+    tTotal += t - tPrev;
+    tCount++;
+  }
+  console.log('step:', t - tPrev, tTotal > 0 ? tTotal / tCount : 0);
+  tPrev = t;
+  // if (tPrev < Number.POSITIVE_INFINITY) requestAnimationFrame(ani);
+};
+
 defineExpose({
   tick: (ticks?: number) => {
     ticks = ticks || 1;
@@ -348,6 +360,8 @@ defineExpose({
     reset();
     if (running) {
       skipStep = true;
+    } else {
+      emitAlphas();
     }
   },
   stop,
