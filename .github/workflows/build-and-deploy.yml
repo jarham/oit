@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: lts/*
       - name: Install pnpm
-        uses: pnpm/action-setup@10693b3829bf86eb2572aef5f3571dcf5ca9287d
+        uses: pnpm/action-setup@d882d12c64e032187b2edb46d3a0d003b7a43598
         with:
           version: latest
       - name: Install bsdtar (and friends)
