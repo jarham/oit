@@ -118,6 +118,9 @@ devDependencies:
   eslint-plugin-vue:
     specifier: ^9.17.0
     version: 9.17.0(eslint@8.47.0)
+  eslint-plugin-vue-pug:
+    specifier: ^0.6.0
+    version: 0.6.0(eslint-plugin-vue@9.17.0)(vue-eslint-parser@9.3.1)
   fast-glob:
     specifier: ^3.3.1
     version: 3.3.1
@@ -2382,6 +2385,17 @@ packages:
       eslint-config-prettier: 8.5.0(eslint@8.47.0)
       prettier: 2.8.8
       prettier-linter-helpers: 1.0.0
+    dev: true
+
+  /eslint-plugin-vue-pug@0.6.0(eslint-plugin-vue@9.17.0)(vue-eslint-parser@9.3.1):
+    resolution: {integrity: sha512-VFCdVctcEob2/sEWBeAVhWPXACUfLpqWpnhTK7tHXuDF+0GM2N3BeiCG0cneFvleI59B/NouGX80GXB6NGrgvA==}
+    peerDependencies:
+      eslint-plugin-vue: ^9.8.0
+    dependencies:
+      eslint-plugin-vue: 9.17.0(eslint@8.47.0)
+      vue-eslint-parser-template-tokenizer-pug: 0.4.10(vue-eslint-parser@9.3.1)
+    transitivePeerDependencies:
+      - vue-eslint-parser
     dev: true
 
   /eslint-plugin-vue@9.17.0(eslint@8.47.0):
@@ -5029,6 +5043,15 @@ packages:
     dependencies:
       vue: 3.3.4
     dev: false
+
+  /vue-eslint-parser-template-tokenizer-pug@0.4.10(vue-eslint-parser@9.3.1):
+    resolution: {integrity: sha512-Npzjna9PUJzIal/o7hOo4D7dF4hqjHwTafBtLgdtja2LZuCc4UT5BU7dyYJeKb9s1SnCFBflHMg3eFA3odq6bg==}
+    peerDependencies:
+      vue-eslint-parser: ^9.0.0
+    dependencies:
+      pug-lexer: 5.0.1
+      vue-eslint-parser: 9.3.1(eslint@8.47.0)
+    dev: true
 
   /vue-eslint-parser@9.3.1(eslint@8.47.0):
     resolution: {integrity: sha512-Clr85iD2XFZ3lJ52/ppmUDG/spxQu6+MAeHXjjyI4I1NUYZ9xmenQp4N0oaHJhrA8OOxltCVxMRfANGa70vU0g==}
