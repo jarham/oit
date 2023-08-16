@@ -6,13 +6,13 @@ ModalBase.modal-chart-save(
   ref='modal'
   @ok="onSaveAs"
 )
-  template(v-slot:body)
+  template(#body)
     .input-group
       .input-group-text {{ tc('input.filename.prompt') }}
       input.form-control(
+        v-model='filename'
         type='text'
         :placeholder='tc("input.filename.placeholder")'
-        v-model='filename'
       )
       //- '.html' extension is hard coded on purpose
       .input-group-text .html

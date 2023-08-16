@@ -5,10 +5,11 @@ ModalBase.modal-languages(
   v-bind='bind'
   ref='modal'
 )
-  template(v-slot:body)
+  template(#body)
     ul.list-group.language-popup
       li.list-group-item.list-group-item-action(
         v-for='l in languages'
+        :key='`oit-lang.${l.locale}`'
         @click='$emit("set-language", l)'
       ) {{ l.name }}
 </template>

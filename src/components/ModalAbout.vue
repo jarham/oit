@@ -5,7 +5,7 @@ ModalBase.modal-about(
   v-bind='bind'
   ref='modal'
 )
-  template(v-slot:body)
+  template(#body)
     section.about-license
       h5 {{ tc('heading.license') }}
       MarkdownElement.mx-3(

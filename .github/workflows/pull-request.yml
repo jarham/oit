@@ -15,7 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
       - name: Install pnpm
-        uses: pnpm/action-setup@10693b3829bf86eb2572aef5f3571dcf5ca9287d
+        uses: pnpm/action-setup@d882d12c64e032187b2edb46d3a0d003b7a43598
         with:
           version: latest
       - name: Setup Node.js
@@ -145,7 +145,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
       - name: Install pnpm
-        uses: pnpm/action-setup@10693b3829bf86eb2572aef5f3571dcf5ca9287d
+        uses: pnpm/action-setup@d882d12c64e032187b2edb46d3a0d003b7a43598
         with:
           version: latest
       - name: Setup Node.js
