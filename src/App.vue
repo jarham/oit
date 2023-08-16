@@ -142,7 +142,7 @@ watch(dirty, (dirty) => {
 
 <style lang="scss">
 @use '../node_modules/bootstrap' as bs;
-@use '../node_modules/bootstrap-icons' as bsi;
+@import '../node_modules/bootstrap-icons/font/bootstrap-icons.css';
 
 .me-2-last-0 {
   @extend .me-2;
