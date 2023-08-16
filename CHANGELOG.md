@@ -1,3 +1,10 @@
+## [15.1.4-rc.3](https://github.com/online-inquiry-tool/oit/compare/v15.1.4-rc.2...v15.1.4-rc.3) (2023-08-16)
+
+
+### Bug Fixes
+
+* **lang en:** correct link in the instructions ([#30](https://github.com/online-inquiry-tool/oit/issues/30)) ([29436ae](https://github.com/online-inquiry-tool/oit/commit/29436ae11530adc9a5969d0dbf92139fd5e0c5a9))
+
 ## [15.1.4-rc.2](https://github.com/online-inquiry-tool/oit/compare/v15.1.4-rc.1...v15.1.4-rc.2) (2023-08-16)
 
 
