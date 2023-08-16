@@ -117,7 +117,7 @@ component:
         There are two ways to open your saved argument graph later:
 
         1.  If your argument graph is finished and you want to print a summary of it, double-click the file name in the location where you saved your graph and it will open.
-        2.  If you want to continue filling in your graph, go to the argument graph website at [http://pohtimiskaavio-demo.appspot.com/](http://pohtimiskaavio-demo.appspot.com/). Then, go to the menu bar on the upper left corner of the graph and click OPEN CHART. Go to the location where you saved your graph and click the file to open it.
+        2.  If you want to continue filling in your graph, go to the argument graph website at [https://onlineinquirytool.org/](https://onlineinquirytool.org/). Then, go to the menu bar on the upper left corner of the graph and click OPEN CHART. Go to the location where you saved your graph and click the file to open it.
     btn:
       close:
         aria-label: Close instructions dialog
