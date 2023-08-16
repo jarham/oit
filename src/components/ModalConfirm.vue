@@ -7,7 +7,7 @@ ModalBase.modal-confirm(
   @ok='onConfirmed'
   @hidden='onHidden'
 )
-  template(v-slot:body)
+  template(#body)
     section
       MarkdownElement.mx-3(
         :markdown='tc("text.body")'

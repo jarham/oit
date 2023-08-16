@@ -10,9 +10,9 @@
         h5.modal-title {{ txtTitle ? t(txtTitle) : '' }}
         button.btn-close(
           v-if='haveBtnClose'
+          ref='btnClose'
           data-bs-dismiss='modal'
           :aria-label='ariaBtnClose ? t(ariaBtnClose) : undefined'
-          ref='btnClose'
           @click='$emit("close")'
         )
       .modal-body(
@@ -25,15 +25,15 @@
         slot(name='footer')
           button.btn(
             v-if='haveBtnCancel'
+            ref='btnCancel'
             :class='clsBtnCancel'
             data-bs-dismiss='modal'
-            ref='btnCancel'
             @click='$emit("cancel")'
           ) {{ txtBtnCancel ? t(txtBtnCancel) : '' }}
           button.btn.btn-outline-primary(
             v-if='haveBtnOk'
-            :class='haveBtnOk'
             ref='btnOk'
+            :class='haveBtnOk'
             @click='$emit("ok")'
           ) {{ txtBtnOk ? t(txtBtnOk) : '' }}
 </template>

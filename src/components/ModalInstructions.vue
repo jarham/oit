@@ -5,7 +5,7 @@ ModalBase.modal-instructions(
   v-bind='bind'
   ref='modal'
 )
-  template(v-slot:body)
+  template(#body)
     MarkdownElement.mx-3(
       :markdown='tc("text.instructions")'
     )

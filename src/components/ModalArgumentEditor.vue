@@ -7,7 +7,7 @@ ModalBase.modal-argument-editor(
   @shown='onShown'
   @ok='modalInterface.hide'
 )
-  template(v-slot:body)
+  template(#body)
     ArgumentEditor(
       :argument='argument'
       :kind='kind'
@@ -16,11 +16,11 @@ ModalBase.modal-argument-editor(
       @modified='$emit("modified")'
     )
     textarea.form-control(
+      ref='txtJustify'
       v-model='argument.justification'
       :placeholder='tc("placeholder.justification")'
       rows='6'
       @input='$emit("modified")'
-      ref='txtJustify'
     )
 </template>
 

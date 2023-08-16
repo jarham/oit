@@ -5,6 +5,7 @@
   .d-flex.justify-content-between.claim-perspective-titles.px-2
     .d-block.tabbed-box-tab.p-1.claim-perspective-title.flex-grow-1.w-100.me-2-last-0.position-relative(
       v-for='(title, i) in titles'
+      :key='`perspective-${perspective.id}-title-${title}`'
     )
       .d-flex.align-items-center.me-4(
         :class='{"drag-handle": i === 0}'
@@ -38,7 +39,7 @@
         item-key='id'
         handle='.drag-handle'
       )
-        template(v-slot:item='{element: argument}')
+        template(#item='{element: argument}')
           ArgumentEditor(
             :argument='argument'
             kind='for'
@@ -56,7 +57,7 @@
         item-key='id'
         handle='.drag-handle'
       )
-        template(v-slot:item='{element: argument}')
+        template(#item='{element: argument}')
           ArgumentEditor(
             :argument='argument'
             kind='against'

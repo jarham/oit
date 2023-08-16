@@ -16,8 +16,8 @@
       ) {{ tc('btn.chart-open.text') }}
       .d-none.position-relative
         input.d-none.position-absolute(
-          type='file'
           ref='elFileInput'
+          type='file'
           style='top: -1000px; left: -1000px'
           accept='.html,.htm'
           @change='onFileChange'

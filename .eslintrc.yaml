@@ -1,12 +1,24 @@
 extends:
-- plugin:vue/vue3-recommended
-- plugin:vue-pug/vue3-recommended
-- plugin:prettier/recommended
-- '@vue/typescript'
+  - plugin:vue/vue3-recommended
+  - plugin:vue-pug/vue3-recommended
+  - plugin:prettier/recommended
+  - '@vue/typescript'
 parser: vue-eslint-parser
 parserOptions:
   parser: '@typescript-eslint/parser'
   sourceType: module
+rules:
+  vue/no-mutating-props:
+    - error
+    # Enable mutating the value of a prop
+    # See: https://eslint.vuejs.org/rules/no-mutating-props.html#options
+    # See: https://v2.vuejs.org/v2/guide/migration.html#Prop-Mutation-deprecated
+    # TODO: Use correct mutation pattern
+    - shallowOnly: true
+  '@typescript-eslint/no-unused-vars':
+    - error
+    # Allow unused args prefixed with _ (generally used in callbacks)
+    - argsIgnorePattern: "^_"
 ignorePatterns:
   - gwt-old
   - dist

@@ -14,9 +14,9 @@ section.app
     )
     MainView
     ModalLanguages(
+      ref='mdlLanguages'
       :languages='languages'
       @set-language='onSetLanguage'
-      ref='mdlLanguages'
     )
     ModalAbout(
       ref='mdlAbout'
