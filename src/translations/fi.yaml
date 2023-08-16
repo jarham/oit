@@ -25,6 +25,8 @@ component:
         text: Tietoja sovelluksesta
       instructions:
         text: Ohjeet
+      language:
+        text: Kieli
     text:
       title: Pohtimiskaavio
   #

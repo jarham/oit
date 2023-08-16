@@ -25,6 +25,8 @@ component:
         text: About
       instructions:
         text: Instructions
+      language:
+        text: Language
     text:
       title: Online inquiry tool
   #
