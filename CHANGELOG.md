@@ -1,3 +1,13 @@
+## [15.1.4-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.1.3...v15.1.4-rc.1) (2023-08-16)
+
+
+### Bug Fixes
+
+* **ci:** bump pnpm/action-setup to latest ([9e9fa03](https://github.com/online-inquiry-tool/oit/commit/9e9fa03dd44fccf7245f83b5e6c5777fd5c1170b))
+* correct eslint problems ([4f845a5](https://github.com/online-inquiry-tool/oit/commit/4f845a50c7c6f7cbb7c3564a19db5040aeaa7b13))
+* **tools:** correct lang-check types ([7634281](https://github.com/online-inquiry-tool/oit/commit/763428195f32f7564e8958f5c42233dec778f3dd))
+* **ui:** use import to include bootstrap icons ([6784d07](https://github.com/online-inquiry-tool/oit/commit/6784d073ae9ad60f528e2d69887e9432ace438f2))
+
 ## [15.1.3](https://github.com/online-inquiry-tool/oit/compare/v15.1.2...v15.1.3) (2022-10-05)
 
 
