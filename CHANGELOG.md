@@ -1,3 +1,10 @@
+## [15.1.4-rc.2](https://github.com/online-inquiry-tool/oit/compare/v15.1.4-rc.1...v15.1.4-rc.2) (2023-08-16)
+
+
+### Bug Fixes
+
+* **ui:** add text to language change button ([aa620a2](https://github.com/online-inquiry-tool/oit/commit/aa620a2524336d4ca2bc6d06b01319f5919ac8e3))
+
 ## [15.1.4-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.1.3...v15.1.4-rc.1) (2023-08-16)
 
 
