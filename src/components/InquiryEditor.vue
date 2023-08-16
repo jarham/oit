@@ -15,10 +15,10 @@ section.inquiry-editor
       item-key='id'
       handle='.drag-handle'
     )
-      template(v-slot:item='{element: p}')
+      template(#item='{element: p}')
         PerspectiveEditor(
-          :perspective='p'
           :key='p.id'
+          :perspective='p'
           @add-argument-for='store.addArgument(p, "for")'
           @add-argument-against='store.addArgument(p, "against")'
           @remove-argument-for='onRemoveArgument(p, "for", $event)'
@@ -39,9 +39,9 @@ section.inquiry-editor
     @update:model-value='store.updateConclusion($event)'
   )
   ModalArgumentEditor(
+    ref='mdlArgEditor'
     :argument='jstArgument'
     :kind='jstKind'
-    ref='mdlArgEditor'
     @modified='dirty = true'
   )
 </template>

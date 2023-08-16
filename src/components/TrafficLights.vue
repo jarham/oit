@@ -4,6 +4,7 @@
 .d-flex.flex-column.traffic-lights.border-secondary.rounded-3.align-self-start
   button.border-secondary.rounded-circle.traffic-light(
     v-for='l in lights'
+    :key='`traffic-light-${trafficLightId}-${l.reliability}`'
     :class='{[l.class]: true, on: modelValue === l.reliability}'
     :title='l.tooltip'
     :aria-label='l.ariaLabel'
@@ -11,8 +12,12 @@
   )
 </template>
 
+<script lang="ts">
+let trafficLightCount = 0;
+</script>
+
 <script setup lang="ts">
-import {computed, ref} from 'vue';
+import {computed} from 'vue';
 import {useI18n} from 'vue-i18n';
 import type {Reliability} from '../model';
 import {reliabilityValues} from '../model';
@@ -28,6 +33,8 @@ const emit = defineEmits<{
 
 const {t} = useI18n();
 const tc = (s: string) => t(`component.traffic-lights.${s}`);
+
+const trafficLightId = ++trafficLightCount;
 
 const lights = computed(() =>
   reliabilityValues.map((rv) => ({

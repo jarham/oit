@@ -16,8 +16,8 @@
       ) {{ tc('btn.chart-open.text') }}
       .d-none.position-relative
         input.d-none.position-absolute(
-          type='file'
           ref='elFileInput'
+          type='file'
           style='top: -1000px; left: -1000px'
           accept='.html,.htm'
           @change='onFileChange'
@@ -35,8 +35,9 @@
       a.link-secondary(v-if='appLink' :href='appLink') {{ version }}
       span.text-secondary(v-else) {{ version }}
   .d-flex.align-items-start
-    button.btn.text-primary.btn-lg.px-2.py-1(@click='$emit("show-languages")')
-      i.bi.bi-translate
+    button.btn.text-primary.px-2.py-1.d-flex.align-items-center.text-nowrap(@click='$emit("show-languages")')
+      span.me-2 {{ tc('btn.language.text') }}
+      i.bi.bi-translate.fs-5
 </template>
 
 <script setup lang="ts">

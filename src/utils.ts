@@ -112,7 +112,7 @@ class OitHtmlParserContext implements Partial<Handler> {
     }
   }
 
-  onclosetag(name: string, isImplied: boolean) {
+  onclosetag(_name: string, _isImplied: boolean) {
     const current = this.stack.pop();
     if (!current) return;
 
@@ -175,7 +175,7 @@ class OitHtmlParserContext implements Partial<Handler> {
       data: attribs
         ? Object.fromEntries(
             Object.entries(attribs)
-              .filter(([k, v]) => k.startsWith('data-'))
+              .filter(([k, _v]) => k.startsWith('data-'))
               .map(([k, v]) => [k.replace(/^data-/, ''), v]),
           )
         : {},

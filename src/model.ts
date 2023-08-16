@@ -5,7 +5,7 @@ export const reliabilityValues = [
   'somewhat-reliable',
   'reliable',
 ] as const;
-export type Reliability = typeof reliabilityValues[number];
+export type Reliability = (typeof reliabilityValues)[number];
 
 export interface Argument {
   argument: string;

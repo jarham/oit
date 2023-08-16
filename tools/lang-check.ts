@@ -42,7 +42,9 @@ const template = `<details>
 `;
 
 // Types for translation information
-type TranslationTree = string | {[key: string]: TranslationTree};
+// type TranslationTree = string | {[key: string]: TranslationTree};
+type TranslationTreeItem = string | {[key: string]: TranslationTreeItem};
+type TranslationTree = Record<string, TranslationTreeItem>;
 interface Translation {
   file: string;
   name: string;
@@ -50,6 +52,14 @@ interface Translation {
   parsed?: TranslationTree;
   keys?: string[];
 }
+
+interface ParsedTranslation extends Translation {
+  text: string;
+  parsed: TranslationTree;
+}
+
+const isParsedTranslation = (t: Translation): t is ParsedTranslation =>
+  typeof t.text === 'string' && typeof t.parsed === 'object';
 
 function checkTranslationNames(
   translations: string[],
@@ -284,9 +294,11 @@ function langKeysWithFallbacks(
 }
 
 async function main(errors: string[], warnings: string[], notes: string[]) {
-  const argv = await yargs(hideBin(process.argv)).options({
-    m: {type: 'string', alias: 'md'}
-  }).parseAsync();
+  const argv = await yargs(hideBin(process.argv))
+    .options({
+      m: {type: 'string', alias: 'md'},
+    })
+    .parseAsync();
 
   const translationFiles = await fg(translationFilter);
   if (translationFiles.length === 0) {
@@ -339,7 +351,13 @@ async function main(errors: string[], warnings: string[], notes: string[]) {
       errors.push(`Failed to parse ${t.file}:\n${ee.message}`);
       continue;
     }
-    t.keys = Object.entries(flatten(t.parsed)).map(([key]) => key);
+    if (!isParsedTranslation(t)) {
+      errors.push(`Invalid translation file: ${t.file}`);
+      continue;
+    }
+    t.keys = Object.entries(
+      flatten<TranslationTree, Record<string, string>>(t.parsed),
+    ).map(([key]) => key);
   }
 
   const noChkMissExcess =
@@ -446,17 +464,25 @@ async function main(errors: string[], warnings: string[], notes: string[]) {
   }
 }
 
-async function outputMd(file: string, errors: string[], warnings: string[], notes: string[]): Promise<void> {
+async function outputMd(
+  file: string,
+  errors: string[],
+  warnings: string[],
+  notes: string[],
+): Promise<void> {
   const content = mustache.render(template, {
-    errors: errors.length > 0
-      ? {items: errors.map((i) => ({text: indent(i, 2)}))}
-      : undefined,
-      warnings: warnings.length > 0
-      ? {items: warnings.map((i) => ({text: indent(i, 2)}))}
-      : undefined,
-      notes: notes.length > 0
-      ? {items: notes.map((i) => ({text: indent(i, 2)}))}
-      : undefined,
+    errors:
+      errors.length > 0
+        ? {items: errors.map((i) => ({text: indent(i, 2)}))}
+        : undefined,
+    warnings:
+      warnings.length > 0
+        ? {items: warnings.map((i) => ({text: indent(i, 2)}))}
+        : undefined,
+    notes:
+      notes.length > 0
+        ? {items: notes.map((i) => ({text: indent(i, 2)}))}
+        : undefined,
   });
   await writeFile(file, content, {encoding: 'utf-8'});
 }
