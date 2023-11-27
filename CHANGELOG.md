@@ -1,3 +1,11 @@
+## [15.1.5-rc.2](https://github.com/online-inquiry-tool/oit/compare/v15.1.5-rc.1...v15.1.5-rc.2) (2023-11-27)
+
+
+### Bug Fixes
+
+* **i18n:** use newer version of intlify's vite plugin ([adbceb5](https://github.com/online-inquiry-tool/oit/commit/adbceb57f4e53d7abf1b62f93a5c601dbef73d44))
+* **tools:** correct import of flat in lang-check ([0a2031b](https://github.com/online-inquiry-tool/oit/commit/0a2031be75f9122d7cc4ea6d3db4dffac856500e))
+
 ## [15.1.5-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.1.4...v15.1.5-rc.1) (2023-11-27)
 
 
