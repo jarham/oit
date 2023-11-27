@@ -47,7 +47,7 @@ jobs:
           # Make sure .version.local exists or fail
           test -f .version.local
           VERSION="$(cat .version.local)"
-          if [ -z "${VERSION}" ]; then echo "::set-output name=new-version::false"; else echo "::set-output name=new-version::true"; fi
+          if [ -z "${VERSION}" ]; then echo "new-version=false" >> $GITHUB_OUTPUT; else echo "new-version=true" >> $GITHUB_OUTPUT; fi
       - name: Build
         # Run only if new version is made
         if: ${{ steps.check-version.outputs.new-version == 'true' }}
