@@ -1,6 +1,6 @@
 import {defineConfig, loadEnv} from 'vite';
 import vue from '@vitejs/plugin-vue';
-import vueI18n from '@intlify/vite-plugin-vue-i18n';
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
 import {string} from 'rollup-plugin-string';
 import yaml from '@rollup/plugin-yaml';
 import * as path from 'path';
@@ -25,7 +25,7 @@ function getAppLink(env: Record<string, string>): string {
 }
 
 // https://vitejs.dev/config/
-// https://github.com/intlify/bundle-tools/tree/main/packages/vite-plugin-vue-i18n#vite-config
+// https://github.com/intlify/bundle-tools/tree/main/packages/unplugin-vue-i18n#-options
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, process.cwd(), '');
   // Use app version instead of generated hash in filenames
@@ -53,7 +53,7 @@ export default defineConfig(({mode}) => {
   return {
     plugins: [
       vue(),
-      vueI18n({include: translationFiles}),
+      VueI18nPlugin({include: translationFiles}),
       yaml({include: configFilter}),
       string({
         include: ['LICENSE'],
