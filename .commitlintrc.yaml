@@ -1,2 +1,15 @@
 extends:
 - "@commitlint/config-conventional"
+parserPreset:
+  parserOpts:
+    # Add Link to note keywords (default has keywords for breaking changes).
+    # See: https://github.com/conventional-changelog/conventional-changelog/blob/conventional-changelog-conventionalcommits-v7.0.2/packages/conventional-changelog-conventionalcommits/parserOpts.js#L14
+    noteKeywords:
+    - BREAKING CHANGE
+    - BREAKING-CHANGE
+    - Link
+rules:
+  # Increase footer max line length from the default 100 so that longer
+  # links don't cause troubles.
+  # See: https://github.com/conventional-changelog/commitlint/blob/v17.8.1/%40commitlint/config-conventional/index.js#L7
+  footer-max-line-length: [2, "always", 120]
