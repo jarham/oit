@@ -44,7 +44,7 @@ jobs:
       - name: Set result
         if: ${{ always() }}
         id: result
-        run: 'test -f build-ok && echo "::set-output name=result::- **✔️ build**: Success 🛠️" || echo "::set-output name=result::- **🛑 build**: FAILED 💩"'
+        run: 'test -f build-ok && echo "result=- **✔️ build**: Success 🛠️" >> $GITHUB_OUTPUT || echo "result=- **🛑 build**: FAILED 💩" >> $GITHUB_OUTPUT'
 
   deploy:
     name: Deploy
@@ -80,14 +80,14 @@ jobs:
         env:
           PR_NUM: ${{ github.event.number }}
         # NOTE: using secrets in output make GitHub to skip output!
-        run: 'test -f deploy-ok && echo "::set-output name=result::- **✔️ deploy**: Success 🚀 Test it here: <${APP_SERVER}/pr/${PR_NUM}/${GITHUB_RUN_NUMBER}/index.html>" || echo "::set-output name=result::- **🛑 deploy**: FAILED 💔"'
+        run: 'test -f deploy-ok && echo "result=- **✔️ deploy**: Success 🚀 Test it here: <${APP_SERVER}/pr/${PR_NUM}/${GITHUB_RUN_NUMBER}/index.html>" >> $GITHUB_OUTPUT || echo "result=- **🛑 deploy**: FAILED 💔" >> $GITHUB_OUTPUT'
       - name: Set test link
         if: ${{ always() }}
         id: test-link
         env:
           PR_NUM: ${{ github.event.number }}
         # NOTE: using secrets in output make GitHub to skip output!
-        run: echo "::set-output name=test-link::${APP_SERVER}/pr/${PR_NUM}/${GITHUB_RUN_NUMBER}/index.html"
+        run: echo "test-link=${APP_SERVER}/pr/${PR_NUM}/${GITHUB_RUN_NUMBER}/index.html" >> $GITHUB_OUTPUT
 
   commitlint:
     name: Run commitlint
@@ -115,7 +115,7 @@ jobs:
       - name: Set result
         if: ${{ always() }}
         id: result
-        run: 'test -f commits-ok && echo "::set-output name=result::- **✔️ commitlint**: Success 👍" || echo "::set-output name=result::- **🛑 commitlint**: FAILED 🧐"'
+        run: 'test -f commits-ok && echo "result=- **✔️ commitlint**: Success 👍" >> $GITHUB_OUTPUT || echo "result=- **🛑 commitlint**: FAILED 🧐" >> $GITHUB_OUTPUT'
       - name: Set many commits warning
         if: ${{ always() }}
         id: warn-many-commits
@@ -125,10 +125,10 @@ jobs:
           N: ${{ github.event.pull_request.commits }}
         run: |
           if [[ "${N}" -gt 30 ]]; then \
-            echo "::set-output name=warn-many-commits::%0A**🛑 ERROR: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check will fail! 🛑**%0A"; \
+            echo "warn-many-commits=%0A**🛑 ERROR: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check will fail! 🛑**%0A" >> $GITHUB_OUTPUT; \
           elif [[ "${N}" -ge 20 ]]; then \
-           echo "::set-output name=warn-many-commits::%0A**⚠️ WARNING: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check starts failing after that count! ⚠️**%0A"; \
-          else echo "::set-output name=warn-many-commits::"; fi
+           echo "warn-many-commits=%0A**⚠️ WARNING: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check starts failing after that count! ⚠️**%0A" >> $GITHUB_OUTPUT; \
+          else echo "warn-many-commits=" >> $GITHUB_OUTPUT; fi
 
   src-lints:
     name: Run eslint and translations check
@@ -165,17 +165,17 @@ jobs:
       - name: Set eslint result
         if: ${{ always() }}
         id: es-result
-        run: 'test -f eslint-ok && echo "::set-output name=result::- **✔️ eslint**: Success 👍" || echo "::set-output name=result::- **🛑 eslint**: FAILED 🧐"'
+        run: 'test -f eslint-ok && echo "result=- **✔️ eslint**: Success 👍" >> $GITHUB_OUTPUT || echo "result=- **🛑 eslint**: FAILED 🧐" >> $GITHUB_OUTPUT'
       - name: Set translations check result
         if: ${{ always() }}
         id: tr-result
         # NOTE: Multiline strings get "truncated" to only the first line. Newlines must be escaped as %0A.
         # See: https://github.community/t/set-output-truncates-multiline-strings/16852/3
         run: |
-          test -f tr-ok && echo "::set-output name=result::- **✔️ translations check**: Success 👍" || echo "::set-output name=result::- **🛑 translations check**: FAILED 🧐 (see \"Translation check problems below\")"
+          test -f tr-ok && echo "result=- **✔️ translations check**: Success 👍" >> $GITHUB_OUTPUT || echo "result=- **🛑 translations check**: FAILED 🧐 (see \"Translation check problems below\")" >> $GITHUB_OUTPUT
           output=$(cat dist.local/tr-out.md)
           output="${output//$'\n'/'%0A'}"
-          test -f tr-ok && echo "::set-output name=details::" || echo "::set-output name=details::${output}"
+          test -f tr-ok && echo "details=" >> $GITHUB_OUTPUT || echo "details=${output}" >> $GITHUB_OUTPUT
 
   comment-success:
     name: Leave a comment on success
