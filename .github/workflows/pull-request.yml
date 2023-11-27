@@ -119,15 +119,15 @@ jobs:
       - name: Set many commits warning
         if: ${{ always() }}
         id: warn-many-commits
-        # NOTE: Multiline strings get "truncated" to only the first line. Newlines must be escaped as %0A.
-        # See: https://github.community/t/set-output-truncates-multiline-strings/16852/3
+        # NOTE: Multiline strings need special handling.
+        # See: https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-a-multiline-string
         env:
           N: ${{ github.event.pull_request.commits }}
         run: |
           if [[ "${N}" -gt 30 ]]; then \
-            echo "warn-many-commits=%0A**🛑 ERROR: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check will fail! 🛑**%0A" >> $GITHUB_OUTPUT; \
+            printf "warn-many-commits<<EOF\n**🛑 ERROR: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check will fail! 🛑**\nEOF\n" >> $GITHUB_OUTPUT; \
           elif [[ "${N}" -ge 20 ]]; then \
-           echo "warn-many-commits=%0A**⚠️ WARNING: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check starts failing after that count! ⚠️**%0A" >> $GITHUB_OUTPUT; \
+            printf "warn-many-commits<<EOF\n**⚠️ WARNING: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check starts failing after that count! ⚠️**\nEOF\n" >> $GITHUB_OUTPUT; \
           else echo "warn-many-commits=" >> $GITHUB_OUTPUT; fi
 
   src-lints:
@@ -169,13 +169,12 @@ jobs:
       - name: Set translations check result
         if: ${{ always() }}
         id: tr-result
-        # NOTE: Multiline strings get "truncated" to only the first line. Newlines must be escaped as %0A.
-        # See: https://github.community/t/set-output-truncates-multiline-strings/16852/3
+        # NOTE: Multiline strings need special handling.
+        # See: https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-a-multiline-string
         run: |
           test -f tr-ok && echo "result=- **✔️ translations check**: Success 👍" >> $GITHUB_OUTPUT || echo "result=- **🛑 translations check**: FAILED 🧐 (see \"Translation check problems below\")" >> $GITHUB_OUTPUT
           output=$(cat dist.local/tr-out.md)
-          output="${output//$'\n'/'%0A'}"
-          test -f tr-ok && echo "details=" >> $GITHUB_OUTPUT || echo "details=${output}" >> $GITHUB_OUTPUT
+          test -f tr-ok && echo "details=" >> $GITHUB_OUTPUT || printf "details<<EOF\n${output}\nEOF\n" >> $GITHUB_OUTPUT
 
   comment-success:
     name: Leave a comment on success
