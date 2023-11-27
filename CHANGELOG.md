@@ -1,3 +1,10 @@
+## [15.1.5-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.1.4...v15.1.5-rc.1) (2023-11-27)
+
+
+### Bug Fixes
+
+* **ci:** correct deprecated usage of set-output in workflows ([af0a18f](https://github.com/online-inquiry-tool/oit/commit/af0a18f4d963a5c2f4b85902ac3005b52f141dbb))
+
 ## [15.1.4](https://github.com/online-inquiry-tool/oit/compare/v15.1.3...v15.1.4) (2023-08-16)
 
 
