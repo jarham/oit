@@ -7,7 +7,7 @@ import PluginConfirmDialog, {
   ConfirmDialog,
 } from './vue-plugins/plugin-confirm-dialog';
 import App from './App.vue';
-import messages from '@intlify/vite-plugin-vue-i18n/messages';
+import messages from '@intlify/unplugin-vue-i18n/messages';
 import i18nConfig from './translations/_config.yaml';
 import {flatten} from 'flat';
 import {useStore} from './stores/main';
@@ -38,7 +38,9 @@ const getNavigatorLanguage = (): string => {
 };
 
 const getLocale = (): string => {
-  const supportedLocales = Object.keys(messages).map((l) => l.toLowerCase());
+  const supportedLocales = messages
+    ? Object.keys(messages).map((l) => l.toLowerCase())
+    : [];
   const localeParts = getNavigatorLanguage().toLowerCase().split('-');
   for (let i = localeParts.length - 1; i >= 0; i--) {
     const tryLocale = localeParts.join('-');
@@ -66,6 +68,7 @@ app
   .mount('#app');
 
 if (
+  messages &&
   typeof messages[i18nConfig.referenceLocale] === 'object' &&
   messages[i18nConfig.referenceLocale] &&
   typeof messages[i18nConfig.referenceLocale]['save-template'] === 'object' &&
