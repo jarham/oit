@@ -25,7 +25,7 @@ const template = `<details>
 <summary><h3>Translation check problems (click to expand)</h3></summary>
 
 {{#notes}}
-### ℹ Notes ℹ
+### 📝 Notes 📝
 
 {{#items}}
 - {{text}}
