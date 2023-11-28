@@ -1,3 +1,10 @@
+## [15.1.5-rc.3](https://github.com/online-inquiry-tool/oit/compare/v15.1.5-rc.2...v15.1.5-rc.3) (2023-11-28)
+
+
+### Bug Fixes
+
+* **ci:** correct multiline outputs with $GITHUB_OUTPUT ([9ba474a](https://github.com/online-inquiry-tool/oit/commit/9ba474ab552eaebf5543ee70a0ac226c2bb72306))
+
 ## [15.1.5-rc.2](https://github.com/online-inquiry-tool/oit/compare/v15.1.5-rc.1...v15.1.5-rc.2) (2023-11-27)
 
 
