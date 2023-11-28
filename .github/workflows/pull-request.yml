@@ -44,7 +44,7 @@ jobs:
       - name: Set result
         if: ${{ always() }}
         id: result
-        run: 'test -f build-ok && echo "result=- **✔️ build**: Success 🛠️" >> $GITHUB_OUTPUT || echo "result=- **🛑 build**: FAILED 💩" >> $GITHUB_OUTPUT'
+        run: 'test -f build-ok && echo "result=- **✅ build**: Success 🛠️" >> $GITHUB_OUTPUT || echo "result=- **🛑 build**: FAILED 💩" >> $GITHUB_OUTPUT'
 
   deploy:
     name: Deploy
@@ -80,7 +80,7 @@ jobs:
         env:
           PR_NUM: ${{ github.event.number }}
         # NOTE: using secrets in output make GitHub to skip output!
-        run: 'test -f deploy-ok && echo "result=- **✔️ deploy**: Success 🚀 Test it here: <${APP_SERVER}/pr/${PR_NUM}/${GITHUB_RUN_NUMBER}/index.html>" >> $GITHUB_OUTPUT || echo "result=- **🛑 deploy**: FAILED 💔" >> $GITHUB_OUTPUT'
+        run: 'test -f deploy-ok && echo "result=- **✅ deploy**: Success 🚀 Test it here: <${APP_SERVER}/pr/${PR_NUM}/${GITHUB_RUN_NUMBER}/index.html>" >> $GITHUB_OUTPUT || echo "result=- **🛑 deploy**: FAILED 💔" >> $GITHUB_OUTPUT'
       - name: Set test link
         if: ${{ always() }}
         id: test-link
@@ -115,7 +115,7 @@ jobs:
       - name: Set result
         if: ${{ always() }}
         id: result
-        run: 'test -f commits-ok && echo "result=- **✔️ commitlint**: Success 👍" >> $GITHUB_OUTPUT || echo "result=- **🛑 commitlint**: FAILED 🧐" >> $GITHUB_OUTPUT'
+        run: 'test -f commits-ok && echo "result=- **✅ commitlint**: Success 👍" >> $GITHUB_OUTPUT || echo "result=- **🛑 commitlint**: FAILED 🧐" >> $GITHUB_OUTPUT'
       - name: Set many commits warning
         if: ${{ always() }}
         id: warn-many-commits
@@ -165,14 +165,14 @@ jobs:
       - name: Set eslint result
         if: ${{ always() }}
         id: es-result
-        run: 'test -f eslint-ok && echo "result=- **✔️ eslint**: Success 👍" >> $GITHUB_OUTPUT || echo "result=- **🛑 eslint**: FAILED 🧐" >> $GITHUB_OUTPUT'
+        run: 'test -f eslint-ok && echo "result=- **✅ eslint**: Success 👍" >> $GITHUB_OUTPUT || echo "result=- **🛑 eslint**: FAILED 🧐" >> $GITHUB_OUTPUT'
       - name: Set translations check result
         if: ${{ always() }}
         id: tr-result
         # NOTE: Multiline strings need special handling.
         # See: https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-a-multiline-string
         run: |
-          test -f tr-ok && echo "result=- **✔️ translations check**: Success 👍" >> $GITHUB_OUTPUT || echo "result=- **🛑 translations check**: FAILED 🧐 (see \"Translation check problems below\")" >> $GITHUB_OUTPUT
+          test -f tr-ok && echo "result=- **✅ translations check**: Success 👍" >> $GITHUB_OUTPUT || echo "result=- **🛑 translations check**: FAILED 🧐 (see \"Translation check problems below\")" >> $GITHUB_OUTPUT
           output=$(cat dist.local/tr-out.md)
           test -f tr-ok && echo "details=" >> $GITHUB_OUTPUT || printf "details<<EOF\n${output}\nEOF\n" >> $GITHUB_OUTPUT
 
