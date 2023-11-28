@@ -125,9 +125,9 @@ jobs:
           N: ${{ github.event.pull_request.commits }}
         run: |
           if [[ "${N}" -gt 30 ]]; then \
-            printf "warn-many-commits<<EOF\n**🛑 ERROR: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check will fail! 🛑**\nEOF\n" >> $GITHUB_OUTPUT; \
+            printf "warn-many-commits<<EOF\n\n**🛑 ERROR: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check will fail! 🛑**\n\nEOF\n" >> $GITHUB_OUTPUT; \
           elif [[ "${N}" -ge 20 ]]; then \
-            printf "warn-many-commits<<EOF\n**⚠️ WARNING: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check starts failing after that count! ⚠️**\nEOF\n" >> $GITHUB_OUTPUT; \
+            printf "warn-many-commits<<EOF\n\n**⚠️ WARNING: You have ${N} commits in your PR. GitHub API and/or wagoid/commitlint-github-action seems to be limited to 30 commits / PR, so commitlint check starts failing after that count! ⚠️**\n\nEOF\n" >> $GITHUB_OUTPUT; \
           else echo "warn-many-commits=" >> $GITHUB_OUTPUT; fi
 
   src-lints:
