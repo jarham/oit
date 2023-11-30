@@ -184,4 +184,8 @@ $primary: #6c3d71;
     @extend .rounded;
   }
 }
+
+.btn-oit-add {
+  @extend .btn-primary;
+}
 </style>

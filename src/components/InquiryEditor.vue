@@ -28,7 +28,7 @@ section.inquiry-editor
           @edit-argument-against='onEditArgument("against", $event)'
           @modified='dirty = true'
         )
-  button.btn.btn-sm.btn-success.w-100.mb-2(
+  button.btn.btn-sm.btn-oit-add.w-100.mb-2(
     @click='store.addPerspective()'
   ) {{ tc('btn.perspective-add.text') }}
   TitledNotes(
