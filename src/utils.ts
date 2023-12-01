@@ -11,9 +11,16 @@ import {
   Perspective,
   stringToReliability,
 } from './model';
+import rfdc from 'rfdc';
+
+const clone = rfdc();
 
 export function isHtmlTextareaElement(o: any): o is HTMLTextAreaElement {
   return !!o && typeof o === 'object' && o.tagName === 'TEXTAREA';
+}
+
+export function isHtmlInputElement(o: any): o is HTMLInputElement {
+  return !!o && typeof o === 'object' && o.tagName === 'INPUT';
 }
 
 interface ParserTagData {
@@ -203,4 +210,9 @@ export function filenameToChartname(filename: string): string {
   if (typeof split !== 'string') split = filename;
   const idot = split.lastIndexOf('.');
   return idot >= 0 ? split.substring(0, idot) : split;
+}
+
+// cloneDeep had to be outside of WordCloud.vue or Vue conpiler would barf
+export function cloneDeep<T>(o: T): T {
+  return clone(o);
 }
