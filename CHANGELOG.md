@@ -1,3 +1,11 @@
+## [15.1.5-rc.4](https://github.com/online-inquiry-tool/oit/compare/v15.1.5-rc.3...v15.1.5-rc.4) (2023-12-01)
+
+
+### Bug Fixes
+
+* change primary color to a shade of purple ([c4a7bb7](https://github.com/online-inquiry-tool/oit/commit/c4a7bb77c65ed1506989571720a7d8f0d373bf9d))
+* use primary color in chart's add buttons ([a708fcd](https://github.com/online-inquiry-tool/oit/commit/a708fcdad6311c5eb25e85afac81018ffd59213d))
+
 ## [15.1.5-rc.3](https://github.com/online-inquiry-tool/oit/compare/v15.1.5-rc.2...v15.1.5-rc.3) (2023-11-28)
 
 
