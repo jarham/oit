@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-2-Clause
-// Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro
+// Copyright (c) 2023, Jari Hämäläinen, Carita Kiili and Julie Coiro
 import {Parser} from 'htmlparser2';
 import {Handler} from 'htmlparser2/lib/Parser';
 import {
@@ -11,9 +11,16 @@ import {
   Perspective,
   stringToReliability,
 } from './model';
+import rfdc from 'rfdc';
+
+const clone = rfdc();
 
 export function isHtmlTextareaElement(o: any): o is HTMLTextAreaElement {
   return !!o && typeof o === 'object' && o.tagName === 'TEXTAREA';
+}
+
+export function isHtmlDivElement(o: any): o is HTMLInputElement {
+  return !!o && typeof o === 'object' && o.tagName === 'DIV';
 }
 
 interface ParserTagData {
@@ -203,4 +210,9 @@ export function filenameToChartname(filename: string): string {
   if (typeof split !== 'string') split = filename;
   const idot = split.lastIndexOf('.');
   return idot >= 0 ? split.substring(0, idot) : split;
+}
+
+// cloneDeep had to be outside of vue files or Vue conpiler would barf
+export function cloneDeep<T>(o: T): T {
+  return clone(o);
 }
