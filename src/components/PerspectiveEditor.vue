@@ -47,7 +47,7 @@
             @modified='$emit("modified")'
             @reliability-set='$emit("edit-argument-for", argument)'
           )
-      button.btn.btn-sm.btn-success.w-100(
+      button.btn.btn-sm.btn-oit-add.w-100(
         @click='$emit("add-argument-for")'
       ) {{ tc('btn.argument-for-add.text') }}
     .d-flex.flex-column.claim-perspective-column
@@ -65,7 +65,7 @@
             @modified='$emit("modified")'
             @reliability-set='$emit("edit-argument-against", argument)'
           )
-      button.btn.btn-sm.btn-success.w-100(
+      button.btn.btn-sm.btn-oit-add.w-100(
         @click='$emit("add-argument-against")'
       ) {{ tc('btn.argument-against-add.text') }}
     .d-flex.flex-column.claim-perspective-column

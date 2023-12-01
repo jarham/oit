@@ -141,8 +141,11 @@ watch(dirty, (dirty) => {
 </script>
 
 <style lang="scss">
-@use '../node_modules/bootstrap' as bs;
 @import '../node_modules/bootstrap-icons/font/bootstrap-icons.css';
+// Customize bootstrap primary color.
+@import '../node_modules/bootstrap/scss/functions';
+$primary: #6c3d71;
+@import '../node_modules/bootstrap';
 
 .me-2-last-0 {
   @extend .me-2;
@@ -180,5 +183,9 @@ watch(dirty, (dirty) => {
     @extend .border-dark;
     @extend .rounded;
   }
+}
+
+.btn-oit-add {
+  @extend .btn-primary;
 }
 </style>
