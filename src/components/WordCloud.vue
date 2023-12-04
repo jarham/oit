@@ -23,7 +23,7 @@ import type {
   WordNode,
 } from '@/composition/WordCloud';
 import {ellipse2poly} from '@/lib/math-utils';
-import type {Vec2} from '@/lib/math-utils';
+import type {Vec2} from '@symcode-fi/minkowski-collision';
 import {cloneDeep} from '@/utils';
 
 // NOTE: because Vue doesn't support importing props interface until 3.3
@@ -33,6 +33,7 @@ import {cloneDeep} from '@/utils';
 interface WordCloudProps {
   words: string[];
   shapePadding?: Vec2;
+  viewportPadding?: Vec2;
   shapePolyVertexCount: number;
   simulation?: {
     run: boolean;
@@ -58,6 +59,7 @@ interface WordCloudProps {
 // withDefaults doesn't seem to support ...wordCloudDefaultOpts
 const props = withDefaults(defineProps<WordCloudProps>(), {
   shapePadding: () => cloneDeep(wordCloudDefaultOpts.shapePadding),
+  viewportPadding: () => cloneDeep(wordCloudDefaultOpts.viewportPadding),
   simulation: () => cloneDeep(wordCloudDefaultOpts.simulation),
   debugInfo: () => cloneDeep(wordCloudDefaultOpts.debugInfo),
   fGravity: () => cloneDeep(wordCloudDefaultOpts.fGravity),
@@ -158,7 +160,7 @@ const updateDimensions = () => {
   width = Math.max(r.width, minWidth);
   height = Math.min(Math.max(r.height, minHeight), 500);
   svg.attr('viewBox', [-width / 2, -height / 2, width, height]);
-  sim.setViewportSize(width, height);
+  sim.setViewportSize(width, height, props.viewportPadding.x, props.viewportPadding.y);
 };
 
 /**
@@ -469,7 +471,7 @@ defineExpose({
   fill: var(--bs-white);
 }
 .word-cloud {
-  border-radius: 75px;
+  border-radius: 50%;
   overflow: hidden;
 }
 </style>

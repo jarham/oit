@@ -5,7 +5,7 @@ import {ref} from 'vue';
 import type {Ref} from 'vue';
 import type {PartialDeep} from 'type-fest';
 import merge from 'lodash.merge';
-import {ellipse2poly, vec2Pow2Sum} from '@/lib/math-utils';
+import {Ellipse, Vec2Ref, ellipse2poly, vec2Pow2Sum} from '@/lib/math-utils';
 import {
   type BoundingBox,
   MinkowskiDiffEngine,
@@ -73,6 +73,10 @@ export interface WordCloudSeparationForceOpts extends WordCloudBaseForceParams {
   outwardsOnly: boolean;
 }
 
+export interface WordCloudKeepInVpForceOpts extends WordCloudBaseForceParams {
+  ellipse?: boolean;
+}
+
 // NOTE: because Vue doesn't support importing props interface until 3.3
 //       WordCloudProps if defined in files:
 //       - src/composition/WordCloud.ts
@@ -80,6 +84,7 @@ export interface WordCloudSeparationForceOpts extends WordCloudBaseForceParams {
 interface WordCloudProps {
   words: string[];
   shapePadding?: Vec2;
+  viewportPadding?: Vec2;
   shapePolyVertexCount: number;
   simulation?: {
     run: boolean;
@@ -97,7 +102,7 @@ interface WordCloudProps {
   fSepV2?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
   fSepP?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
   fSepP2?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
-  fKeepInVp?: WordCloudBaseForceOpts<WordCloudBaseForceParams>;
+  fKeepInVp?: WordCloudBaseForceOpts<WordCloudKeepInVpForceOpts>;
 }
 
 export type WordCloudOpts = PartialDeep<Omit<WordCloudProps, 'words'>>;
@@ -106,6 +111,10 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
   shapePadding: {
     x: 35,
     y: 30,
+  },
+  viewportPadding: {
+    x: 3,
+    y: 3,
   },
   shapePolyVertexCount: 16,
   simulation: {
@@ -187,7 +196,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     },
   },
   fKeepInVp: {
-    params: {enabled: true, strength: 1, aspectRatio: 1},
+    params: {enabled: true, strength: 1, aspectRatio: 1, ellipse: true},
     alpha: {
       target: 0,
       decay: 0.0228,
@@ -215,6 +224,7 @@ export default function useWordCloud(
 interface BaseForceApplyOpts {
   eng: MinkowskiDiffEngine<WordNode>;
   vpBb: BoundingBox;
+  vpEl: Ellipse;
 }
 
 let forceCounter = 0;
@@ -368,7 +378,7 @@ export class ForceSepWordNodeDatum extends ForceBase<WordCloudSeparationForceOpt
   }
 }
 
-export class ForceKeepInVP extends ForceBase<WordCloudBaseForceParams> {
+export class ForceKeepInVP extends ForceBase<WordCloudKeepInVpForceOpts> {
   // Reusable temp bounding box
   private t1: BoundingBox = {
     xmin: 0,
@@ -376,7 +386,9 @@ export class ForceKeepInVP extends ForceBase<WordCloudBaseForceParams> {
     ymin: 0,
     ymax: 0,
   };
-  constructor(p: WordCloudBaseForceParams, triggers?: ForceTrigger[]) {
+  // Reusable temp reference to a vector
+  private t2: Vec2Ref = {ref: 0, x: 0, y: 0};
+  constructor(p: WordCloudKeepInVpForceOpts, triggers?: ForceTrigger[]) {
     super(p, triggers);
   }
 
@@ -400,26 +412,40 @@ export class ForceKeepInVP extends ForceBase<WordCloudBaseForceParams> {
         }
       });
 
-      const b = opts.eng.bodies[n.index];
-      this.t1.xmin = b.bb.xmin + dx + n.pos.x;
-      this.t1.xmax = b.bb.xmax + dx + n.pos.x;
-      this.t1.ymin = b.bb.ymin + dy + n.pos.y;
-      this.t1.ymax = b.bb.ymax + dy + n.pos.y;
-
       const vp = n.p[this.id];
-      if (this.t1.xmin < opts.vpBb.xmin) {
-        vp.x = opts.vpBb.xmin - this.t1.xmin;
-      } else if (this.t1.xmax > opts.vpBb.xmax) {
-        vp.x = opts.vpBb.xmax - this.t1.xmax;
+      if (this.p.ellipse) {
+        const poly = n.v.map<Vec2>((v) => ({
+          x: v.x + dx + n.pos.x,
+          y: v.y + dy + n.pos.y,
+        }));
+        if (!opts.vpEl.containsPolygon(poly, this.t2)) {
+          // TODO: calculate how much to cut off
+          this.t2.x -= poly[this.t2.ref].x;
+          this.t2.y -= poly[this.t2.ref].y;
+          vp.x = this.t2.x;
+          vp.y = this.t2.y;
+        }
       } else {
-        vp.x = 0;
-      }
-      if (this.t1.ymin < opts.vpBb.ymin) {
-        vp.y = opts.vpBb.ymin - this.t1.ymin;
-      } else if (this.t1.ymax > opts.vpBb.ymax) {
-        vp.y = opts.vpBb.ymax - this.t1.ymax;
-      } else {
-        vp.y = 0;
+        const b = opts.eng.bodies[n.index];
+        this.t1.xmin = b.bb.xmin + dx + n.pos.x;
+        this.t1.xmax = b.bb.xmax + dx + n.pos.x;
+        this.t1.ymin = b.bb.ymin + dy + n.pos.y;
+        this.t1.ymax = b.bb.ymax + dy + n.pos.y;
+
+        if (this.t1.xmin < opts.vpBb.xmin) {
+          vp.x = opts.vpBb.xmin - this.t1.xmin;
+        } else if (this.t1.xmax > opts.vpBb.xmax) {
+          vp.x = opts.vpBb.xmax - this.t1.xmax;
+        } else {
+          vp.x = 0;
+        }
+        if (this.t1.ymin < opts.vpBb.ymin) {
+          vp.y = opts.vpBb.ymin - this.t1.ymin;
+        } else if (this.t1.ymax > opts.vpBb.ymax) {
+          vp.y = opts.vpBb.ymax - this.t1.ymax;
+        } else {
+          vp.y = 0;
+        }
       }
     });
   }
@@ -442,6 +468,8 @@ export class Simulation {
     ymin: 0,
     ymax: 0,
   };
+  // bounding ellipse
+  private vpEl = new Ellipse({x: 0, y: 0}, {x: 0, y: 0});
   private applyOpts: BaseForceApplyOpts;
 
   constructor(private debugPolys: Vec2[][]) {
@@ -467,6 +495,7 @@ export class Simulation {
     this.applyOpts = {
       eng: this.eng,
       vpBb: this.vpBb,
+      vpEl: this.vpEl,
     };
   }
 
@@ -494,11 +523,12 @@ export class Simulation {
     this.eng.updateData(this.nodes);
   }
 
-  setViewportSize(w: number, h: number) {
-    this.vpBb.xmax = w / 2;
+  setViewportSize(w: number, h: number, px: number, py: number) {
+    this.vpBb.xmax = w / 2 - px;
     this.vpBb.xmin = -this.vpBb.xmax;
-    this.vpBb.ymax = h / 2;
+    this.vpBb.ymax = h / 2 - py;
     this.vpBb.ymin = -this.vpBb.ymax;
+    this.vpEl.setHalfAxes({x: this.vpBb.xmax, y: this.vpBb.ymax});
   }
 
   addForce(
@@ -650,7 +680,7 @@ export function forceSep(
 }
 
 export function forceKeepInVP(
-  p: WordCloudBaseForceParams,
+  p: WordCloudKeepInVpForceOpts,
   triggers?: ForceTrigger[],
 ): ForceKeepInVP {
   return new ForceKeepInVP(p, triggers);
