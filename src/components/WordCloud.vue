@@ -23,7 +23,7 @@ import type {
   WordNode,
 } from '@/composition/WordCloud';
 import {ellipse2poly} from '@/lib/math-utils';
-import type {Vec2} from '@symcode-fi/minkowski-collision';
+import type {Body, Vec2} from '@symcode-fi/minkowski-collision';
 import {cloneDeep} from '@/utils';
 
 // NOTE: because Vue doesn't support importing props interface until 3.3
@@ -187,7 +187,7 @@ const create = () => {
     .addForce(fSepV2, props.fSepV2.alpha)
     .addForce(fKeepInVp, props.fKeepInVp.alpha);
 
-  reset();
+  // reset();
 
   d3Simulation.on('tick', onTick);
 };
@@ -226,11 +226,16 @@ const reset = () => {
     // const cx = Math.cos(n) * (n + 20) * 6;
     // const cy = Math.sin(n) * (n + 20) * 6;
 
-    const cx = Math.cos(((2 * Math.PI) / props.words.length) * n * 3.1) * 250;
-    const cy =
-      Math.sin(((2 * Math.PI) / props.words.length) * n * 3.1) *
-      250 *
-      (height / width);
+    // const cx = Math.cos(((2 * Math.PI) / props.words.length) * n * 3.1) * 250;
+    // const cy =
+    //   Math.sin(((2 * Math.PI) / props.words.length) * n * 3.1) *
+    //   250 *
+    //   (height / width);
+
+    // Just make sure initial positions are outside the ellipse and non-colliding.
+    const cx = 0;
+    const cy = 0;
+
     return {
       id: `word-node-${nodeCounter++}`,
       index: n,
@@ -262,21 +267,23 @@ const reset = () => {
   // One update data call is required to get text sizes.
   updateData();
 
-  // Reposition nodes so that they're completely outside of the ellipse and that they
-  // have enough margin to fit any word between them and the ellipse (say 2 * the
-  // biggest word dimension). At this time the exact position doesn't matter as long
-  // as there's enought space around the ellpse.
+  // Reposition nodes so that they're completely outside of the ellipse and that they don't collide.
   nodes.forEach((n, i) => {
     // width / 2 + minWidth / 2 = just outside the ellipse
     // + minWidth * 2 adds margin
     // + i * 2.5 * minWidth separates words from each other.
-    n.pos.x = width / 2 + minWidth / 2 + minWidth * 2 + i * 2.5 * minWidth;
+    n.pos.x = width / 2 + minWidth * 60 + i * 2.5 * minWidth;
     n.pos.y = 0;
   });
-  // Start moving nodes to ellipse: move straight from the initial position towards origin
-  // until hitting another polygon.
-  const uv: Vec2 = {x: 0, y: 0};
-  const mv: Vec2 = {x: 0, y: 0};
+  // Start moving nodes to ellipse: Linecast enough lines from outer egde
+  // to find a position closest to origin, move node there and then move
+  // it outwards until it doesn't hit anything.
+  const t1: Vec2 = {x: 0, y: 0};
+  const t2: Vec2 = {x: 0, y: 0};
+  const t3: Vec2 = {x: 0, y: 0};
+  let ba: Body<WordNode>;
+  let bb: Body<WordNode>;
+  const rayStep = (2 * Math.PI) / 64;
   let d: number;
   let m: number;
   sim.initialize(nodes);
@@ -288,37 +295,43 @@ const reset = () => {
       return;
     }
 
-    // First, move to "safe area", just outside of the ellipse. Safe area
-    // positions would form "3.1 times circle" around the ellipse.
-    n.pos.x =
-      Math.cos(((2 * Math.PI) / props.words.length) * i * 3.1) *
-      (width / 2 + minWidth / 2);
-    n.pos.y =
-      Math.sin(((2 * Math.PI) / props.words.length) * i * 3.1) *
-      (height / 2 + minHeight / 2);
-
-    // Now move as close to origin as we can get
-    d = Math.sqrt(n.pos.x * n.pos.x + n.pos.y * n.pos.y);
-    m = minHeight * 0.95;
-    uv.x = -n.pos.x / d;
-    uv.y = -n.pos.y / d;
-    mv.x = uv.x * m;
-    mv.y = uv.y * m;
-    while (m > 0.5) {
-      // Move
-      n.pos.x += mv.x;
-      n.pos.y += mv.y;
-
-      // Check collisions: If there's collisions, cancel the move
-      // and divide movement vector to half and try again.
-      if (sim.hasCollisions()) {
-        n.pos.x -= mv.x;
-        n.pos.y -= mv.y;
-        m /= 2;
-        mv.x = uv.x * m;
-        mv.y = uv.y * m;
+    // Line cast
+    d = Number.POSITIVE_INFINITY;
+    for (let a = 0; a < 2 * Math.PI; a += rayStep) {
+    // for (let a = 0; a < 2 * Math.PI; a += rayStep * 8) {
+    // for (let a = 0; a <= 0; a += rayStep) {
+      t1.x = width / 2 * Math.cos(a);
+      t1.y = height / 2 * Math.sin(a);
+      sim.eng.lineCast(t1, t2);
+      if (sim.eng.castResultCount > 0) {
+        m = sim.eng.castResults[0].pos.x * sim.eng.castResults[0].pos.x + sim.eng.castResults[0].pos.y * sim.eng.castResults[0].pos.y;
+        if (m < d) {
+          d = m;
+          t3.x = sim.eng.castResults[0].pos.x;
+          t3.y = sim.eng.castResults[0].pos.y;
+          ba = sim.eng.castResults[0].b;
+        }
       }
     }
+    console.log(`Node ${n.word} init pos: (${t3.x}, ${t3.y})`);
+
+    // Now move node to hit point and then move away from origin as long as bodies collide
+    n.pos.x = t3.x;
+    n.pos.y = t3.y;
+    d = Math.sqrt(d);
+    t3.x = t3.x / d * 2;
+    t3.y = t3.y / d * 2;
+    bb = sim.eng.findBody(n.id);
+    sim.eng.checkBodyCollision(ba, bb);
+    const bbd = sim.eng.distances[ba.index][bb.index - (ba.index + 1)];
+
+    while (true) {
+      n.pos.x += t3.x;
+      n.pos.y += t3.y;
+      sim.eng.checkCollisions();
+      if (sim.eng.collisionCount === 0) break;
+    }
+    console.log(`Node ${n.word} final pos: (${n.pos.x}, ${n.pos.y})`);
   });
 
   updateData();

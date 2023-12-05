@@ -455,7 +455,7 @@ export class Simulation {
   private nodes: WordNode[] = [];
   private bodies: Body[] = [];
   private data = new Map<string, {node: WordNode; body: Body}>();
-  private eng: MinkowskiDiffEngine<WordNode>;
+  eng: MinkowskiDiffEngine<WordNode>;
   private forces: ForceBase<WordCloudBaseForceParams>[] = [];
   private alphas: ForceAlphas = {};
   private alphaSettings = new Map<string, WordCloudForceAlphaSettings>();
