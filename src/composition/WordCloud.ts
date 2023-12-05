@@ -558,6 +558,11 @@ export class Simulation {
     this.reset();
   }
 
+  hasCollisions(): Boolean {
+    this.eng.checkCollisions();
+    return this.eng.collisionCount > 0;
+  }
+
   reset() {
     this.t = 0;
     this.forces.forEach((f) => {

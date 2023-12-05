@@ -123,7 +123,7 @@ import type {
 } from '@/composition/WordCloud';
 import type {SimData} from '@/composition/WordCloud';
 
-const debugControls = false;
+const debugControls = true;
 
 const {t} = useI18n();
 const tc = (s: string) => t(`component.modal-perspective-palette.${s}`);

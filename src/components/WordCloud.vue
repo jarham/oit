@@ -160,7 +160,12 @@ const updateDimensions = () => {
   width = Math.max(r.width, minWidth);
   height = Math.min(Math.max(r.height, minHeight), 500);
   svg.attr('viewBox', [-width / 2, -height / 2, width, height]);
-  sim.setViewportSize(width, height, props.viewportPadding.x, props.viewportPadding.y);
+  sim.setViewportSize(
+    width,
+    height,
+    props.viewportPadding.x,
+    props.viewportPadding.y,
+  );
 };
 
 /**
@@ -210,8 +215,22 @@ const reset = () => {
   updateDimensions();
 
   nodes = props.words.map((word, n) => {
-    const cx = Math.cos(n) * (n + 5) * 2;
-    const cy = Math.sin(n) * (n + 5) * 2;
+    // const r = Math.sqrt(Math.random());
+    // const th = Math.random() * 2 * Math.PI;
+    // const cx = r * Math.cos(th) * (width / 4);
+    // const cy = (width / height) * r * Math.sin(th) * (width / 4);
+
+    // const cx = Math.cos(n) * (n + 5) * 2;
+    // const cy = Math.sin(n) * (n + 5) * 2;
+
+    // const cx = Math.cos(n) * (n + 20) * 6;
+    // const cy = Math.sin(n) * (n + 20) * 6;
+
+    const cx = Math.cos(((2 * Math.PI) / props.words.length) * n * 3.1) * 250;
+    const cy =
+      Math.sin(((2 * Math.PI) / props.words.length) * n * 3.1) *
+      250 *
+      (height / width);
     return {
       id: `word-node-${nodeCounter++}`,
       index: n,
@@ -240,7 +259,70 @@ const reset = () => {
     };
   });
 
+  // One update data call is required to get text sizes.
   updateData();
+
+  // Reposition nodes so that they're completely outside of the ellipse and that they
+  // have enough margin to fit any word between them and the ellipse (say 2 * the
+  // biggest word dimension). At this time the exact position doesn't matter as long
+  // as there's enought space around the ellpse.
+  nodes.forEach((n, i) => {
+    // width / 2 + minWidth / 2 = just outside the ellipse
+    // + minWidth * 2 adds margin
+    // + i * 2.5 * minWidth separates words from each other.
+    n.pos.x = width / 2 + minWidth / 2 + minWidth * 2 + i * 2.5 * minWidth;
+    n.pos.y = 0;
+  });
+  // Start moving nodes to ellipse: move straight from the initial position towards origin
+  // until hitting another polygon.
+  const uv: Vec2 = {x: 0, y: 0};
+  const mv: Vec2 = {x: 0, y: 0};
+  let d: number;
+  let m: number;
+  sim.initialize(nodes);
+  nodes.forEach((n, i) => {
+    if (i == 0) {
+      // Shortcut for the first one: Jump to origin
+      n.pos.x = 0;
+      n.pos.y = 0;
+      return;
+    }
+
+    // First, move to "safe area", just outside of the ellipse. Safe area
+    // positions would form "3.1 times circle" around the ellipse.
+    n.pos.x =
+      Math.cos(((2 * Math.PI) / props.words.length) * i * 3.1) *
+      (width / 2 + minWidth / 2);
+    n.pos.y =
+      Math.sin(((2 * Math.PI) / props.words.length) * i * 3.1) *
+      (height / 2 + minHeight / 2);
+
+    // Now move as close to origin as we can get
+    d = Math.sqrt(n.pos.x * n.pos.x + n.pos.y * n.pos.y);
+    m = minHeight * 0.95;
+    uv.x = -n.pos.x / d;
+    uv.y = -n.pos.y / d;
+    mv.x = uv.x * m;
+    mv.y = uv.y * m;
+    while (m > 0.5) {
+      // Move
+      n.pos.x += mv.x;
+      n.pos.y += mv.y;
+
+      // Check collisions: If there's collisions, cancel the move
+      // and divide movement vector to half and try again.
+      if (sim.hasCollisions()) {
+        n.pos.x -= mv.x;
+        n.pos.y -= mv.y;
+        m /= 2;
+        mv.x = uv.x * m;
+        mv.y = uv.y * m;
+      }
+    }
+  });
+
+  updateData();
+
   // Another dimension update because minWidth and minHeight
   // can update after we get nodes created.
   updateDimensions();
