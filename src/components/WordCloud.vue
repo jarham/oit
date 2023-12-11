@@ -287,8 +287,13 @@ const reset = () => {
   const rayStep = (2 * Math.PI) / 48;
   let d: number;
   let minD2: number;
-  sim.initialize(nodes);
+  // sim.initialize(nodes);
+  let simNodes: WordNode[] = [];
+
+  const tm1 = performance.now();
   nodes.forEach((n, i) => {
+    simNodes.push(n);
+    sim.initialize(simNodes);
     if (i == 0) {
       // Shortcut for the first one: Jump to origin
       n.pos.x = 0;
@@ -305,8 +310,8 @@ const reset = () => {
       // console.log(`Node ${n.word} init pos: (${n.pos.x}, ${n.pos.y})`);
       // Initial move vector
       d = Math.sqrt(n.pos.x * n.pos.x + n.pos.y * n.pos.y);
-      t1.x = (n.pos.x / d) * (Math.min(minHeight, minWidth) / -4);
-      t1.y = (n.pos.y / d) * (Math.min(minHeight, minWidth) / -4);
+      t1.x = (n.pos.x / d) * (Math.min(minHeight, minWidth) / -2);
+      t1.y = (n.pos.y / d) * (Math.min(minHeight, minWidth) / -2);
 
       while (true) {
         sim.eng.checkCollisions();
@@ -316,7 +321,7 @@ const reset = () => {
           n.pos.y -= t1.y;
 
           // Stop if move vector is already small enough
-          if (Math.abs(t1.x) < 0.5 && Math.abs(t1.y) < 0.5) {
+          if (Math.abs(t1.x) < 0.8 && Math.abs(t1.y) < 0.8) {
             break;
           }
 
@@ -345,6 +350,8 @@ const reset = () => {
     n.pos.y = t3.y;
     // console.log(`Node ${n.word} final pos: (${n.pos.x}, ${n.pos.y})`);
   });
+  const tm2 = performance.now();
+  console.log(`Initial positioning took: ${tm2 - tm1} ms`);
 
   updateData();
 
