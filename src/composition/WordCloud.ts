@@ -129,7 +129,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
     showCollPolygon: false,
   },
   fGravity: {
-    params: {enabled: true, strength: 1, aspectRatio: 1},
+    params: {enabled: false, strength: 1, aspectRatio: 1},
     alpha: {
       target: 0,
       decay: 0.0228,
