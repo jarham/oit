@@ -272,9 +272,9 @@ const positionNodes = () => {
     sim.initialize(simNodes);
     ba = sim.findBody(n)!;
     if (i == 0) {
-      // Shortcut for the first one: Jump to origin
-      n.pos.x = 0;
-      n.pos.y = 0;
+      // Shortcut for the first one: Jump to origin, or a bit off it
+      n.pos.x = 15;
+      n.pos.y = 15;
     } else {
       minD2 = Number.POSITIVE_INFINITY;
       for (let a = 0; a < 2 * Math.PI; a += angleStep) {
