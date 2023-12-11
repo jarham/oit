@@ -346,16 +346,39 @@ const positionNodes = () => {
     }
   });
 
-  // Scale to fit
+  // Center nodes by "full bounding box" (surrounding every node)
+  t1.x = Number.POSITIVE_INFINITY;
+  t1.y = Number.POSITIVE_INFINITY;
+  t2.x = Number.NEGATIVE_INFINITY;
+  t2.y = Number.NEGATIVE_INFINITY;
+  initNodes.forEach((n) => {
+    if (n.pos.x < t1.x) t1.x = n.pos.x;
+    if (n.pos.x > t2.x) t2.x = n.pos.x;
+    if (n.pos.y < t1.y) t1.y = n.pos.y;
+    if (n.pos.y > t2.y) t2.y = n.pos.y;
+  });
+  t1.x = (t1.x + t2.x) / 2;
+  t1.y = (t1.y + t2.y) / 2;
+  // console.log('v center:', t1);
+  maxD2 = Number.NEGATIVE_INFINITY;
+  initNodes.forEach((n) => {
+    n.pos.x -= t1.x;
+    n.pos.y -= t1.y;
+    const d2 = n.pos.x * n.pos.x + n.pos.y * n.pos.y;
+    if (d2 > maxD2) maxD2 = d2;
+  });
+
+  // Scale up if possible
   const d = Math.sqrt(maxD2);
   const hw = width / 2 - props.viewportPadding.x;
   const f = hw / d;
-  if (f > 1)
-  initNodes.forEach((n) => {
-    n.pos.x *= f;
-    n.pos.y *= f;
-  });
-
+  // console.log('f:', f);
+  if (f > 1) {
+    initNodes.forEach((n) => {
+      n.pos.x *= f;
+      n.pos.y *= f;
+    });
+  }
 
   // Scale positions back to match ellipse
   for (let i = 0; i < nodes.length; i++) {
