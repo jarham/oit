@@ -294,6 +294,7 @@ const reset = () => {
   nodes.forEach((n, i) => {
     simNodes.push(n);
     sim.initialize(simNodes);
+    ba = sim.findBody(n)!;
     if (i == 0) {
       // Shortcut for the first one: Jump to origin
       n.pos.x = 0;
@@ -314,7 +315,7 @@ const reset = () => {
       t1.y = (n.pos.y / d) * (Math.min(minHeight, minWidth) / -2);
 
       while (true) {
-        sim.eng.checkCollisions();
+        sim.eng.checkBodyCollision(ba);
         if (sim.eng.collisionCount > 0) {
           // Step back if we hit
           n.pos.x -= t1.x;

@@ -7,6 +7,7 @@ import type {PartialDeep} from 'type-fest';
 import merge from 'lodash.merge';
 import {Ellipse, Vec2Ref, ellipse2poly, vec2Pow2Sum} from '@/lib/math-utils';
 import {
+  type Body,
   type BoundingBox,
   MinkowskiDiffEngine,
   type Vec2,
@@ -453,8 +454,8 @@ export class ForceKeepInVP extends ForceBase<WordCloudKeepInVpForceOpts> {
 
 export class Simulation {
   private nodes: WordNode[] = [];
-  private bodies: Body[] = [];
-  private data = new Map<string, {node: WordNode; body: Body}>();
+  private bodies: Body<WordNode>[] = [];
+  private data = new Map<string, {node: WordNode; body: Body<WordNode>}>();
   eng: MinkowskiDiffEngine<WordNode>;
   private forces: ForceBase<WordCloudBaseForceParams>[] = [];
   private alphas: ForceAlphas = {};
@@ -556,6 +557,10 @@ export class Simulation {
     this.updateBodies();
     this.forces.forEach((f) => f.initialize(this.nodes));
     this.reset();
+  }
+
+  findBody(node: WordNode): Body<WordNode> | undefined {
+    return this.eng.findBody(node.id);
   }
 
   hasCollisions(): Boolean {
