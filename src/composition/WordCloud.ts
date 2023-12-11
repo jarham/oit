@@ -310,7 +310,8 @@ export class ForceGravity extends ForceBase<WordCloudBaseForceParams> {
   apply(alpha: number, _t: number) {
     for (let i = 0; i < this.nodes.length - 1; i++) {
       const n = this.nodes[i];
-      const d = Math.sqrt(n.pos.x * n.pos.x + n.pos.y * n.pos.y);
+      // Math.max to prevent division by zero
+      const d = Math.max(Math.sqrt(n.pos.x * n.pos.x + n.pos.y * n.pos.y), 1);
       const vl = n.vl[this.id];
       this.t1.x = (n.pos.x / d) * alpha * -this.p.strength;
       this.t1.y = (n.pos.y / d) * alpha * -this.p.strength;
