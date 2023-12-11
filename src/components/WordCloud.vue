@@ -23,7 +23,7 @@ import type {
   WordNode,
 } from '@/composition/WordCloud';
 import {ellipse2poly} from '@/lib/math-utils';
-import type {Body, Vec2} from '@symcode-fi/minkowski-collision';
+import type {Body, MinDistResult, Vec2} from '@symcode-fi/minkowski-collision';
 import {cloneDeep} from '@/utils';
 
 // NOTE: because Vue doesn't support importing props interface until 3.3
@@ -232,8 +232,8 @@ const reset = () => {
     //   250 *
     //   (height / width);
 
-    // Just make sure initial positions are outside the ellipse and non-colliding.
-    const cx = 0;
+    // Just make sure initial positions are outside the ellipse and non-colliding (repositioned later)
+    const cx = 10000;
     const cy = 0;
 
     return {
@@ -272,20 +272,21 @@ const reset = () => {
     // width / 2 + minWidth / 2 = just outside the ellipse
     // + minWidth * 2 adds margin
     // + i * 2.5 * minWidth separates words from each other.
-    n.pos.x = width / 2 + minWidth * 60 + i * 2.5 * minWidth;
+    n.pos.x = width / 2 + minWidth * (nodes.length + 1 + i) * 4;
     n.pos.y = 0;
   });
-  // Start moving nodes to ellipse: Linecast enough lines from outer egde
-  // to find a position closest to origin, move node there and then move
-  // it outwards until it doesn't hit anything.
+  // Start moving nodes to ellipse: Move each one from just outside of the ellipse
+  // towards the origin. Move as close to origin as possible without hitting other nodes.
+  // Try from multiple angles (48 different ones).
   const t1: Vec2 = {x: 0, y: 0};
   const t2: Vec2 = {x: 0, y: 0};
   const t3: Vec2 = {x: 0, y: 0};
+  const mdr: MinDistResult = {d: 0, v1i: 0, v2i: 0, minPoint: {x: 0, y: 0}};
   let ba: Body<WordNode>;
   let bb: Body<WordNode>;
-  const rayStep = (2 * Math.PI) / 64;
+  const rayStep = (2 * Math.PI) / 48;
   let d: number;
-  let m: number;
+  let minD2: number;
   sim.initialize(nodes);
   nodes.forEach((n, i) => {
     if (i == 0) {
@@ -296,42 +297,53 @@ const reset = () => {
     }
 
     // Line cast
-    d = Number.POSITIVE_INFINITY;
+    minD2 = Number.POSITIVE_INFINITY;
     for (let a = 0; a < 2 * Math.PI; a += rayStep) {
-    // for (let a = 0; a < 2 * Math.PI; a += rayStep * 8) {
-    // for (let a = 0; a <= 0; a += rayStep) {
-      t1.x = width / 2 * Math.cos(a);
-      t1.y = height / 2 * Math.sin(a);
-      sim.eng.lineCast(t1, t2);
-      if (sim.eng.castResultCount > 0) {
-        m = sim.eng.castResults[0].pos.x * sim.eng.castResults[0].pos.x + sim.eng.castResults[0].pos.y * sim.eng.castResults[0].pos.y;
-        if (m < d) {
-          d = m;
-          t3.x = sim.eng.castResults[0].pos.x;
-          t3.y = sim.eng.castResults[0].pos.y;
-          ba = sim.eng.castResults[0].b;
+      // Initial position
+      n.pos.x = (width / 2 + minWidth / 2) * Math.cos(a);
+      n.pos.y = (height / 2 + minHeight / 2) * Math.sin(a);
+      // console.log(`Node ${n.word} init pos: (${n.pos.x}, ${n.pos.y})`);
+      // Initial move vector
+      d = Math.sqrt(n.pos.x * n.pos.x + n.pos.y * n.pos.y);
+      t1.x = (n.pos.x / d) * (Math.min(minHeight, minWidth) / -4);
+      t1.y = (n.pos.y / d) * (Math.min(minHeight, minWidth) / -4);
+
+      while (true) {
+        sim.eng.checkCollisions();
+        if (sim.eng.collisionCount > 0) {
+          // Step back if we hit
+          n.pos.x -= t1.x;
+          n.pos.y -= t1.y;
+
+          // Stop if move vector is already small enough
+          if (Math.abs(t1.x) < 0.5 && Math.abs(t1.y) < 0.5) {
+            break;
+          }
+
+          // Divide move vector to half
+          t1.x /= 2;
+          t1.y /= 2;
+        } else {
+          // Keep moving if no hits
+          n.pos.x += t1.x;
+          n.pos.y += t1.y;
         }
       }
-    }
-    console.log(`Node ${n.word} init pos: (${t3.x}, ${t3.y})`);
 
-    // Now move node to hit point and then move away from origin as long as bodies collide
+      // Record min dist to origin
+      sim.eng.pointToBodyMinDist(t2, sim.eng.findBody(n.id)!, mdr);
+      if (mdr.d < minD2) {
+        minD2 = mdr.d;
+        t3.x = n.pos.x;
+        t3.y = n.pos.y;
+        // console.log(`Node ${n.word} suggested pos: (${n.pos.x}, ${n.pos.y})`);
+      }
+    }
+
+    // Use the position that was closest to origin
     n.pos.x = t3.x;
     n.pos.y = t3.y;
-    d = Math.sqrt(d);
-    t3.x = t3.x / d * 2;
-    t3.y = t3.y / d * 2;
-    bb = sim.eng.findBody(n.id);
-    sim.eng.checkBodyCollision(ba, bb);
-    const bbd = sim.eng.distances[ba.index][bb.index - (ba.index + 1)];
-
-    while (true) {
-      n.pos.x += t3.x;
-      n.pos.y += t3.y;
-      sim.eng.checkCollisions();
-      if (sim.eng.collisionCount === 0) break;
-    }
-    console.log(`Node ${n.word} final pos: (${n.pos.x}, ${n.pos.y})`);
+    // console.log(`Node ${n.word} final pos: (${n.pos.x}, ${n.pos.y})`);
   });
 
   updateData();

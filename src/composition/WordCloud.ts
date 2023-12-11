@@ -109,14 +109,14 @@ export type WordCloudOpts = PartialDeep<Omit<WordCloudProps, 'words'>>;
 
 export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
   shapePadding: {
-    x: 35,
-    y: 30,
+    x: 25,
+    y: 25,
   },
   viewportPadding: {
     x: 3,
     y: 3,
   },
-  shapePolyVertexCount: 16,
+  shapePolyVertexCount: 12,
   simulation: {
     run: false,
     breakPoint: null,

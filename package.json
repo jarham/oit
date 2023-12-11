@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@popperjs/core": "2.11.8",
-    "@symcode-fi/minkowski-collision": "github:symcode-fi/minkowski-collision#12806e1cbe6865c3d7cc551c55acf8c10e0aea7e",
+    "@symcode-fi/minkowski-collision": "link:/home/jari/src/symcode/interal/js-geometry-stuff/minkowski-collision",
     "bootstrap": "5.3.2",
     "bootstrap-icons": "1.11.2",
     "d3": "7.8.5",
