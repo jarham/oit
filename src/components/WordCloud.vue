@@ -315,7 +315,7 @@ const reset = () => {
       t1.y = (n.pos.y / d) * (Math.min(minHeight, minWidth) / -2);
 
       while (true) {
-        sim.eng.checkBodyCollision(ba);
+        sim.eng.checkBodyCollision(ba, true);
         if (sim.eng.collisionCount > 0) {
           // Step back if we hit
           n.pos.x -= t1.x;
