@@ -105,8 +105,8 @@ let skipStep = false;
 
 let nodeCounter = 0;
 
-let minWidth = 10;
-let minHeight = 10;
+let nodeMaxWidth = 10;
+let nodeMaxHeight = 10;
 let width = 0;
 let height = 0;
 let nodes: WordNode[] = [];
@@ -157,8 +157,8 @@ const updateDimensions = () => {
   if (!elWordCloud.value || !svg) return;
   const div = elWordCloud.value;
   const r = div.getBoundingClientRect();
-  width = Math.max(r.width, minWidth);
-  height = Math.min(Math.max(r.height, minHeight), 500);
+  width = Math.max(r.width, nodeMaxWidth);
+  height = Math.min(Math.max(r.height, nodeMaxHeight), 500);
   svg.attr('viewBox', [-width / 2, -height / 2, width, height]);
   sim.setViewportSize(
     width,
@@ -207,42 +207,15 @@ const dispose = () => {
 onMounted(create);
 onBeforeUnmount(dispose);
 
-/**
- * Reset to starting state.
- */
-const reset = () => {
-  sim.reset();
-  updateDimensions();
-
+const createNodes = () => {
   nodes = props.words.map((word, n) => {
-    // const r = Math.sqrt(Math.random());
-    // const th = Math.random() * 2 * Math.PI;
-    // const cx = r * Math.cos(th) * (width / 4);
-    // const cy = (width / height) * r * Math.sin(th) * (width / 4);
-
-    // const cx = Math.cos(n) * (n + 5) * 2;
-    // const cy = Math.sin(n) * (n + 5) * 2;
-
-    // const cx = Math.cos(n) * (n + 20) * 6;
-    // const cy = Math.sin(n) * (n + 20) * 6;
-
-    // const cx = Math.cos(((2 * Math.PI) / props.words.length) * n * 3.1) * 250;
-    // const cy =
-    //   Math.sin(((2 * Math.PI) / props.words.length) * n * 3.1) *
-    //   250 *
-    //   (height / width);
-
-    // Just make sure initial positions are outside the ellipse and non-colliding (repositioned later)
-    const cx = 10000;
-    const cy = 0;
-
     return {
       id: `word-node-${nodeCounter++}`,
       index: n,
       word: word,
       pos: {
-        x: cx,
-        y: cy,
+        x: 0,
+        y: 0,
       },
       h: {
         x: 0,
@@ -250,13 +223,13 @@ const reset = () => {
       },
       vl: {},
       vlt: {
-        x: cx,
-        y: cy,
+        x: 0,
+        y: 0,
       },
       p: {},
       pt: {
-        x: cx,
-        y: cy,
+        x: 0,
+        y: 0,
       },
       v: [],
       vms: [],
@@ -265,14 +238,18 @@ const reset = () => {
   });
 
   // One update data call is required to get text sizes.
-  updateData();
+  updateData(true);
+};
+
+const positionNodes = () => {
+  const tm1 = performance.now();
 
   // Reposition nodes so that they're completely outside of the ellipse and that they don't collide.
   nodes.forEach((n, i) => {
     // width / 2 + minWidth / 2 = just outside the ellipse
     // + minWidth * 2 adds margin
     // + i * 2.5 * minWidth separates words from each other.
-    n.pos.x = width / 2 + minWidth * (nodes.length + 1 + i) * 4;
+    n.pos.x = width / 2 + nodeMaxWidth * (nodes.length + 1 + i) * 4;
     n.pos.y = 0;
   });
   // Start moving nodes to ellipse: Move each one from just outside of the ellipse
@@ -290,7 +267,6 @@ const reset = () => {
   // sim.initialize(nodes);
   let simNodes: WordNode[] = [];
 
-  const tm1 = performance.now();
   nodes.forEach((n, i) => {
     simNodes.push(n);
     sim.initialize(simNodes);
@@ -306,13 +282,13 @@ const reset = () => {
     minD2 = Number.POSITIVE_INFINITY;
     for (let a = 0; a < 2 * Math.PI; a += rayStep) {
       // Initial position
-      n.pos.x = (width / 2 + minWidth / 2) * Math.cos(a);
-      n.pos.y = (height / 2 + minHeight / 2) * Math.sin(a);
+      n.pos.x = (width / 2 + nodeMaxWidth / 2) * Math.cos(a);
+      n.pos.y = (height / 2 + nodeMaxHeight / 2) * Math.sin(a);
       // console.log(`Node ${n.word} init pos: (${n.pos.x}, ${n.pos.y})`);
       // Initial move vector
       d = Math.sqrt(n.pos.x * n.pos.x + n.pos.y * n.pos.y);
-      t1.x = (n.pos.x / d) * (Math.min(minHeight, minWidth) / -2);
-      t1.y = (n.pos.y / d) * (Math.min(minHeight, minWidth) / -2);
+      t1.x = (n.pos.x / d) * (Math.min(nodeMaxHeight, nodeMaxWidth) / -2);
+      t1.y = (n.pos.y / d) * (Math.min(nodeMaxHeight, nodeMaxWidth) / -2);
 
       while (true) {
         sim.eng.checkBodyCollision(ba, true);
@@ -355,8 +331,18 @@ const reset = () => {
   console.log(`Initial positioning took: ${tm2 - tm1} ms`);
 
   updateData();
+};
 
-  // Another dimension update because minWidth and minHeight
+/**
+ * Reset to starting state.
+ */
+const reset = () => {
+  sim.reset();
+  updateDimensions();
+  createNodes();
+  positionNodes();
+
+  // Another dimension update because nodeMaxWidth and nodeMaxHeight
   // can update after we get nodes created.
   updateDimensions();
   sim.initialize(nodes);
@@ -366,7 +352,7 @@ const reset = () => {
   sepForces.forEach((sf) => sf.setAspectRatio(ap));
 };
 
-const updateData = () => {
+const updateData = (updateNodeDims = false) => {
   nodeGroup
     .selectAll<SVGTextElement, WordNode>('text')
     .data(nodes)
@@ -391,7 +377,7 @@ const updateData = () => {
       },
     );
 
-  if (sim.time === 0) updateNodeDimensions();
+  if (updateNodeDims || sim.time === 0) updateNodeDimensions();
 
   nodeGroup
     .selectAll<SVGRectElement, WordNode>('rect')
@@ -529,16 +515,16 @@ const emitAlphas = () => {
 
 const updateNodeDimensions = () => {
   // Update minWidth and minHeight too
-  minWidth = 0;
-  minHeight = 0;
+  nodeMaxWidth = 0;
+  nodeMaxHeight = 0;
   nodeGroup.selectAll<SVGTextElement, WordNode>('text').each((wd1, i, g) => {
     const r = g[i].getBBox();
     const w = r.width + props.shapePadding.x;
     const h = r.height + props.shapePadding.y;
     wd1.h.x = w / 2;
     wd1.h.y = h / 2;
-    if (w > minWidth) minWidth = Math.ceil(w);
-    if (h > minHeight) minHeight = Math.ceil(w);
+    if (w > nodeMaxWidth) nodeMaxWidth = Math.ceil(w);
+    if (h > nodeMaxHeight) nodeMaxHeight = Math.ceil(w);
 
     wd1.v = ellipse2poly(0, 0, wd1.h.x, wd1.h.y, 0, props.shapePolyVertexCount);
   });
