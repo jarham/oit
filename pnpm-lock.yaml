@@ -9,8 +9,8 @@ dependencies:
     specifier: 2.11.8
     version: 2.11.8
   '@symcode-fi/minkowski-collision':
-    specifier: link:/home/jari/src/symcode/interal/js-geometry-stuff/minkowski-collision
-    version: link:../../../interal/js-geometry-stuff/minkowski-collision
+    specifier: github:symcode-fi/minkowski-collision#de85d6a00836c339534a92f1c819bab32a85b41a
+    version: github.com/symcode-fi/minkowski-collision/de85d6a00836c339534a92f1c819bab32a85b41a
   bootstrap:
     specifier: 5.3.2
     version: 5.3.2(@popperjs/core@2.11.8)
@@ -6006,3 +6006,13 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: true
+
+  github.com/symcode-fi/minkowski-collision/de85d6a00836c339534a92f1c819bab32a85b41a:
+    resolution: {tarball: https://codeload.github.com/symcode-fi/minkowski-collision/tar.gz/de85d6a00836c339534a92f1c819bab32a85b41a}
+    name: '@symcode-fi/minkowski-collision'
+    version: 1.1.0
+    prepare: true
+    requiresBuild: true
+    dependencies:
+      rfdc: 1.3.0
+    dev: false
