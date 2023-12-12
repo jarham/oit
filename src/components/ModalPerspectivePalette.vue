@@ -135,53 +135,53 @@ const words = tc('text.perspectives')
 
 const wcProps = useWordCloud(words, {
   debugInfo: {showCollPolygon: debugControls},
-  fGravity: {
-    params: {
-      strength: 1,
-      aspectRatio: 1,
-    },
-    alpha: {
-      alphaInit: 0,
-    },
-  },
-  fGravity2: {
-    params: {
-      strength: -6,
-      aspectRatio: 1,
-    },
-    alpha: {
-      decay: 0.2,
-      alphaInit: 0.5,
-    },
-  },
-  fSepP: {
-    params: {
-      strength: 10,
-      aspectRatio: 1,
-    },
-  },
-  fSepP2: {
-    params: {
-      strength: 10,
-      aspectRatio: 1,
-    },
-  },
-  fSepV: {
-    params: {
-      strength: 20,
-      aspectRatio: 1,
-    },
-  },
-  fSepV2: {
-    params: {
-      strength: 30,
-      aspectRatio: 1,
-      outwardsOnly: true,
-    },
-    alpha: {
-      decay: 0.8,
-    },
-  },
+  // fGravity: {
+  //   params: {
+  //     strength: 1,
+  //     aspectRatio: 1,
+  //   },
+  //   alpha: {
+  //     alphaInit: 0,
+  //   },
+  // },
+  // fGravity2: {
+  //   params: {
+  //     strength: -6,
+  //     aspectRatio: 1,
+  //   },
+  //   alpha: {
+  //     decay: 0.2,
+  //     alphaInit: 0.5,
+  //   },
+  // },
+  // fSepP: {
+  //   params: {
+  //     strength: 10,
+  //     aspectRatio: 1,
+  //   },
+  // },
+  // fSepP2: {
+  //   params: {
+  //     strength: 10,
+  //     aspectRatio: 1,
+  //   },
+  // },
+  // fSepV: {
+  //   params: {
+  //     strength: 20,
+  //     aspectRatio: 1,
+  //   },
+  // },
+  // fSepV2: {
+  //   params: {
+  //     strength: 30,
+  //     aspectRatio: 1,
+  //     outwardsOnly: true,
+  //   },
+  //   alpha: {
+  //     decay: 0.8,
+  //   },
+  // },
 });
 
 const alphas = ref({

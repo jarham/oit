@@ -147,7 +147,7 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
   fSepV: {
     params: {
       enabled: true,
-      strength: 1,
+      strength: 20,
       outwardsOnly: false,
       aspectRatio: 1,
     },
@@ -160,20 +160,20 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
   fSepV2: {
     params: {
       enabled: true,
-      strength: 1,
+      strength: 30,
       outwardsOnly: false,
       aspectRatio: 1,
     },
     alpha: {
       target: 0,
-      decay: 0.0228,
+      decay: 0.2,
       min: 0.001,
     },
   },
   fSepP: {
     params: {
-      enabled: false,
-      strength: 1,
+      enabled: true,
+      strength: 10,
       outwardsOnly: false,
       aspectRatio: 1,
     },
@@ -185,14 +185,14 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
   },
   fSepP2: {
     params: {
-      enabled: false,
-      strength: 1,
+      enabled: true,
+      strength: 30,
       outwardsOnly: false,
       aspectRatio: 1,
     },
     alpha: {
       target: 0,
-      decay: 0.0228,
+      decay: 0.2,
       min: 0.001,
     },
   },
