@@ -473,6 +473,8 @@ export class Simulation {
   // bounding ellipse
   private vpEl = new Ellipse({x: 0, y: 0}, {x: 0, y: 0});
   private applyOpts: BaseForceApplyOpts;
+  // number of "idle" ticks (nodes not moving)
+  private idleCounter = 0;
 
   constructor(private debugPolys: Vec2[][]) {
     const temp: WordNode = {
@@ -517,6 +519,10 @@ export class Simulation {
     return this.t;
   }
 
+  get isIdle(): boolean {
+    return this.idleCounter > 0;
+  }
+
   get forceAlphas(): ForceAlphas {
     return {...this.alphas};
   }
@@ -544,6 +550,7 @@ export class Simulation {
 
   clear() {
     this.t = 0;
+    this.idleCounter = 0;
     this.eng.updateData([]);
     this.forces.forEach((f) => f.clear());
     this.forces.splice(0, this.forces.length);
@@ -571,6 +578,7 @@ export class Simulation {
 
   reset() {
     this.t = 0;
+    this.idleCounter = 0;
     this.forces.forEach((f) => {
       f.resetTriggers();
       const alphaInit = this.alphaSettings.get(f.id)?.alphaInit;
@@ -623,6 +631,7 @@ export class Simulation {
     });
 
     // Update nodes' totals and position
+    let idling = 0;
     this.nodes.forEach((n) => {
       n.vlt.x = 0;
       n.vlt.y = 0;
@@ -649,13 +658,20 @@ export class Simulation {
       const dx = n.vlt.x + n.pt.x;
       const dy = n.vlt.y + n.pt.y;
 
-      n.pos.x += dx;
-      n.pos.y += dy;
+      if (Math.abs(dx) < 0.05 && Math.abs(dy) < 0.05) {
+        idling++;
+      } else {
+        n.pos.x += dx;
+        n.pos.y += dy;
+      }
       // NOTE: MinkowskiDiffEngine shares pos with nodes
       //       so there's no need to call updateShapePos()
       // if (n.body) Body.translate(n.body, {x: dx, y: dy});
       // this.eng.updateShapePos(n.id, dx, dy);
     });
+    if (idling >= this.nodes.length) {
+      this.idleCounter++;
+    }
 
     // Update alphas
     this.forces.forEach((f) => {

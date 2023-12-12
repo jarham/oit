@@ -392,6 +392,9 @@ const positionNodes = () => {
   sim.initialize(nodes);
   for (let i = 0; i < 80; i++) {
     sim.tick();
+    if (sim.isIdle) {
+      break;
+    }
   }
   sim.reset();
 
