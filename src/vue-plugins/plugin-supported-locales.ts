@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BSD-2-Clause
+// Copyright (c) 2023, Jari Hämäläinen, Carita Kiili and Julie Coiro
 import {App, inject} from 'vue';
 
 // Storing suported locales to a plugin since importing

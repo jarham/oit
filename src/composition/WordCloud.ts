@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-2-Clause
-// Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro
+// Copyright (c) 2023, Jari Hämäläinen, Carita Kiili and Julie Coiro
 import {ref} from 'vue';
 import type {Ref} from 'vue';
 import type {PartialDeep} from 'type-fest';
@@ -35,10 +35,6 @@ export interface WordNode {
 }
 
 export type ForceAlphas = Record<string, number>;
-
-export interface SimData {
-  alphas: ForceAlphas;
-}
 
 export interface WordCloudForceAlphaSettings {
   target: number;
@@ -325,7 +321,6 @@ export class ForceKeepInVP extends ForceBase<WordCloudKeepInVpForceOpts> {
           y: v.y + dy + n.pos.y,
         }));
         if (!opts.vpEl.containsPolygon(poly, this.t2)) {
-          // TODO: calculate how much to cut off
           this.t2.x -= poly[this.t2.ref].x;
           this.t2.y -= poly[this.t2.ref].y;
           vp.x = this.t2.x;
@@ -772,8 +767,6 @@ export class NodePositioning {
   }
 
   positionNodes(nodes: WordNode[], width: number, height: number) {
-    const tm1 = performance.now();
-
     let nodeMaxWidth = Number.NEGATIVE_INFINITY;
     let nodeMaxHeight = Number.NEGATIVE_INFINITY;
     // Use half dims to find max dims
@@ -918,7 +911,6 @@ export class NodePositioning {
     });
     t1.x = (t1.x + t2.x) / 2;
     t1.y = (t1.y + t2.y) / 2;
-    // console.log('v center:', t1);
     maxD2 = Number.NEGATIVE_INFINITY;
     initNodes.forEach((n) => {
       n.pos.x -= t1.x;
@@ -931,7 +923,6 @@ export class NodePositioning {
     const d = Math.sqrt(maxD2);
     const hw = width / 2 - this.opts.viewportPadding.x;
     const f = hw / d;
-    // console.log('f:', f);
     if (f > 1) {
       initNodes.forEach((n) => {
         n.pos.x *= f;
@@ -956,8 +947,5 @@ export class NodePositioning {
       }
     }
     this.sim.reset();
-
-    const tm2 = performance.now();
-    console.log(`Initial positioning took: ${tm2 - tm1} ms`);
   }
 }

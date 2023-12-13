@@ -1,10 +1,9 @@
 <!-- SPDX-License-Identifier: BSD-2-Clause
-     Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
+     Copyright (c) 2023, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
 <template lang="pug">
 ModalBase.modal-perspective-palette(
   v-bind='bind'
   ref='modal'
-  @hidden='onHidden'
 )
   template(#body)
     WordCloud.mx-3(
@@ -48,54 +47,19 @@ watch(locale, (l) => (wcProps.value.locale = l));
 const modal = ref<InstanceType<typeof ModalBase>>();
 const {modalInterface, bind} = useModalBase(modal, {
   haveBtnOk: false,
-  // clsDialog: ['modal-lg'],
-  // clsBody: ['overflow-auto'],
   txtTitle: 'component.modal-perspective-palette.text.title',
   txtBtnCancel: 'component.modal-perspective-palette.btn.close.text',
   ariaBtnClose: 'component.modal-perspective-palette.btn.close.aria-label',
 });
 const wordCloud = ref<InstanceType<typeof WordCloud>>();
 
-// Skip 2 frame before animating words. This way
-// initial placement can actually be seen.
-// let wantToStart = false;
-// let startDelayCounter = 0;
-// const startDelayOnShow = 2;
-// const startFn = () => {
-//   if (!wantToStart) return;
-//   if (startDelayCounter++ < startDelayOnShow) {
-//     requestAnimationFrame(startFn);
-//   } else {
-//     wantToStart = false;
-//     wordCloud.value?.start();
-//   }
-// };
 defineExpose({
   ...modalInterface,
   show: () => {
     modalInterface.show();
     wordCloud.value?.showPalette(true);
-    // wantToStart = true;
-    // startDelayCounter = 0;
-    // if (wasRunning) {
-    //   requestAnimationFrame(startFn);
-    // }
-  },
-  updateWords: () => {
-    // wordCloud.value?.stop();
-    // wcProps.value.words = tc('text.perspectives')
-    //   .split('\n')
-    //   .map((w) => w.trim())
-    //   .filter((w) => !!w);
-    // wordCloud.value?.reset();
   },
 });
-
-const onHidden = () => {
-  // wantToStart = false;
-  // startDelayCounter = 0;
-  // wordCloud.value?.stop();
-};
 
 const isDiv = (o: any): o is HTMLDivElement => {
   return !!o && 'tagName' in o && o.tagName === 'DIV';
@@ -109,14 +73,10 @@ const checkSize = () => {
     .replaceAll('"', '') as 'l' | 'm' | 's' | 'scaling';
   if (wcProps.value.size === 'none') {
     wcProps.value.size = currentSize;
-    // lastSize = currentSize;
-    console.log('lastSize', wcProps.value.size);
     return;
   }
   if (wcProps.value.size == currentSize) return;
-  // wordCloud.value?.reset();
   wcProps.value.size = currentSize;
-  console.log('lastSize', wcProps.value.size);
 };
 onMounted(() => {
   window.addEventListener('resize', checkSize);
@@ -124,7 +84,6 @@ onMounted(() => {
 });
 onBeforeUnmount(() => {
   window.removeEventListener('resize', checkSize);
-  // wantToStart = false;
 });
 </script>
 <style lang="scss">

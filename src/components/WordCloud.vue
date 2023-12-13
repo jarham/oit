@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: BSD-2-Clause
-     Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
+     Copyright (c) 2023, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
 <template lang="pug">
 .word-cloud
   .word-cloud-body(ref='elWordCloud')
@@ -48,8 +48,6 @@ const props = withDefaults(defineProps<WordCloudProps>(), {
 watch(
   () => [props.locale, props.size],
   (items) => {
-    // reset();
-    console.log('locale or size changed!', items);
     positionNodes();
     showPalette();
   },
@@ -177,7 +175,6 @@ const showPalette = (forceReanimate = false) => {
   const localeNodes = allNodes[props.locale];
   const sizeNodes = localeNodes[size];
   if (sizeNodes.length === 0) {
-    console.log('No palette yet for', props.locale, size);
     return;
   }
 
@@ -187,7 +184,6 @@ const showPalette = (forceReanimate = false) => {
     console.error('Did not find palette for size', size);
     return;
   }
-  console.log('Showing palette for', props.locale, size);
 
   currentSvg.value = palette.svg;
 
@@ -253,7 +249,6 @@ const positionNodes = () => {
       workerLocale = props.locale;
       workerSize = s;
       workerNodes = createNodes(props.words[props.locale]);
-      console.log('working on', props.locale, paletteSize);
       worker.postMessage({
         msgName: 'MsgNodePositionCompute',
         nodes: workerNodes,
@@ -263,7 +258,6 @@ const positionNodes = () => {
       return;
     }
   }
-  console.log('Node positioning done for', props.locale);
 };
 
 /**
@@ -286,7 +280,6 @@ const create = () => {
             nTarget.pos.y = nSource.pos.y;
           }
           allNodes[workerLocale][workerSize] = nodes;
-          console.log('positioning done for', workerLocale, workerSize);
         } else {
           console.error(
             'No worker nodes, or worker and main nodes length mismatch!',
