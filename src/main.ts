@@ -6,6 +6,7 @@ import {createPinia} from 'pinia';
 import PluginConfirmDialog, {
   ConfirmDialog,
 } from './vue-plugins/plugin-confirm-dialog';
+import PluginSupportedLocales from './vue-plugins/plugin-supported-locales';
 import App from './App.vue';
 import messages from '@intlify/unplugin-vue-i18n/messages';
 import i18nConfig from './translations/_config.yaml';
@@ -23,6 +24,7 @@ declare global {
 }
 
 const fallbackLocale = 'en';
+const supportedLocales = messages ? Object.keys(messages).map((l) => l.toLowerCase()) : [];
 
 const getNavigatorLanguage = (): string => {
   if (navigator.languages && navigator.languages[0]) {
@@ -38,9 +40,6 @@ const getNavigatorLanguage = (): string => {
 };
 
 const getLocale = (): string => {
-  const supportedLocales = messages
-    ? Object.keys(messages).map((l) => l.toLowerCase())
-    : [];
   const localeParts = getNavigatorLanguage().toLowerCase().split('-');
   for (let i = localeParts.length - 1; i >= 0; i--) {
     const tryLocale = localeParts.join('-');
@@ -65,6 +64,7 @@ app
   .use(i18n)
   .use(pinia)
   .use(PluginConfirmDialog, new ConfirmDialog())
+  .use(PluginSupportedLocales, supportedLocales)
   .mount('#app');
 
 if (

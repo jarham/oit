@@ -80,12 +80,10 @@ export interface WordCloudKeepInVpForceOpts extends WordCloudBaseForceParams {
   ellipse?: boolean;
 }
 
-// NOTE: because Vue doesn't support importing props interface until 3.3
-//       WordCloudProps if defined in files:
-//       - src/composition/WordCloud.ts
-//       - src/components/WordCloud.vue
-interface WordCloudProps {
-  words: string[];
+export interface WordCloudProps {
+  words: Record<string, string[]>;
+  locale: string;
+  size: 'l' | 'm' | 's' | 'scaling' | 'none';
   shapePadding?: Vec2;
   viewportPadding?: Vec2;
   shapePolyVertexCount: number;
@@ -93,9 +91,9 @@ interface WordCloudProps {
   sepAutoViewportAspectRatio?: boolean;
 }
 
-export type WordCloudOpts = PartialDeep<Omit<WordCloudProps, 'words'>>;
+export type WordCloudOpts = PartialDeep<Omit<WordCloudProps, 'words' | 'locale' | 'size'>>;
 
-export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
+export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words' | 'locale' | 'size'>> = {
   shapePadding: {
     x: 25,
     y: 25,
@@ -110,17 +108,21 @@ export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words'>> = {
 } as const;
 
 export default function useWordCloud(
-  words: string[],
+  words: Record<string, string[]>,
+  locale: string,
+  size: 'l' | 'm' | 's' | 'scaling' | 'none',
   opts?: WordCloudOpts,
 ): Ref<Required<WordCloudProps>> {
   const o = merge<
     {},
-    Required<Omit<WordCloudProps, 'words'>>,
+    Required<Omit<WordCloudProps, 'words' | 'locale' | 'size'>>,
     WordCloudOpts | undefined
   >(Object.create(null), wordCloudDefaultOpts, opts);
 
   return ref({
     words,
+    locale,
+    size,
     ...o,
   });
 }
