@@ -24,7 +24,9 @@ declare global {
 }
 
 const fallbackLocale = 'en';
-const supportedLocales = messages ? Object.keys(messages).map((l) => l.toLowerCase()) : [];
+const supportedLocales = messages
+  ? Object.keys(messages).map((l) => l.toLowerCase())
+  : [];
 
 const getNavigatorLanguage = (): string => {
   if (navigator.languages && navigator.languages[0]) {

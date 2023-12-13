@@ -118,17 +118,17 @@ export class Ellipse {
       d2 = closestD2;
     } else {
       ref.x = this.t3.x;
-      ref.y = this.t3.y ;
+      ref.y = this.t3.y;
       ref.ref = furthestRef;
       d2 = furthestD2;
     }
-    let d = Math.sqrt(d2);
+    const d = Math.sqrt(d2);
     // 1) Unit vector
     // 2) Scale to reach the circle
     // 3) Scale to ellipse
     // 4) Translate to match untranslated ellipse
-    ref.x = ref.x / d * this.r.x + this.pos.x;
-    ref.y = ref.y / d * this.r.x / this.ys + this.pos.y; // radius = r.x!
+    ref.x = (ref.x / d) * this.r.x + this.pos.x;
+    ref.y = ((ref.y / d) * this.r.x) / this.ys + this.pos.y; // radius = r.x!
 
     return contains;
   }

@@ -86,9 +86,13 @@ export interface WordCloudProps {
   sepAutoViewportAspectRatio?: boolean;
 }
 
-export type WordCloudOpts = PartialDeep<Omit<WordCloudProps, 'words' | 'locale' | 'size'>>;
+export type WordCloudOpts = PartialDeep<
+  Omit<WordCloudProps, 'words' | 'locale' | 'size'>
+>;
 
-export const wordCloudDefaultOpts: Required<Omit<WordCloudProps, 'words' | 'locale' | 'size'>> = {
+export const wordCloudDefaultOpts: Required<
+  Omit<WordCloudProps, 'words' | 'locale' | 'size'>
+> = {
   shapePadding: {
     x: 25,
     y: 25,
@@ -202,25 +206,6 @@ export abstract class ForceBase<T extends WordCloudBaseForceParams> {
 }
 
 export type BaseWordNodeDatumForce = ForceBase<WordCloudBaseForceParams>;
-
-// Not exactly gravity, it just pulls node towards the origin.
-export class ForceGravity extends ForceBase<WordCloudBaseForceParams> {
-  // Reusable temp vector.
-  private t1: Vec2 = {x: 0, y: 0};
-  apply(alpha: number, _t: number) {
-    for (let i = 0; i < this.nodes.length - 1; i++) {
-      const n = this.nodes[i];
-      // Math.max to prevent division by zero
-      const d = Math.max(Math.sqrt(n.pos.x * n.pos.x + n.pos.y * n.pos.y), 1);
-      const vl = n.vl[this.id];
-      this.t1.x = (n.pos.x / d) * alpha * -this.p.strength;
-      this.t1.y = (n.pos.y / d) * alpha * -this.p.strength;
-
-      vl.x += this.t1.x;
-      vl.y += this.t1.y;
-    }
-  }
-}
 
 export class ForceSeparate extends ForceBase<WordCloudSeparationForceOpts> {
   // Reusable temp vectors.
@@ -590,14 +575,7 @@ export class Simulation {
   }
 }
 
-export function forceGravity(
-  p: WordCloudBaseForceParams,
-  triggers?: ForceTrigger[],
-): ForceGravity {
-  return new ForceGravity(p, triggers);
-}
-
-export function forceSep(
+function forceSep(
   type: 'velocity' | 'position',
   p: WordCloudSeparationForceOpts,
   triggers?: ForceTrigger[],
@@ -605,7 +583,7 @@ export function forceSep(
   return new ForceSeparate(type, p, triggers);
 }
 
-export function forceKeepInVP(
+function forceKeepInVP(
   p: WordCloudKeepInVpForceOpts,
   triggers?: ForceTrigger[],
 ): ForceKeepInVP {
@@ -813,7 +791,7 @@ export class NodePositioning {
     let minD2: number;
     // farthest vertex distance^2 from origin
     let maxD2 = Number.NEGATIVE_INFINITY;
-    let simNodes: WordNode[] = [];
+    const simNodes: WordNode[] = [];
 
     initNodes.forEach((n, i) => {
       simNodes.push(n);

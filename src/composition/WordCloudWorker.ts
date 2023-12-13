@@ -14,6 +14,6 @@ onmessage = function (ev: MessageEvent<MsgNodePosition>) {
     postMessage({
       msgName: 'MsgNodePositionResult',
       nodes: ev.data.nodes,
-    })
+    });
   }
 };

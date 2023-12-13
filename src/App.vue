@@ -88,7 +88,6 @@ const onSetLanguage = (l: OitLanguage) => {
   locale.value = l.locale;
   mdlLanguages.value?.hide();
   setPageTitle();
-  mdlPerspectivePalette.value?.updateWords();
 };
 const showLanguages = () => {
   mdlLanguages.value?.show();

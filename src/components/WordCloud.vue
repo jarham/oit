@@ -47,7 +47,7 @@ const props = withDefaults(defineProps<WordCloudProps>(), {
 
 watch(
   () => [props.locale, props.size],
-  (items) => {
+  () => {
     positionNodes();
     showPalette();
   },
