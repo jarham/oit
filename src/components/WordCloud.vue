@@ -134,6 +134,7 @@ const palettes = paletteSizes.map((ps) => {
     ...ps,
     svg,
     g,
+    el,
   };
 });
 
@@ -205,7 +206,22 @@ const showPalette = (forceReanimate = false) => {
         {
           x: node.pos.x,
           y: node.pos.y,
-          duration: 0.35,
+          duration: 0.4,
+          ease: 'power2.out',
+        },
+      ),
+    );
+    tweens.push(
+      gsap.fromTo(
+        palette.el,
+        {
+          rx: 0,
+          ry: 0,
+        },
+        {
+          rx: palette.w / 2,
+          ry: palette.h / 2,
+          duration: 0.25,
           ease: 'power2.out',
         },
       ),
@@ -302,6 +318,7 @@ const dispose = () => {
   offScreenSvgText.remove();
   offScreenSvg.remove();
   palettes.forEach((p) => {
+    p.el.remove();
     p.g.remove();
     p.svg.remove();
   });
