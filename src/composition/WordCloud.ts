@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro
-import * as d3 from 'd3';
 import {ref} from 'vue';
 import type {Ref} from 'vue';
 import type {PartialDeep} from 'type-fest';
@@ -15,7 +14,7 @@ import {
 } from '@symcode-fi/minkowski-collision';
 import {cloneDeep} from '@/utils';
 
-export interface WordNode extends d3.SimulationNodeDatum {
+export interface WordNode {
   id: string;
   index: number;
   word: string;
