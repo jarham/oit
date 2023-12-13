@@ -74,6 +74,7 @@ defineExpose({
   ...modalInterface,
   show: () => {
     modalInterface.show();
+    wordCloud.value?.showPalette(true);
     // wantToStart = true;
     // startDelayCounter = 0;
     // if (wasRunning) {

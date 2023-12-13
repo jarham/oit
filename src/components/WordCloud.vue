@@ -26,6 +26,7 @@ import {ellipse2poly} from '@/lib/math-utils';
 import type {Vec2} from '@symcode-fi/minkowski-collision';
 import {cloneDeep} from '@/utils';
 import {useSupportedLocales} from '@/vue-plugins/plugin-supported-locales';
+import gsap from 'gsap';
 
 // Worker for computing word positions on background
 const worker = new Worker(
@@ -96,6 +97,7 @@ offScreenSvgText.textContent = 'foo';
 offScreenSvg.appendChild(offScreenSvgText);
 
 const texts: SVGTextElement[] = [];
+const tweens: GSAPTween[] = [];
 
 interface SizeSpec {
   w: number;
@@ -145,19 +147,25 @@ const getOrCreateSvgText = (i: number): SVGTextElement => {
   return text;
 };
 
-const showPalette = () => {
+const showPalette = (forceReanimate = false) => {
   if (props.size === 'none') return;
 
   // use s size for scaling
   const size = props.size === 'scaling' ? 's' : props.size;
 
   // Already showing?
-  if (currentSvgLocale === props.locale && currentSvgSize === size) {
+  if (
+    !forceReanimate &&
+    currentSvgLocale === props.locale &&
+    currentSvgSize === size
+  ) {
     return;
   }
 
-  // Remove old texts first
+  // Remove old texts first, and kill tweens
   texts.forEach((t) => t.remove());
+  tweens.forEach((t) => t.kill());
+  tweens.splice(0, tweens.length);
 
   // Remove old svg
   currentSvg.value?.remove();
@@ -185,10 +193,23 @@ const showPalette = () => {
   for (let i = 0; i < sizeNodes.length; i++) {
     const node = sizeNodes[i];
     const text = getOrCreateSvgText(i);
-    text.setAttributeNS(null, 'x', `${node.pos.x}`);
-    text.setAttributeNS(null, 'y', `${node.pos.y}`);
     text.textContent = node.word;
     palette.g.appendChild(text);
+    tweens.push(
+      gsap.fromTo(
+        text,
+        {
+          x: 0,
+          y: 0,
+        },
+        {
+          x: node.pos.x,
+          y: node.pos.y,
+          duration: 0.35,
+          ease: 'power2.out',
+        },
+      ),
+    );
   }
   elWordCloud.value?.appendChild(currentSvg.value);
   currentSvgLocale = props.locale;
@@ -274,6 +295,8 @@ const create = () => {
  */
 const dispose = () => {
   worker.terminate();
+  tweens.forEach((t) => t.kill());
+  tweens.splice(0, tweens.length);
   texts.forEach((t) => t.remove());
   texts.splice(0, texts.length);
   offScreenSvgText.remove();
@@ -335,6 +358,8 @@ const createNodes = (words: string[]): WordNode[] => {
     };
   });
 };
+
+defineExpose({showPalette});
 </script>
 <style lang="scss">
 .word-cloud-body {
