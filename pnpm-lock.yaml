@@ -8,6 +8,9 @@ dependencies:
   '@popperjs/core':
     specifier: 2.11.8
     version: 2.11.8
+  '@symcode-fi/minkowski-collision':
+    specifier: github:symcode-fi/minkowski-collision#de85d6a00836c339534a92f1c819bab32a85b41a
+    version: github.com/symcode-fi/minkowski-collision/de85d6a00836c339534a92f1c819bab32a85b41a
   bootstrap:
     specifier: 5.3.2
     version: 5.3.2(@popperjs/core@2.11.8)
@@ -20,9 +23,15 @@ dependencies:
   flat:
     specifier: 6.0.1
     version: 6.0.1
+  gsap:
+    specifier: 3.12.3
+    version: 3.12.3
   htmlparser2:
     specifier: 9.0.0
     version: 9.0.0
+  lodash.merge:
+    specifier: 4.6.2
+    version: 4.6.2
   markdown-it:
     specifier: 13.0.2
     version: 13.0.2
@@ -32,6 +41,9 @@ dependencies:
   pinia:
     specifier: 2.1.7
     version: 2.1.7(typescript@5.3.2)(vue@3.3.9)
+  rfdc:
+    specifier: 1.3.0
+    version: 1.3.0
   vue:
     specifier: 3.3.9
     version: 3.3.9(typescript@5.3.2)
@@ -73,6 +85,9 @@ devDependencies:
   '@types/flat':
     specifier: 5.0.5
     version: 5.0.5
+  '@types/lodash.merge':
+    specifier: 4.6.9
+    version: 4.6.9
   '@types/markdown-it':
     specifier: 13.0.7
     version: 13.0.7
@@ -148,6 +163,9 @@ devDependencies:
   semantic-release:
     specifier: 22.0.8
     version: 22.0.8
+  type-fest:
+    specifier: 4.8.2
+    version: 4.8.2
   typescript:
     specifier: 5.3.2
     version: 5.3.2
@@ -1230,6 +1248,16 @@ packages:
 
   /@types/linkify-it@3.0.2:
     resolution: {integrity: sha512-HZQYqbiFVWufzCwexrvh694SOim8z2d+xJl5UNamcvQFejLY/2YUtzXHYi3cHdI7PMlS8ejH2slRAOJQ32aNbA==}
+    dev: true
+
+  /@types/lodash.merge@4.6.9:
+    resolution: {integrity: sha512-23sHDPmzd59kUgWyKGiOMO2Qb9YtqRO/x4IhkgNUiPQ1+5MUVqi6bCZeq9nBJ17msjIMbEIO5u+XW4Kz6aGUhQ==}
+    dependencies:
+      '@types/lodash': 4.14.202
+    dev: true
+
+  /@types/lodash@4.14.202:
+    resolution: {integrity: sha512-OvlIYQK9tNneDlS0VN54LLd5uiPCBOp7gS5Z0f1mjoJYBrtStzgmJBxONW3U6OZqdtNzZPmn9BS/7WI7BFFcFQ==}
     dev: true
 
   /@types/markdown-it@13.0.7:
@@ -3017,6 +3045,10 @@ packages:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
     dev: true
 
+  /gsap@3.12.3:
+    resolution: {integrity: sha512-TySXTE+ABiAVa61W+h5wv2p5GkJT1Uj//4nWpK8EjmhcDqwH++35IvtbQlVVFj+rdcJdFCdCt0SKgb+SwdPq/A==}
+    dev: false
+
   /handlebars@4.7.7:
     resolution: {integrity: sha512-aAcXm5OAfE/8IXkcZvCepKU3VzW1/39Fb5ZuqMtgI/hT8X2YgoMvBY5dLhq/cpOvw7Lk1nK/UF71aLG/ZnVYRA==}
     engines: {node: '>=0.4.7'}
@@ -3613,7 +3645,6 @@ packages:
 
   /lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
-    dev: true
 
   /lodash.mergewith@4.6.2:
     resolution: {integrity: sha512-GK3g5RPZWTRSeLSpgP8Xhra+pnjBC56q9FZYe1d5RN3TJ35dbkGy3YqBSMbyCrlbi+CM9Z3Jk5yTL7RCsqboyQ==}
@@ -4596,6 +4627,10 @@ packages:
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
     dev: true
 
+  /rfdc@1.3.0:
+    resolution: {integrity: sha512-V2hovdzFbOi77/WajaSMXk2OLm+xNIeQdMMuB7icj7bk6zi2F8GGAxigcnDFpJHbNyNcgyJDiP+8nOrY5cZGrA==}
+    dev: false
+
   /rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
     hasBin: true
@@ -5511,3 +5546,12 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: true
+
+  github.com/symcode-fi/minkowski-collision/de85d6a00836c339534a92f1c819bab32a85b41a:
+    resolution: {tarball: https://codeload.github.com/symcode-fi/minkowski-collision/tar.gz/de85d6a00836c339534a92f1c819bab32a85b41a}
+    name: '@symcode-fi/minkowski-collision'
+    version: 1.1.0
+    requiresBuild: true
+    dependencies:
+      rfdc: 1.3.0
+    dev: false

@@ -7,6 +7,7 @@ section.app
     TopBar.mb-3(
       @show-languages='showLanguages'
       @show-about='showAbout'
+      @show-perspective-palette='showPerspectivePalette'
       @show-instructions='showInstructions'
       @chart-new='onChartNew'
       @chart-save='onChartSave'
@@ -22,6 +23,7 @@ section.app
       ref='mdlAbout'
     )
     ModalInstructions(ref='mdlInstructions')
+    ModalPerspectivePalette(ref='mdlPerspectivePalette')
     ModalConfirm
     ModalChartSave(
       ref='mdlSave'
@@ -40,6 +42,7 @@ import TopBar from '@/components/TopBar.vue';
 import ModalAbout from '@/components/ModalAbout.vue';
 import ModalLanguages from '@/components/ModalLanguages.vue';
 import ModalInstructions from '@/components/ModalInstructions.vue';
+import ModalPerspectivePalette from '@/components/ModalPerspectivePalette.vue';
 import ModalConfirm from '@/components/ModalConfirm.vue';
 import ModalChartSave from '@/components/ModalChartSave.vue';
 import MainView from '@/views/MainView.vue';
@@ -68,6 +71,8 @@ const {languages} = useModalLanguages(
 const mdlLanguages = ref<InstanceType<typeof ModalLanguages>>();
 const mdlAbout = ref<InstanceType<typeof ModalAbout>>();
 const mdlInstructions = ref<InstanceType<typeof ModalInstructions>>();
+const mdlPerspectivePalette =
+  ref<InstanceType<typeof ModalPerspectivePalette>>();
 const mdlSave = ref<InstanceType<typeof ModalChartSave>>();
 
 onMounted(() => {
@@ -92,6 +97,9 @@ const showAbout = () => {
 };
 const showInstructions = () => {
   mdlInstructions.value?.show();
+};
+const showPerspectivePalette = () => {
+  mdlPerspectivePalette.value?.show();
 };
 
 const onChartNew = async () => {
