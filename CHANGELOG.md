@@ -1,3 +1,10 @@
+# [15.2.0-rc.2](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.1...v15.2.0-rc.2) (2023-12-14)
+
+
+### Bug Fixes
+
+* correct language names in language selection dialog ([e180504](https://github.com/online-inquiry-tool/oit/commit/e180504fd435e277ddaf8bd81f3a2428f414dd56)), closes [#47](https://github.com/online-inquiry-tool/oit/issues/47)
+
 # [15.2.0-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.1.5-rc.4...v15.2.0-rc.1) (2023-12-14)
 
 
