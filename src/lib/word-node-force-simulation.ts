@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2023, Jari Hämäläinen, Carita Kiili and Julie Coiro
 import {
-  type Body,
   type BoundingBox,
   MinkowskiDiffEngine,
   Vec2,
 } from '@symcode-fi/minkowski-collision';
 import {type WordNode} from './word-node';
-import {Ellipse, Vec2Ref, ellipse2poly, vec2Pow2Sum} from './math-utils';
+import {Ellipse, Vec2Ref, vec2Pow2Sum} from './math-utils';
 
 // This file contains the remainder of D3 force simulation, which was
 // at first used for word node positioning, but dropper later on.
@@ -75,10 +74,6 @@ abstract class ForceBase<T extends PerspectivePaletteBaseForceParams> {
     this.p.aspectRatio = ar;
   }
 
-  updateParams(p: T) {
-    Object.assign(this.p, p);
-  }
-
   initialize(newNodes: WordNode[]) {
     this.nodes = newNodes;
   }
@@ -87,8 +82,6 @@ abstract class ForceBase<T extends PerspectivePaletteBaseForceParams> {
     this.nodes.splice(0, this.nodes.length);
   }
 }
-
-type BaseWordNodeDatumForce = ForceBase<PerspectivePaletteBaseForceParams>;
 
 // A "force" that pushes overlapping node away from each other.
 // 'velocity' version affects nodes velocity. 'position' version
@@ -230,7 +223,6 @@ export class ForceKeepInVP extends ForceBase<PerspectivePaletteKeepInVpForceOpts
 // Force simulation class
 export class Simulation {
   private nodes: WordNode[] = [];
-  eng: MinkowskiDiffEngine<WordNode>;
   private forces: ForceBase<PerspectivePaletteBaseForceParams>[] = [];
   private alphas: ForceAlphas = {};
   private alphaSettings = new Map<
@@ -245,32 +237,13 @@ export class Simulation {
     ymin: 0,
     ymax: 0,
   };
-  // bounding ellipse
+  // viewport ellipse
   private vpEl = new Ellipse({x: 0, y: 0}, {x: 0, y: 0});
   private applyOpts: BaseForceApplyOpts;
   // number of "idle" ticks (nodes not moving)
   private idleCounter = 0;
 
-  constructor() {
-    const temp: WordNode = {
-      h: {x: 2, y: 1},
-      id: 'temp',
-      index: -1,
-      p: {},
-      pos: {x: 0, y: 0},
-      pt: {x: 0, y: 0},
-      v: ellipse2poly(0, 0, 20, 10, 0, 16),
-      vl: {},
-      vlt: {x: 0, y: 0},
-      word: 'temp',
-    };
-    this.eng = new MinkowskiDiffEngine<WordNode>(
-      true,
-      false,
-      false,
-      (o) => o.id,
-      temp,
-    );
+  constructor(private eng: MinkowskiDiffEngine<WordNode>) {
     this.applyOpts = {
       eng: this.eng,
       vpBb: this.vpBb,
@@ -294,10 +267,6 @@ export class Simulation {
     return this.idleCounter > 0;
   }
 
-  private updateBodies() {
-    this.eng.updateData(this.nodes);
-  }
-
   setViewportSize(w: number, h: number, px: number, py: number) {
     this.vpBb.xmax = w / 2 - px;
     this.vpBb.xmin = -this.vpBb.xmax;
@@ -317,7 +286,6 @@ export class Simulation {
 
   clear() {
     this.idleCounter = 0;
-    this.eng.updateData([]);
     this.forces.forEach((f) => f.clear());
     this.forces.splice(0, this.forces.length);
     this.nodes.splice(0, this.nodes.length);
@@ -326,18 +294,8 @@ export class Simulation {
 
   initialize(newNodes: WordNode[]) {
     this.nodes = newNodes;
-    this.updateBodies();
     this.forces.forEach((f) => f.initialize(this.nodes));
     this.reset();
-  }
-
-  findBody(node: WordNode): Body<WordNode> | undefined {
-    return this.eng.findBody(node.id);
-  }
-
-  hasCollisions(): Boolean {
-    this.eng.checkCollisions();
-    return this.eng.collisionCount > 0;
   }
 
   reset() {
@@ -362,6 +320,7 @@ export class Simulation {
   }
 
   tick() {
+    // Update collision data for "node separating forces".
     this.eng.checkCollisions();
 
     // Apply forces

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2023, Jari Hämäläinen, Carita Kiili and Julie Coiro
 import {
+  MinkowskiDiffEngine,
   type Body,
   type MinDistResult,
   type Vec2,
@@ -18,6 +19,7 @@ import {
   forceKeepInVP,
   forceSep,
 } from './word-node-force-simulation';
+import {ellipse2poly} from './math-utils';
 
 interface WordNodePositioningOpts {
   viewportPadding?: Vec2;
@@ -137,6 +139,7 @@ export const isMsgNodePositionResult = (
   o.data.msgName === 'MsgWordNodePositionResult' &&
   Array.isArray(o.data.nodes);
 
+// Utility class for calculating word nodes positions
 export class WordNodePositioning {
   private fSepV: ForceSeparate;
   private fSepV2: ForceSeparate;
@@ -144,7 +147,8 @@ export class WordNodePositioning {
   private fSepP2: ForceSeparate;
   private fKeepInVp: ForceKeepInVP;
   private sepForces: ForceSeparate[];
-  private sim = new Simulation();
+  private eng: MinkowskiDiffEngine<WordNode>;
+  private sim: Simulation;
 
   private opts: Required<WordNodePositioningOpts>;
 
@@ -163,6 +167,28 @@ export class WordNodePositioning {
 
     this.sepForces = [this.fSepV, this.fSepV2, this.fSepP, this.fSepP2];
 
+    const temp: WordNode = {
+      h: {x: 2, y: 1},
+      id: 'temp',
+      index: -1,
+      p: {},
+      pos: {x: 0, y: 0},
+      pt: {x: 0, y: 0},
+      v: ellipse2poly(0, 0, 20, 10, 0, 16),
+      vl: {},
+      vlt: {x: 0, y: 0},
+      word: 'temp',
+    };
+    this.eng = new MinkowskiDiffEngine<WordNode>(
+      true,
+      false,
+      false,
+      (o) => o.id,
+      temp,
+    );
+
+    this.sim = new Simulation(this.eng);
+
     this.sim
       .addForce(this.fSepP, this.opts.fSepP.alpha)
       .addForce(this.fSepP2, this.opts.fSepP2.alpha)
@@ -172,6 +198,7 @@ export class WordNodePositioning {
   }
 
   dispose() {
+    this.eng.updateData([]);
     this.sim.clear();
   }
 
@@ -222,12 +249,15 @@ export class WordNodePositioning {
     let minD2: number;
     // farthest vertex distance^2 from origin
     let maxD2 = Number.NEGATIVE_INFINITY;
+    // nodes in simulation, we only need ones that we're adding and have
+    // already been added.
     const simNodes: WordNode[] = [];
 
     initNodes.forEach((n, i) => {
       simNodes.push(n);
+      this.eng.updateData(simNodes);
       this.sim.initialize(simNodes);
-      ba = this.sim.findBody(n)!;
+      ba = this.eng.findBody(n.id)!;
       if (i == 0) {
         // Shortcut for the first one: Jump to origin, or a bit off it
         n.pos.x = 15;
@@ -256,8 +286,8 @@ export class WordNodePositioning {
             n.pos.x += t1.x;
             n.pos.y += t1.y;
 
-            this.sim.eng.checkBodyCollision(ba, true);
-            const hit = this.sim.eng.collisionCount > 0;
+            this.eng.checkBodyCollision(ba, true);
+            const hit = this.eng.collisionCount > 0;
             if (!hit) {
               t2.x = n.pos.x;
               t2.y = n.pos.y;
@@ -274,11 +304,7 @@ export class WordNodePositioning {
           n.pos.y = t2.y;
 
           // Record min dist to origin
-          this.sim.eng.pointToBodyMinDist(
-            zero,
-            this.sim.eng.findBody(n.id)!,
-            mdr,
-          );
+          this.eng.pointToBodyMinDist(zero, this.eng.findBody(n.id)!, mdr);
           if (mdr.d < minD2) {
             minD2 = mdr.d;
             closest.x = n.pos.x;
@@ -347,7 +373,8 @@ export class WordNodePositioning {
       n.pos.y = nInit.pos.y / sy;
     }
 
-    // Few sim rounds to ensure positions are good
+    // Few simulations rounds to ensure positions are good
+    this.eng.updateData(nodes);
     this.sim.initialize(nodes);
     for (let i = 0; i < 80; i++) {
       this.sim.tick();
@@ -355,6 +382,5 @@ export class WordNodePositioning {
         break;
       }
     }
-    this.sim.reset();
   }
 }
