@@ -9,8 +9,16 @@ import {
 import {type WordNode} from './word-node';
 import {Ellipse, Vec2Ref, ellipse2poly, vec2Pow2Sum} from './math-utils';
 
-// Force alphas are used for node separation and "keep in viewport"
-// force simulation.
+// This file contains the remainder of D3 force simulation, which was
+// at first used for word node positioning, but dropper later on.
+// Custom "separate nodes" and "keep in viewport" forces created
+// back then were seem useful in newer implementation so they were
+// kept and used in their own "force simulation" (class Simulation).
+// Simulation is now run for a few rounds after initial word node
+// positioning is done in attempt to ensure that all word nodes
+// are in viewport (this is enforced) and that they don't overlap
+// (this is not guaranteed, space can be too small).
+
 type ForceAlphas = Record<string, number>;
 
 interface PerspectivePaletteForceAlphaSettings {
@@ -27,23 +35,11 @@ interface PerspectivePaletteBaseForceParams {
   aspectRatio: number;
 }
 
-interface ForceTrigger {
-  type: 'time-before' | 'time-after';
-  value: number;
-  callback: (
-    s: Simulation,
-    f: BaseWordNodeDatumForce,
-    t: number,
-    alpha: number,
-  ) => void;
-}
-
 export interface PerspectivePaletteBaseForceOpts<
   T extends PerspectivePaletteBaseForceParams,
 > {
   params: T;
   alpha: PerspectivePaletteForceAlphaSettings;
-  triggers?: ForceTrigger[];
 }
 
 export interface PerspectivePaletteSeparationForceOpts
@@ -67,55 +63,12 @@ abstract class ForceBase<T extends PerspectivePaletteBaseForceParams> {
   readonly id = `force-${forceCounter++}`;
   protected nodes: WordNode[] = [];
 
-  private readonly trgTimeBefore: ForceTrigger[];
-  private trgTimeBeforeIndex = 0;
-  private readonly trgTimeAfter: ForceTrigger[];
-  private trgTimeAfterIndex = 0;
+  constructor(protected readonly p: T) {}
 
-  constructor(
-    protected readonly p: T,
-    triggers?: ForceTrigger[],
-  ) {
-    if (!triggers) {
-      this.trgTimeBefore = [];
-      this.trgTimeAfter = [];
-    } else {
-      this.trgTimeBefore = triggers
-        .filter((t) => t.type == 'time-before')
-        .sort((t1, t2) => t1.value - t2.value);
-      this.trgTimeAfter = triggers
-        .filter((t) => t.type == 'time-after')
-        .sort((t1, t2) => t1.value - t2.value);
-    }
-  }
-
-  abstract apply(alpha: number, t: number, opts: BaseForceApplyOpts): void;
+  abstract apply(alpha: number, opts: BaseForceApplyOpts): void;
 
   get enabled(): boolean {
     return this.p.enabled;
-  }
-
-  execTriggersTimeBefore(s: Simulation, t: number, alpha: number) {
-    while (
-      this.trgTimeBefore[this.trgTimeBeforeIndex] &&
-      this.trgTimeBefore[this.trgTimeBeforeIndex].value === t
-    ) {
-      this.trgTimeBefore[this.trgTimeBeforeIndex++].callback(s, this, t, alpha);
-    }
-  }
-
-  execTriggersTimeAfter(s: Simulation, t: number, alpha: number) {
-    while (
-      this.trgTimeAfter[this.trgTimeAfterIndex] &&
-      this.trgTimeAfter[this.trgTimeAfterIndex].value === t
-    ) {
-      this.trgTimeAfter[this.trgTimeAfterIndex++].callback(s, this, t, alpha);
-    }
-  }
-
-  resetTriggers() {
-    this.trgTimeBeforeIndex = 0;
-    this.trgTimeAfterIndex = 0;
   }
 
   setAspectRatio(ar: number) {
@@ -137,6 +90,9 @@ abstract class ForceBase<T extends PerspectivePaletteBaseForceParams> {
 
 type BaseWordNodeDatumForce = ForceBase<PerspectivePaletteBaseForceParams>;
 
+// A "force" that pushes overlapping node away from each other.
+// 'velocity' version affects nodes velocity. 'position' version
+// affect position directly.
 export class ForceSeparate extends ForceBase<PerspectivePaletteSeparationForceOpts> {
   // Reusable temp vectors.
   private t1: Vec2 = {x: 0, y: 0};
@@ -145,9 +101,8 @@ export class ForceSeparate extends ForceBase<PerspectivePaletteSeparationForceOp
   constructor(
     private readonly type: 'velocity' | 'position',
     p: PerspectivePaletteSeparationForceOpts,
-    triggers?: ForceTrigger[],
   ) {
-    super(p, triggers);
+    super(p);
   }
 
   private applyToNode(
@@ -181,7 +136,7 @@ export class ForceSeparate extends ForceBase<PerspectivePaletteSeparationForceOp
     vp.y += this.t2.y;
   }
 
-  apply(alpha: number, t: number, opts: BaseForceApplyOpts) {
+  apply(alpha: number, opts: BaseForceApplyOpts) {
     for (let i = 0; i < opts.eng.collisionCount; i++) {
       const c = opts.eng.collisions[i];
       // MinkowskiDiffEngine guarantees that c.a.index < c.b.index
@@ -195,6 +150,11 @@ export class ForceSeparate extends ForceBase<PerspectivePaletteSeparationForceOp
   }
 }
 
+// A "force" that keeps node inside the viewport by manipulating node position
+// so that it "nullifies" the effect of forces that pushed the node outside
+// of viewport.
+// NOTE: This "force" must be the last one added to simulation for it to actually work
+// coorectly.
 export class ForceKeepInVP extends ForceBase<PerspectivePaletteKeepInVpForceOpts> {
   // Reusable temp bounding box
   private t1: BoundingBox = {
@@ -205,14 +165,11 @@ export class ForceKeepInVP extends ForceBase<PerspectivePaletteKeepInVpForceOpts
   };
   // Reusable temp reference to a vector
   private t2: Vec2Ref = {ref: 0, x: 0, y: 0};
-  constructor(
-    p: PerspectivePaletteKeepInVpForceOpts,
-    triggers?: ForceTrigger[],
-  ) {
-    super(p, triggers);
+  constructor(p: PerspectivePaletteKeepInVpForceOpts) {
+    super(p);
   }
 
-  apply(alpha: number, t: number, opts: BaseForceApplyOpts) {
+  apply(_alpha: number, opts: BaseForceApplyOpts) {
     // This is a very special force: it'll "nullify" the effect of
     // other forces pushing node outside of the viewport. It should
     // be the last force applied.
@@ -270,10 +227,9 @@ export class ForceKeepInVP extends ForceBase<PerspectivePaletteKeepInVpForceOpts
   }
 }
 
+// Force simulation class
 export class Simulation {
   private nodes: WordNode[] = [];
-  private bodies: Body<WordNode>[] = [];
-  private data = new Map<string, {node: WordNode; body: Body<WordNode>}>();
   eng: MinkowskiDiffEngine<WordNode>;
   private forces: ForceBase<PerspectivePaletteBaseForceParams>[] = [];
   private alphas: ForceAlphas = {};
@@ -281,7 +237,6 @@ export class Simulation {
     string,
     PerspectivePaletteForceAlphaSettings
   >();
-  private t = 0;
   private vDecay = 0.4;
   // viewport as bounding box
   private vpBb: BoundingBox = {
@@ -335,16 +290,8 @@ export class Simulation {
     n.p[f.id].y = 0;
   }
 
-  get time(): number {
-    return this.t;
-  }
-
   get isIdle(): boolean {
     return this.idleCounter > 0;
-  }
-
-  get forceAlphas(): ForceAlphas {
-    return {...this.alphas};
   }
 
   private updateBodies() {
@@ -369,14 +316,11 @@ export class Simulation {
   }
 
   clear() {
-    this.t = 0;
     this.idleCounter = 0;
     this.eng.updateData([]);
     this.forces.forEach((f) => f.clear());
     this.forces.splice(0, this.forces.length);
     this.nodes.splice(0, this.nodes.length);
-    this.bodies.splice(0, this.bodies.length);
-    this.data.clear();
     this.alphaSettings.clear();
   }
 
@@ -397,10 +341,8 @@ export class Simulation {
   }
 
   reset() {
-    this.t = 0;
     this.idleCounter = 0;
     this.forces.forEach((f) => {
-      f.resetTriggers();
       const alphaInit = this.alphaSettings.get(f.id)?.alphaInit;
       this.alphas[f.id] = typeof alphaInit === 'number' ? alphaInit : 1;
       this.nodes.forEach((n) => {
@@ -419,21 +361,6 @@ export class Simulation {
     });
   }
 
-  setAlpha(
-    force: BaseWordNodeDatumForce | string,
-    alpha: number,
-    opts?: Partial<Omit<PerspectivePaletteForceAlphaSettings, 'alphaInit'>>,
-  ) {
-    const id = typeof force === 'string' ? force : force.id;
-    this.alphas[id] = alpha;
-    if (opts) {
-      const alphaSettings = this.alphaSettings.get(id);
-      if (alphaSettings) {
-        Object.assign(alphaSettings, opts);
-      }
-    }
-  }
-
   tick() {
     this.eng.checkCollisions();
 
@@ -441,12 +368,9 @@ export class Simulation {
     this.forces.forEach((f) => {
       const a = this.alphas[f.id];
 
-      // Run before triggers
-      f.execTriggersTimeBefore(this, this.t, a);
-
       const aMin = this.alphaSettings.get(f.id)?.min || 0;
       if (f.enabled && a >= aMin) {
-        f.apply(a, this.t, this.applyOpts);
+        f.apply(a, this.applyOpts);
       }
     });
 
@@ -485,9 +409,8 @@ export class Simulation {
         n.pos.y += dy;
       }
       // NOTE: MinkowskiDiffEngine shares pos with nodes
-      //       so there's no need to call updateShapePos()
-      // if (n.body) Body.translate(n.body, {x: dx, y: dy});
-      // this.eng.updateShapePos(n.id, dx, dy);
+      //       so there's no need to call updateShapePos().
+      //       n.pos update above is enough.
     });
     if (idling >= this.nodes.length) {
       this.idleCounter++;
@@ -502,26 +425,19 @@ export class Simulation {
           this.alphas[f.id] += (s.target - this.alphas[f.id]) * s.decay;
         }
       }
-
-      // Run after triggers
-      f.execTriggersTimeAfter(this, this.t, this.alphas[f.id]);
     });
-
-    this.t++;
   }
 }
 
 export function forceSep(
   type: 'velocity' | 'position',
   p: PerspectivePaletteSeparationForceOpts,
-  triggers?: ForceTrigger[],
 ): ForceSeparate {
-  return new ForceSeparate(type, p, triggers);
+  return new ForceSeparate(type, p);
 }
 
 export function forceKeepInVP(
   p: PerspectivePaletteKeepInVpForceOpts,
-  triggers?: ForceTrigger[],
 ): ForceKeepInVP {
-  return new ForceKeepInVP(p, triggers);
+  return new ForceKeepInVP(p);
 }

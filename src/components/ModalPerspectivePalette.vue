@@ -20,7 +20,7 @@ import ModalBase from '@/components/ModalBase.vue';
 import useModalBase from '@/composition/ModalBase';
 import usePerspectivePalette from '@/composition/PerspectivePalette';
 import {useSupportedLocales} from '@/vue-plugins/plugin-supported-locales';
-import { isHtmlDivElement } from '@/utils';
+import {isHtmlDivElement} from '@/utils';
 
 const {locale, t} = useI18n();
 
