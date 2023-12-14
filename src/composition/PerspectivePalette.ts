@@ -14,6 +14,10 @@ import {
 } from '@symcode-fi/minkowski-collision';
 import {cloneDeep} from '@/utils';
 
+// Word node data. Velocities and absolute position changes originated
+// from D3 which was first tried in node positions and dropped later.
+// D3's "force idea" remained for simulation that tries to separate
+// nodes from each other and still keep all nodes inside given viewport.
 export interface WordNode {
   id: string;
   index: number;
@@ -34,23 +38,25 @@ export interface WordNode {
   v: Vec2[];
 }
 
-export type ForceAlphas = Record<string, number>;
+// Force alphas are used for node separation and "keep in viewport"
+// force simulation.
+type ForceAlphas = Record<string, number>;
 
-export interface PerspectivePaletteForceAlphaSettings {
+interface PerspectivePaletteForceAlphaSettings {
   target: number;
   decay: number;
   min: number;
   alphaInit?: number;
 }
 
-export interface PerspectivePaletteBaseForceParams {
+interface PerspectivePaletteBaseForceParams {
   enabled: boolean;
   strength: number;
   // Force "aspect ratio: x/y". 1 = apply equally, > 1 = apply more on x-axis
   aspectRatio: number;
 }
 
-export interface ForceTrigger {
+interface ForceTrigger {
   type: 'time-before' | 'time-after';
   value: number;
   callback: (
@@ -61,7 +67,7 @@ export interface ForceTrigger {
   ) => void;
 }
 
-export interface PerspectivePaletteBaseForceOpts<
+interface PerspectivePaletteBaseForceOpts<
   T extends PerspectivePaletteBaseForceParams,
 > {
   params: T;
@@ -69,12 +75,12 @@ export interface PerspectivePaletteBaseForceOpts<
   triggers?: ForceTrigger[];
 }
 
-export interface PerspectivePaletteSeparationForceOpts
+interface PerspectivePaletteSeparationForceOpts
   extends PerspectivePaletteBaseForceParams {
   outwardsOnly: boolean;
 }
 
-export interface PerspectivePaletteKeepInVpForceOpts
+interface PerspectivePaletteKeepInVpForceOpts
   extends PerspectivePaletteBaseForceParams {
   ellipse?: boolean;
 }
@@ -137,7 +143,7 @@ interface BaseForceApplyOpts {
 }
 
 let forceCounter = 0;
-export abstract class ForceBase<T extends PerspectivePaletteBaseForceParams> {
+abstract class ForceBase<T extends PerspectivePaletteBaseForceParams> {
   readonly id = `force-${forceCounter++}`;
   protected nodes: WordNode[] = [];
 
@@ -209,10 +215,10 @@ export abstract class ForceBase<T extends PerspectivePaletteBaseForceParams> {
   }
 }
 
-export type BaseWordNodeDatumForce =
+type BaseWordNodeDatumForce =
   ForceBase<PerspectivePaletteBaseForceParams>;
 
-export class ForceSeparate extends ForceBase<PerspectivePaletteSeparationForceOpts> {
+class ForceSeparate extends ForceBase<PerspectivePaletteSeparationForceOpts> {
   // Reusable temp vectors.
   private t1: Vec2 = {x: 0, y: 0};
   private t2: Vec2 = {x: 0, y: 0};
@@ -270,7 +276,7 @@ export class ForceSeparate extends ForceBase<PerspectivePaletteSeparationForceOp
   }
 }
 
-export class ForceKeepInVP extends ForceBase<PerspectivePaletteKeepInVpForceOpts> {
+class ForceKeepInVP extends ForceBase<PerspectivePaletteKeepInVpForceOpts> {
   // Reusable temp bounding box
   private t1: BoundingBox = {
     xmin: 0,
@@ -345,7 +351,7 @@ export class ForceKeepInVP extends ForceBase<PerspectivePaletteKeepInVpForceOpts
   }
 }
 
-export class Simulation {
+class Simulation {
   private nodes: WordNode[] = [];
   private bodies: Body<WordNode>[] = [];
   private data = new Map<string, {node: WordNode; body: Body<WordNode>}>();

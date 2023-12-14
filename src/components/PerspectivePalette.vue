@@ -33,6 +33,7 @@ const worker = new Worker(
   new URL('../composition/PerspectivePaletteWorker.ts', import.meta.url),
   {type: 'module'},
 );
+// Worker's current work load; or undefined if none.
 let workerLocale: string | undefined;
 let workerSize: 'l' | 'm' | 's' | undefined;
 let workerNodes: WordNode[] | undefined;
@@ -46,6 +47,8 @@ const props = withDefaults(defineProps<PerspectivePaletteProps>(), {
   sepAutoViewportAspectRatio: true,
 });
 
+// Locale and size changes can cause different sized palette
+// to be show (and trigger positioning).
 watch(
   () => [props.locale, props.size],
   () => {
@@ -54,14 +57,21 @@ watch(
   },
 );
 
+// Palette holder element
 const elPerspectivePalette = ref<HTMLDivElement>();
+// Holder for text size measuring svg
 const elMeasuring = ref<HTMLDivElement>();
+// Currently show palette svg or undefined if none shown.
 const currentSvg = ref<SVGSVGElement | undefined>();
 let currentSvgLocale: string | undefined;
+// Currently shows palette size or undefined if none shown.
 let currentSvgSize: 'l' | 'm' | 's' | undefined;
 
+// Counter for created word nodes; used for creating unique ids.
 let nodeCounter = 0;
 
+// Nested records for holding word nodes for all locales and sizes.
+// Created with empty arrays and filled up as required.
 let allNodes: Record<
   string,
   Record<'l' | 'm' | 's', WordNode[]>
@@ -77,7 +87,6 @@ let allNodes: Record<
     ];
   }),
 );
-let nodes: WordNode[] = allNodes[props.locale]['l'];
 
 // Offscreen svg and text for measuring word sizes.
 // (Rendered on 0 x 0 div on top left corner.)
@@ -95,9 +104,12 @@ offScreenSvgText.setAttributeNS(null, 'dy', '0.3em');
 offScreenSvgText.textContent = 'foo';
 offScreenSvg.appendChild(offScreenSvgText);
 
+// Reusable svg text elements for displaying palette texts
 const texts: SVGTextElement[] = [];
+// Tweens used for animating svg elements
 const tweens: GSAPTween[] = [];
 
+// Palette sizes. The must matchs sizes used in ModalPerspectivePalette style.
 interface SizeSpec {
   w: number;
   h: number;
@@ -108,6 +120,10 @@ const paletteSizes: Readonly<Readonly<SizeSpec>[]> = [
   {w: 600, h: 500, size: 'm'},
   {w: 490, h: 600, size: 's'},
 ] as const;
+
+// Palettes for different sizes. `g` member is used for
+// holdeing actual words (svg text elements). `el` is
+// the "container" ellipse element.
 const palettes = paletteSizes.map((ps) => {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   // viewBox = 'minX minY width height'
@@ -173,26 +189,34 @@ const showPalette = (forceReanimate = false) => {
   currentSvgLocale = undefined;
   currentSvgSize = undefined;
 
+  // Select word nodes to use
   const localeNodes = allNodes[props.locale];
   const sizeNodes = localeNodes[size];
   if (sizeNodes.length === 0) {
+    // Word positions not yet computed; give up.
+    // When computation finishes this function will be
+    // called again.
     return;
   }
 
-  // Select new svg
+  // Select new palette and svg
   const palette = palettes.find((p) => p.size === size);
   if (!palette) {
     console.error('Did not find palette for size', size);
     return;
   }
-
   currentSvg.value = palette.svg;
+  currentSvgLocale = props.locale;
+  currentSvgSize = size;
+  elPerspectivePalette.value?.appendChild(currentSvg.value);
 
+  // Update texts and add them to svg.
   for (let i = 0; i < sizeNodes.length; i++) {
     const node = sizeNodes[i];
     const text = getOrCreateSvgText(i);
     text.textContent = node.word;
     palette.g.appendChild(text);
+    // Animate position from center to computed position
     tweens.push(
       gsap.fromTo(
         text,
@@ -208,35 +232,38 @@ const showPalette = (forceReanimate = false) => {
         },
       ),
     );
-    tweens.push(
-      gsap.fromTo(
-        palette.el,
-        {
-          rx: 0,
-          ry: 0,
-        },
-        {
-          rx: palette.w / 2,
-          ry: palette.h / 2,
-          duration: 0.25,
-          ease: 'power2.out',
-        },
-      ),
-    );
   }
-  elPerspectivePalette.value?.appendChild(currentSvg.value);
-  currentSvgLocale = props.locale;
-  currentSvgSize = size;
+  // Animate ellipse size grow (a bit faster than word movement)
+  tweens.push(
+    gsap.fromTo(
+      palette.el,
+      {
+        rx: 0,
+        ry: 0,
+      },
+      {
+        rx: palette.w / 2,
+        ry: palette.h / 2,
+        duration: 0.25,
+        ease: 'power2.out',
+      },
+    ),
+  );
 };
 
+// Start word node positions job in background
 const positionNodes = () => {
   if (workerLocale || workerSize) return; // Already working
-  if (props.size === 'none') return;
+  if (props.size === 'none') return; // No initial size defined (yet)
 
   // use s size for scaling
   const size = props.size === 'scaling' ? 's' : props.size;
 
+  // Select nodes record for current locale
   const localeNodes = allNodes[props.locale];
+
+  // Check nodes all sizes and select the first one not computed yet.
+  // Check current size first.
   const sizes: ('l' | 'm' | 's')[] = ['l', 'm', 's'];
   sizes.sort((a, b) => {
     if (size === a) return -1;
@@ -247,6 +274,7 @@ const positionNodes = () => {
     const sizeNodes = localeNodes[s];
     const paletteSize = paletteSizes.find((ps) => ps.size === s);
     if (paletteSize && sizeNodes.length === 0) {
+      // Start computing word node positions for this size
       workerLocale = props.locale;
       workerSize = s;
       workerNodes = createNodes(props.words[props.locale]);
@@ -271,6 +299,7 @@ const create = () => {
 
   worker.onmessage = (ev: MessageEvent<MsgNodePosition>) => {
     if (isMsgNodePositionResult(ev)) {
+      // Worker finished position computation, store results.
       if (workerLocale && workerSize) {
         const nodes = workerNodes;
         if (nodes && nodes.length === ev.data.nodes.length) {
@@ -293,10 +322,16 @@ const create = () => {
       workerSize = undefined;
       workerNodes = undefined;
 
+      // Start another positioning job (if needed)
       positionNodes();
+      // Show the palette (if possible / we actually have correctly sized palette computed)
       showPalette();
     }
   };
+
+  // Initial positioning work, may not start yet because
+  // initial size may not have been speicified. Size change
+  // triggers positioning again (by property change).
   positionNodes();
 };
 
@@ -322,12 +357,12 @@ const dispose = () => {
       nodes.splice(0, nodes.length);
     });
   });
-  nodes.splice(0, nodes.length);
 };
 
 onMounted(create);
 onBeforeUnmount(dispose);
 
+// Create word node shape (approximated ellipse around the word)
 const createNodeShape = (word: string): {h: Vec2; v: Vec2[]} => {
   const h: Vec2 = {x: 0, y: 0};
   offScreenSvgText.textContent = word;
@@ -343,6 +378,7 @@ const createNodeShape = (word: string): {h: Vec2; v: Vec2[]} => {
   return {h, v};
 };
 
+// Create word nodes for given words.
 const createNodes = (words: string[]): WordNode[] => {
   return words.map<WordNode>((word, n) => {
     const {h, v} = createNodeShape(word);

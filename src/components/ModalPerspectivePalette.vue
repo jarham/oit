@@ -7,7 +7,7 @@ ModalBase.modal-perspective-palette(
 )
   template(#body)
     PerspectivePalette.mx-3(
-      v-bind='wcProps'
+      v-bind='ppProps'
       ref='perspectivePalette'
     )
 </template>
@@ -20,6 +20,7 @@ import ModalBase from '@/components/ModalBase.vue';
 import useModalBase from '@/composition/ModalBase';
 import usePerspectivePalette from '@/composition/PerspectivePalette';
 import {useSupportedLocales} from '@/vue-plugins/plugin-supported-locales';
+import { isHtmlDivElement } from '@/utils';
 
 const {locale, t} = useI18n();
 
@@ -41,8 +42,10 @@ const words: Record<string, string[]> = Object.fromEntries(
   }),
 );
 
-const wcProps = usePerspectivePalette(words, locale.value, 'none');
-watch(locale, (l) => (wcProps.value.locale = l));
+const ppProps = usePerspectivePalette(words, locale.value, 'none');
+
+// Forward locale change to perspective palette
+watch(locale, (l) => (ppProps.value.locale = l));
 
 const modal = ref<InstanceType<typeof ModalBase>>();
 const {modalInterface, bind} = useModalBase(modal, {
@@ -61,36 +64,38 @@ defineExpose({
   },
 });
 
-const isDiv = (o: any): o is HTMLDivElement => {
-  return !!o && 'tagName' in o && o.tagName === 'DIV';
-};
+// Track preferred perspective palette size by checking `--oit-perspective-palette-size`
+// custom property value which is set in style below.
 const checkSize = () => {
   if (!modal.value) return;
   const el = modal.value.$el;
-  if (!isDiv(el)) return;
+  if (!isHtmlDivElement(el)) return;
   const currentSize = getComputedStyle(el)
     .getPropertyValue('--oit-perspective-palette-size')
     .replaceAll('"', '') as 'l' | 'm' | 's' | 'scaling';
-  if (wcProps.value.size === 'none') {
-    wcProps.value.size = currentSize;
+  if (ppProps.value.size === 'none') {
+    ppProps.value.size = currentSize;
     return;
   }
-  if (wcProps.value.size == currentSize) return;
-  wcProps.value.size = currentSize;
+  if (ppProps.value.size == currentSize) return;
+  ppProps.value.size = currentSize;
 };
+
 onMounted(() => {
   window.addEventListener('resize', checkSize);
   checkSize();
 });
+
 onBeforeUnmount(() => {
   window.removeEventListener('resize', checkSize);
 });
 </script>
 <style lang="scss">
-// Change modal sizing a bit with perspective palette:
-// - keep 800px width until really close hitting borders
-// - extra step until 680px
-// - at default 576px breakpoint modal-lg starts scaling with width
+// Change modal sizing a bit with perspective palette: We want modal
+// to "wrap its content" by using `max-width: none` and `width: min-content`
+// (except in "scaling" mode where we just unset the max-width).
+// Actual size get defined by perspective palette svg / plaholder and
+// their size must match sizes in PerspectivePalette.vue.
 .modal-perspective-palette {
   --oit-perspective-palette-size: 'scaling';
   .modal-dialog {
