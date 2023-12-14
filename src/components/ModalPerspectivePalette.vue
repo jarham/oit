@@ -21,10 +21,19 @@ import useModalBase from '@/composition/ModalBase';
 import usePerspectivePalette from '@/composition/PerspectivePalette';
 import {useSupportedLocales} from '@/vue-plugins/plugin-supported-locales';
 import {isHtmlDivElement} from '@/utils';
+import gsap from 'gsap';
+
+interface Props {
+  randomWordOrder?: boolean;
+}
+const props = withDefaults(defineProps<Props>(), {
+  randomWordOrder: false,
+});
 
 const {locale, t} = useI18n();
 
 const locales = useSupportedLocales();
+// Word list for each supported locale
 const words: Record<string, string[]> = Object.fromEntries(
   locales.map<[string, string[]]>((l) => {
     // Composition api of vue-i18n has only 1 and 3 argument
@@ -38,6 +47,9 @@ const words: Record<string, string[]> = Object.fromEntries(
       .split('\n')
       .map((w) => w.trim())
       .filter((w) => !!w);
+    if (props.randomWordOrder) {
+      gsap.utils.shuffle(localeWords);
+    }
     return [l, localeWords];
   }),
 );
