@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2023, Jari Hämäläinen, Carita Kiili and Julie Coiro
 import {
-  type MsgNodePosition,
-  NodePositioning,
-  isMsgNodePositionCompute,
-} from './PerspectivePalette';
+  type MsgWordNodePosition,
+  WordNodePositioning,
+  isMsgWordNodePositionCompute,
+} from '@/lib/word-node-positioning';
 
-const np = new NodePositioning();
+const wnp = new WordNodePositioning();
 
-onmessage = function (ev: MessageEvent<MsgNodePosition>) {
-  if (isMsgNodePositionCompute(ev)) {
-    np.positionNodes(ev.data.nodes, ev.data.vpWidth, ev.data.vpHeight);
+onmessage = function (ev: MessageEvent<MsgWordNodePosition>) {
+  if (isMsgWordNodePositionCompute(ev)) {
+    wnp.positionNodes(ev.data.nodes, ev.data.vpWidth, ev.data.vpHeight);
     postMessage({
-      msgName: 'MsgNodePositionResult',
+      msgName: 'MsgWordNodePositionResult',
       nodes: ev.data.nodes,
     });
   }

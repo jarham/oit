@@ -13,20 +13,18 @@
 
 <script setup lang="ts">
 import {onBeforeUnmount, onMounted, ref, watch} from 'vue';
-import {
-  isMsgNodePositionResult,
-  perspectivePaletteDefaultOpts,
-} from '@/composition/PerspectivePalette';
-import type {
-  MsgNodePosition,
-  PerspectivePaletteProps,
-  WordNode,
-} from '@/composition/PerspectivePalette';
+import {perspectivePaletteDefaultOpts} from '@/composition/PerspectivePalette';
+import type {PerspectivePaletteProps} from '@/composition/PerspectivePalette';
 import {ellipse2poly} from '@/lib/math-utils';
 import type {Vec2} from '@symcode-fi/minkowski-collision';
 import {cloneDeep} from '@/utils';
 import {useSupportedLocales} from '@/vue-plugins/plugin-supported-locales';
 import gsap from 'gsap';
+import {type WordNode} from '@/lib/word-node';
+import {
+  type MsgWordNodePosition,
+  isMsgNodePositionResult,
+} from '@/lib/word-node-positioning';
 
 // Worker for computing word positions on background
 const worker = new Worker(
@@ -279,7 +277,7 @@ const positionNodes = () => {
       workerSize = s;
       workerNodes = createNodes(props.words[props.locale]);
       worker.postMessage({
-        msgName: 'MsgNodePositionCompute',
+        msgName: 'MsgWordNodePositionCompute',
         nodes: workerNodes,
         vpWidth: paletteSize.w,
         vpHeight: paletteSize.h,
@@ -297,7 +295,7 @@ const create = () => {
 
   elMeasuring.value.appendChild(offScreenSvg);
 
-  worker.onmessage = (ev: MessageEvent<MsgNodePosition>) => {
+  worker.onmessage = (ev: MessageEvent<MsgWordNodePosition>) => {
     if (isMsgNodePositionResult(ev)) {
       // Worker finished position computation, store results.
       if (workerLocale && workerSize) {
