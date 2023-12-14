@@ -36,14 +36,14 @@ export interface WordNode {
 
 export type ForceAlphas = Record<string, number>;
 
-export interface WordCloudForceAlphaSettings {
+export interface PerspectivePaletteForceAlphaSettings {
   target: number;
   decay: number;
   min: number;
   alphaInit?: number;
 }
 
-export interface WordCloudBaseForceParams {
+export interface PerspectivePaletteBaseForceParams {
   enabled: boolean;
   strength: number;
   // Force "aspect ratio: x/y". 1 = apply equally, > 1 = apply more on x-axis
@@ -61,21 +61,25 @@ export interface ForceTrigger {
   ) => void;
 }
 
-export interface WordCloudBaseForceOpts<T extends WordCloudBaseForceParams> {
+export interface PerspectivePaletteBaseForceOpts<
+  T extends PerspectivePaletteBaseForceParams,
+> {
   params: T;
-  alpha: WordCloudForceAlphaSettings;
+  alpha: PerspectivePaletteForceAlphaSettings;
   triggers?: ForceTrigger[];
 }
 
-export interface WordCloudSeparationForceOpts extends WordCloudBaseForceParams {
+export interface PerspectivePaletteSeparationForceOpts
+  extends PerspectivePaletteBaseForceParams {
   outwardsOnly: boolean;
 }
 
-export interface WordCloudKeepInVpForceOpts extends WordCloudBaseForceParams {
+export interface PerspectivePaletteKeepInVpForceOpts
+  extends PerspectivePaletteBaseForceParams {
   ellipse?: boolean;
 }
 
-export interface WordCloudProps {
+export interface PerspectivePaletteProps {
   words: Record<string, string[]>;
   locale: string;
   size: 'l' | 'm' | 's' | 'scaling' | 'none';
@@ -86,12 +90,12 @@ export interface WordCloudProps {
   sepAutoViewportAspectRatio?: boolean;
 }
 
-export type WordCloudOpts = PartialDeep<
-  Omit<WordCloudProps, 'words' | 'locale' | 'size'>
+export type PerspectivePaletteOpts = PartialDeep<
+  Omit<PerspectivePaletteProps, 'words' | 'locale' | 'size'>
 >;
 
-export const wordCloudDefaultOpts: Required<
-  Omit<WordCloudProps, 'words' | 'locale' | 'size'>
+export const perspectivePaletteDefaultOpts: Required<
+  Omit<PerspectivePaletteProps, 'words' | 'locale' | 'size'>
 > = {
   shapePadding: {
     x: 25,
@@ -106,17 +110,17 @@ export const wordCloudDefaultOpts: Required<
   sepAutoViewportAspectRatio: true,
 } as const;
 
-export default function useWordCloud(
+export default function usePerspectivePalette(
   words: Record<string, string[]>,
   locale: string,
   size: 'l' | 'm' | 's' | 'scaling' | 'none',
-  opts?: WordCloudOpts,
-): Ref<Required<WordCloudProps>> {
+  opts?: PerspectivePaletteOpts,
+): Ref<Required<PerspectivePaletteProps>> {
   const o = merge<
     {},
-    Required<Omit<WordCloudProps, 'words' | 'locale' | 'size'>>,
-    WordCloudOpts | undefined
-  >(Object.create(null), wordCloudDefaultOpts, opts);
+    Required<Omit<PerspectivePaletteProps, 'words' | 'locale' | 'size'>>,
+    PerspectivePaletteOpts | undefined
+  >(Object.create(null), perspectivePaletteDefaultOpts, opts);
 
   return ref({
     words,
@@ -133,7 +137,7 @@ interface BaseForceApplyOpts {
 }
 
 let forceCounter = 0;
-export abstract class ForceBase<T extends WordCloudBaseForceParams> {
+export abstract class ForceBase<T extends PerspectivePaletteBaseForceParams> {
   readonly id = `force-${forceCounter++}`;
   protected nodes: WordNode[] = [];
 
@@ -205,16 +209,17 @@ export abstract class ForceBase<T extends WordCloudBaseForceParams> {
   }
 }
 
-export type BaseWordNodeDatumForce = ForceBase<WordCloudBaseForceParams>;
+export type BaseWordNodeDatumForce =
+  ForceBase<PerspectivePaletteBaseForceParams>;
 
-export class ForceSeparate extends ForceBase<WordCloudSeparationForceOpts> {
+export class ForceSeparate extends ForceBase<PerspectivePaletteSeparationForceOpts> {
   // Reusable temp vectors.
   private t1: Vec2 = {x: 0, y: 0};
   private t2: Vec2 = {x: 0, y: 0};
   private t3: Vec2 = {x: 0, y: 0};
   constructor(
     private readonly type: 'velocity' | 'position',
-    p: WordCloudSeparationForceOpts,
+    p: PerspectivePaletteSeparationForceOpts,
     triggers?: ForceTrigger[],
   ) {
     super(p, triggers);
@@ -265,7 +270,7 @@ export class ForceSeparate extends ForceBase<WordCloudSeparationForceOpts> {
   }
 }
 
-export class ForceKeepInVP extends ForceBase<WordCloudKeepInVpForceOpts> {
+export class ForceKeepInVP extends ForceBase<PerspectivePaletteKeepInVpForceOpts> {
   // Reusable temp bounding box
   private t1: BoundingBox = {
     xmin: 0,
@@ -275,7 +280,10 @@ export class ForceKeepInVP extends ForceBase<WordCloudKeepInVpForceOpts> {
   };
   // Reusable temp reference to a vector
   private t2: Vec2Ref = {ref: 0, x: 0, y: 0};
-  constructor(p: WordCloudKeepInVpForceOpts, triggers?: ForceTrigger[]) {
+  constructor(
+    p: PerspectivePaletteKeepInVpForceOpts,
+    triggers?: ForceTrigger[],
+  ) {
     super(p, triggers);
   }
 
@@ -342,9 +350,12 @@ export class Simulation {
   private bodies: Body<WordNode>[] = [];
   private data = new Map<string, {node: WordNode; body: Body<WordNode>}>();
   eng: MinkowskiDiffEngine<WordNode>;
-  private forces: ForceBase<WordCloudBaseForceParams>[] = [];
+  private forces: ForceBase<PerspectivePaletteBaseForceParams>[] = [];
   private alphas: ForceAlphas = {};
-  private alphaSettings = new Map<string, WordCloudForceAlphaSettings>();
+  private alphaSettings = new Map<
+    string,
+    PerspectivePaletteForceAlphaSettings
+  >();
   private t = 0;
   private vDecay = 0.4;
   // viewport as bounding box
@@ -389,7 +400,7 @@ export class Simulation {
 
   private static resetNodeForce(
     n: WordNode,
-    f: ForceBase<WordCloudBaseForceParams>,
+    f: ForceBase<PerspectivePaletteBaseForceParams>,
   ) {
     n.vl[f.id] = n.vl[f.id] || {x: 0, y: 0};
     n.vl[f.id].x = 0;
@@ -424,8 +435,8 @@ export class Simulation {
   }
 
   addForce(
-    f: ForceBase<WordCloudBaseForceParams>,
-    a: WordCloudForceAlphaSettings,
+    f: ForceBase<PerspectivePaletteBaseForceParams>,
+    a: PerspectivePaletteForceAlphaSettings,
   ): this {
     this.forces.push(f);
     this.alphaSettings.set(f.id, a);
@@ -486,7 +497,7 @@ export class Simulation {
   setAlpha(
     force: BaseWordNodeDatumForce | string,
     alpha: number,
-    opts?: Partial<Omit<WordCloudForceAlphaSettings, 'alphaInit'>>,
+    opts?: Partial<Omit<PerspectivePaletteForceAlphaSettings, 'alphaInit'>>,
   ) {
     const id = typeof force === 'string' ? force : force.id;
     this.alphas[id] = alpha;
@@ -577,14 +588,14 @@ export class Simulation {
 
 function forceSep(
   type: 'velocity' | 'position',
-  p: WordCloudSeparationForceOpts,
+  p: PerspectivePaletteSeparationForceOpts,
   triggers?: ForceTrigger[],
 ): ForceSeparate {
   return new ForceSeparate(type, p, triggers);
 }
 
 function forceKeepInVP(
-  p: WordCloudKeepInVpForceOpts,
+  p: PerspectivePaletteKeepInVpForceOpts,
   triggers?: ForceTrigger[],
 ): ForceKeepInVP {
   return new ForceKeepInVP(p, triggers);
@@ -592,11 +603,11 @@ function forceKeepInVP(
 
 interface NodePositioningOpts {
   viewportPadding?: Vec2;
-  fSepV?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
-  fSepV2?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
-  fSepP?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
-  fSepP2?: WordCloudBaseForceOpts<WordCloudSeparationForceOpts>;
-  fKeepInVp?: WordCloudBaseForceOpts<WordCloudKeepInVpForceOpts>;
+  fSepV?: PerspectivePaletteBaseForceOpts<PerspectivePaletteSeparationForceOpts>;
+  fSepV2?: PerspectivePaletteBaseForceOpts<PerspectivePaletteSeparationForceOpts>;
+  fSepP?: PerspectivePaletteBaseForceOpts<PerspectivePaletteSeparationForceOpts>;
+  fSepP2?: PerspectivePaletteBaseForceOpts<PerspectivePaletteSeparationForceOpts>;
+  fKeepInVp?: PerspectivePaletteBaseForceOpts<PerspectivePaletteKeepInVpForceOpts>;
   sepConstantAspectRatio?: number;
   sepAutoViewportAspectRatio?: boolean;
 }

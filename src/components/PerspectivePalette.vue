@@ -1,27 +1,27 @@
 <!-- SPDX-License-Identifier: BSD-2-Clause
      Copyright (c) 2023, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
 <template lang="pug">
-.word-cloud
-  .word-cloud-body(ref='elWordCloud')
-    .word-cloud-placeholder.justify-content-center.align-items-center(
+.perspective-palette
+  .perspective-palette-body(ref='elPerspectivePalette')
+    .perspective-palette-placeholder.justify-content-center.align-items-center(
       :class='!currentSvg ? "d-flex" : "d-none"'
     )
       .spinner-border.text-primary(role='status' style='width: 100px; height: 100px')
   Teleport(to='body')
-    .word-cloud-measuring(ref='elMeasuring')
+    .perspective-palette-measuring(ref='elMeasuring')
 </template>
 
 <script setup lang="ts">
 import {onBeforeUnmount, onMounted, ref, watch} from 'vue';
 import {
   isMsgNodePositionResult,
-  wordCloudDefaultOpts,
-} from '@/composition/WordCloud';
+  perspectivePaletteDefaultOpts,
+} from '@/composition/PerspectivePalette';
 import type {
   MsgNodePosition,
-  WordCloudProps,
+  PerspectivePaletteProps,
   WordNode,
-} from '@/composition/WordCloud';
+} from '@/composition/PerspectivePalette';
 import {ellipse2poly} from '@/lib/math-utils';
 import type {Vec2} from '@symcode-fi/minkowski-collision';
 import {cloneDeep} from '@/utils';
@@ -30,17 +30,18 @@ import gsap from 'gsap';
 
 // Worker for computing word positions on background
 const worker = new Worker(
-  new URL('../composition/WordCloudWorker.ts', import.meta.url),
+  new URL('../composition/PerspectivePaletteWorker.ts', import.meta.url),
   {type: 'module'},
 );
 let workerLocale: string | undefined;
 let workerSize: 'l' | 'm' | 's' | undefined;
 let workerNodes: WordNode[] | undefined;
 
-// withDefaults doesn't seem to support ...wordCloudDefaultOpts
-const props = withDefaults(defineProps<WordCloudProps>(), {
-  shapePadding: () => cloneDeep(wordCloudDefaultOpts.shapePadding),
-  viewportPadding: () => cloneDeep(wordCloudDefaultOpts.viewportPadding),
+// withDefaults doesn't seem to support ...perspectivePaletteDefaultOpts
+const props = withDefaults(defineProps<PerspectivePaletteProps>(), {
+  shapePadding: () => cloneDeep(perspectivePaletteDefaultOpts.shapePadding),
+  viewportPadding: () =>
+    cloneDeep(perspectivePaletteDefaultOpts.viewportPadding),
   sepConstantAspectRatio: 1,
   sepAutoViewportAspectRatio: true,
 });
@@ -53,7 +54,7 @@ watch(
   },
 );
 
-const elWordCloud = ref<HTMLDivElement>();
+const elPerspectivePalette = ref<HTMLDivElement>();
 const elMeasuring = ref<HTMLDivElement>();
 const currentSvg = ref<SVGSVGElement | undefined>();
 let currentSvgLocale: string | undefined;
@@ -115,17 +116,17 @@ const palettes = paletteSizes.map((ps) => {
     'viewBox',
     `${ps.w / -2} ${ps.h / -2} ${ps.w} ${ps.h}`,
   );
-  svg.classList.add('word-cloud-svg');
+  svg.classList.add('perspective-palette-svg');
   const el = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
   el.setAttributeNS(null, 'cx', '0');
   el.setAttributeNS(null, 'cy', '0');
   el.setAttributeNS(null, 'rx', `${ps.w / 2}`);
   el.setAttributeNS(null, 'ry', `${ps.h / 2}`);
   el.setAttributeNS(null, 'stroke-width', '0');
-  el.classList.add('word-cloud-ellipse');
+  el.classList.add('perspective-palette-ellipse');
   svg.appendChild(el);
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  g.classList.add('word-cloud-words');
+  g.classList.add('perspective-palette-words');
   svg.appendChild(g);
 
   return {
@@ -223,7 +224,7 @@ const showPalette = (forceReanimate = false) => {
       ),
     );
   }
-  elWordCloud.value?.appendChild(currentSvg.value);
+  elPerspectivePalette.value?.appendChild(currentSvg.value);
   currentSvgLocale = props.locale;
   currentSvgSize = size;
 };
@@ -261,10 +262,10 @@ const positionNodes = () => {
 };
 
 /**
- * Create word cloud.
+ * Create perspective palette.
  */
 const create = () => {
-  if (!elWordCloud.value || !elMeasuring.value) return;
+  if (!elPerspectivePalette.value || !elMeasuring.value) return;
 
   elMeasuring.value.appendChild(offScreenSvg);
 
@@ -300,7 +301,7 @@ const create = () => {
 };
 
 /**
- * Dispose word cloud
+ * Dispose perspective palette
  */
 const dispose = () => {
   worker.terminate();
@@ -372,11 +373,11 @@ const createNodes = (words: string[]): WordNode[] => {
 defineExpose({showPalette});
 </script>
 <style lang="scss">
-.word-cloud-body {
+.perspective-palette-body {
   min-height: 100px;
   min-width: 100px;
 }
-.word-cloud-measuring {
+.perspective-palette-measuring {
   position: absolute;
   top: 0;
   left: 0;
@@ -384,14 +385,14 @@ defineExpose({showPalette});
   height: 0;
   overflow: hidden;
 }
-.word-cloud-ellipse {
+.perspective-palette-ellipse {
   fill: var(--bs-primary);
 }
-.word-cloud-words {
+.perspective-palette-words {
   fill: var(--bs-white);
 }
-.word-cloud-words,
-.word-cloud-measuring {
+.perspective-palette-words,
+.perspective-palette-measuring {
   font-family: var(--bs-body-font-family);
   font-size: calc(var(--bs-body-font-size) * 1.1);
 }

@@ -212,7 +212,7 @@ export function filenameToChartname(filename: string): string {
   return idot >= 0 ? split.substring(0, idot) : split;
 }
 
-// cloneDeep had to be outside of WordCloud.vue or Vue conpiler would barf
+// cloneDeep had to be outside of PerspectivePalette.vue or Vue conpiler would barf
 export function cloneDeep<T>(o: T): T {
   return clone(o);
 }

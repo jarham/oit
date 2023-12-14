@@ -6,19 +6,19 @@ ModalBase.modal-perspective-palette(
   ref='modal'
 )
   template(#body)
-    WordCloud.mx-3(
+    PerspectivePalette.mx-3(
       v-bind='wcProps'
-      ref='wordCloud'
+      ref='perspectivePalette'
     )
 </template>
 
 <script setup lang="ts">
 import {onBeforeUnmount, onMounted, ref, watch} from 'vue';
 import {useI18n} from 'vue-i18n';
-import WordCloud from '@/components/WordCloud.vue';
+import PerspectivePalette from '@/components/PerspectivePalette.vue';
 import ModalBase from '@/components/ModalBase.vue';
 import useModalBase from '@/composition/ModalBase';
-import useWordCloud from '@/composition/WordCloud';
+import usePerspectivePalette from '@/composition/PerspectivePalette';
 import {useSupportedLocales} from '@/vue-plugins/plugin-supported-locales';
 
 const {locale, t} = useI18n();
@@ -41,7 +41,7 @@ const words: Record<string, string[]> = Object.fromEntries(
   }),
 );
 
-const wcProps = useWordCloud(words, locale.value, 'none');
+const wcProps = usePerspectivePalette(words, locale.value, 'none');
 watch(locale, (l) => (wcProps.value.locale = l));
 
 const modal = ref<InstanceType<typeof ModalBase>>();
@@ -51,13 +51,13 @@ const {modalInterface, bind} = useModalBase(modal, {
   txtBtnCancel: 'component.modal-perspective-palette.btn.close.text',
   ariaBtnClose: 'component.modal-perspective-palette.btn.close.aria-label',
 });
-const wordCloud = ref<InstanceType<typeof WordCloud>>();
+const perspectivePalette = ref<InstanceType<typeof PerspectivePalette>>();
 
 defineExpose({
   ...modalInterface,
   show: () => {
     modalInterface.show();
-    wordCloud.value?.showPalette(true);
+    perspectivePalette.value?.showPalette(true);
   },
 });
 
@@ -102,8 +102,8 @@ onBeforeUnmount(() => {
     --oit-perspective-palette-size: 's';
     .modal-dialog {
       width: min-content;
-      .word-cloud-svg,
-      .word-cloud-placeholder {
+      .perspective-palette-svg,
+      .perspective-palette-placeholder {
         width: 490px;
         height: 600px;
       }
@@ -115,8 +115,8 @@ onBeforeUnmount(() => {
     --oit-perspective-palette-size: 'm';
     .modal-dialog {
       width: min-content;
-      .word-cloud-svg,
-      .word-cloud-placeholder {
+      .perspective-palette-svg,
+      .perspective-palette-placeholder {
         width: 600px;
         height: 500px;
       }
@@ -128,8 +128,8 @@ onBeforeUnmount(() => {
     --oit-perspective-palette-size: 'l';
     .modal-dialog {
       width: min-content;
-      .word-cloud-svg,
-      .word-cloud-placeholder {
+      .perspective-palette-svg,
+      .perspective-palette-placeholder {
         width: 740px;
         height: 500px;
       }

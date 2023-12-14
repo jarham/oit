@@ -4,7 +4,7 @@ import {
   type MsgNodePosition,
   NodePositioning,
   isMsgNodePositionCompute,
-} from './WordCloud';
+} from './PerspectivePalette';
 
 const np = new NodePositioning();
 
