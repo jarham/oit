@@ -1,3 +1,10 @@
+# [15.2.0-rc.1](https://github.com/online-inquiry-tool/oit/compare/v15.1.5-rc.4...v15.2.0-rc.1) (2023-12-14)
+
+
+### Features
+
+* add perspective palette ([07ef5d7](https://github.com/online-inquiry-tool/oit/commit/07ef5d70cb107e119c35c858375610a81df4754a)), closes [#31](https://github.com/online-inquiry-tool/oit/issues/31)
+
 ## [15.1.5-rc.4](https://github.com/online-inquiry-tool/oit/compare/v15.1.5-rc.3...v15.1.5-rc.4) (2023-12-01)
 
 
