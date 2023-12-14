@@ -307,6 +307,12 @@ const create = () => {
             nTarget.pos.x = nSource.pos.x;
             nTarget.pos.y = nSource.pos.y;
           }
+          // Sort nodes by y and x coordinated so that their selectetion
+          // works a bit better.
+          nodes.sort((na, nb) => {
+            if (na.pos.y === nb.pos.y) return na.pos.x - nb.pos.x;
+            return na.pos.y - nb.pos.y;
+          });
           allNodes[workerLocale][workerSize] = nodes;
         } else {
           console.error(
