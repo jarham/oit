@@ -64,7 +64,12 @@ const {languages} = useModalLanguages(
     .sort()
     .map((locale) => ({
       locale,
-      name: t(`language.${locale}`, {locale: 'en'}),
+      // Composition api of vue-i18n has only 1 and 3 argument
+      // versions. Use "plural" version with plural set to 1
+      // to get language names in locale 'en' (language names
+      // are special: 'en' translation has language names in
+      // their "translated state").
+      name: t(`language.${locale}`, 1, {locale: 'en'}),
     })),
 );
 
