@@ -1,3 +1,10 @@
+# [15.2.0-rc.3](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.2...v15.2.0-rc.3) (2023-12-14)
+
+
+### Bug Fixes
+
+* ensure perspectives have at least empty default arguments ([2c9444d](https://github.com/online-inquiry-tool/oit/commit/2c9444db4d87a8e56581e6f624e47b45a4d43b0f)), closes [#49](https://github.com/online-inquiry-tool/oit/issues/49)
+
 # [15.2.0-rc.2](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.1...v15.2.0-rc.2) (2023-12-14)
 
 
