@@ -1,3 +1,10 @@
+# [15.2.0-rc.8](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.7...v15.2.0-rc.8) (2023-12-18)
+
+
+### Features
+
+* try using host part of fqdn as locale ([395c039](https://github.com/online-inquiry-tool/oit/commit/395c039dbf3aaa1987a5b2bd284591bb789f5d4f)), closes [#60](https://github.com/online-inquiry-tool/oit/issues/60)
+
 # [15.2.0-rc.7](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.6...v15.2.0-rc.7) (2023-12-18)
 
 
