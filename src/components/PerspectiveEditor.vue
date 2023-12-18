@@ -112,6 +112,7 @@ const emit = defineEmits<{
 }>();
 
 const sortableOptions = ref<SortableOptions>({
+  animation: 300,
   group: 'arguments',
   handle: '.drag-handle',
 });

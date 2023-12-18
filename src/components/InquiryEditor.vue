@@ -68,6 +68,7 @@ const store = useStore();
 const {data, dirty} = storeToRefs(store);
 
 const sortableOptions = ref<SortableOptions>({
+  animation: 300,
   group: 'perspectives',
   handle: '.drag-handle',
 });
