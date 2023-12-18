@@ -1,3 +1,10 @@
+# [15.2.0-rc.7](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.6...v15.2.0-rc.7) (2023-12-18)
+
+
+### Bug Fixes
+
+* add placeholders for empty perspective and argument lists ([9808eab](https://github.com/online-inquiry-tool/oit/commit/9808eabda1ffb564bb5ebead830f15d9b3831ca7)), closes [#58](https://github.com/online-inquiry-tool/oit/issues/58)
+
 # [15.2.0-rc.6](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.5...v15.2.0-rc.6) (2023-12-18)
 
 
