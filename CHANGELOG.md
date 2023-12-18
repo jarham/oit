@@ -1,3 +1,10 @@
+# [15.2.0-rc.5](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.4...v15.2.0-rc.5) (2023-12-18)
+
+
+### Bug Fixes
+
+* correct id reset on chart deserialization ([f7162dd](https://github.com/online-inquiry-tool/oit/commit/f7162dd41d3d2c7a011a634da5ba673e572a8f06)), closes [#53](https://github.com/online-inquiry-tool/oit/issues/53)
+
 # [15.2.0-rc.4](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.3...v15.2.0-rc.4) (2023-12-18)
 
 
