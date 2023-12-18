@@ -1,5 +1,7 @@
 <template lang="pug">
-section.argument-editor
+section.argument-editor(
+  :data-argument-id='argument.id'
+)
   .d-flex
     textarea.form-control.mb-1(
       v-model='argument.argument'
