@@ -264,6 +264,7 @@ component:
       perspective: Add perspective here
       questions: Add questions that may help you to explore the issue
       synthesis: Write synthesis on the perspective here
+      no-perspectives: No perspectives
   argument-editor:
     btn:
       argument-for-remove:
@@ -277,6 +278,7 @@ component:
       argument-against: Add argument against the claim here
       source-for: Insert source information here
       source-against: Insert source information here
+      no-arguments: No arguments
   traffic-lights:
     btn:
       source-evaluation-questionable:

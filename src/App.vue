@@ -201,4 +201,30 @@ $primary: #6c3d71;
 .btn-oit-add {
   @extend .btn-primary;
 }
+
+.claim-perspective-list:empty {
+  height: 52px;
+}
+
+@include media-breakpoint-up(md) {
+  .claim-perspective-list:empty {
+    height: 30px;
+  }
+}
+
+.claim-argument-list:empty {
+  height: 72px;
+}
+
+@include media-breakpoint-up(md) {
+  .claim-argument-list:empty {
+    height: 52px;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  .claim-argument-list:empty {
+    height: 30px;
+  }
+}
 </style>
