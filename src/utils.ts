@@ -38,6 +38,7 @@ class OitHtmlParserContext implements Partial<Handler> {
   private p: Perspective | null = null;
   private af: Argument | null = null; // for
   private aa: Argument | null = null; // against
+  private argEmpty = false; // is current argument empty one
   private readText = false;
   private text = '';
   private stack: HtmlStackEntry[] = [];
@@ -80,9 +81,14 @@ class OitHtmlParserContext implements Partial<Handler> {
     if (current.clazz.includes('oit-perspective-synthesis') && this.p) {
       this.p.synthesis = current.data.text || '';
     }
+    // doc version 1.1.1 added oit-undefined-true for arguments that
+    // did not exist on original document (are added to serialized
+    // form with oit-undefined-true to keep serialization simpler).
+    // oit-empty-true class indicated that the argument existed
+    // in original document, but was empty.
     if (
       current.clazz.includes('oit-argument') &&
-      !current.clazz.includes('oit-empty')
+      !current.clazz.includes('oit-undefined-true')
     ) {
       if (current.clazz.includes('oit-argument-for')) {
         this.af = getDefaultArgument(this.idStore);
@@ -90,25 +96,47 @@ class OitHtmlParserContext implements Partial<Handler> {
       if (current.clazz.includes('oit-argument-against')) {
         this.aa = getDefaultArgument(this.idStore);
       }
+      this.argEmpty = current.clazz.includes('oit-empty-true');
     }
-    if (current.clazz.includes('oit-argument-for-argument') && this.af) {
+    if (
+      current.clazz.includes('oit-argument-for-argument') &&
+      this.af &&
+      !this.argEmpty
+    ) {
       this.af.argument = current.data.text || '';
     }
-    if (current.clazz.includes('oit-argument-against-argument') && this.aa) {
+    if (
+      current.clazz.includes('oit-argument-against-argument') &&
+      this.aa &&
+      !this.argEmpty
+    ) {
       this.aa.argument = current.data.text || '';
     }
-    if (current.clazz.includes('oit-argument-for-source') && this.af) {
+    if (
+      current.clazz.includes('oit-argument-for-source') &&
+      this.af &&
+      !this.argEmpty
+    ) {
       this.af.source = current.data.text || '';
     }
-    if (current.clazz.includes('oit-argument-against-source') && this.aa) {
+    if (
+      current.clazz.includes('oit-argument-against-source') &&
+      this.aa &&
+      !this.argEmpty
+    ) {
       this.aa.source = current.data.text || '';
     }
-    if (current.clazz.includes('oit-argument-for-justification') && this.af) {
+    if (
+      current.clazz.includes('oit-argument-for-justification') &&
+      this.af &&
+      !this.argEmpty
+    ) {
       this.af.justification = current.data.text || '';
     }
     if (
       current.clazz.includes('oit-argument-against-justification') &&
-      this.aa
+      this.aa &&
+      !this.argEmpty
     ) {
       this.aa.justification = current.data.text || '';
     }
@@ -140,7 +168,11 @@ class OitHtmlParserContext implements Partial<Handler> {
       }
     }
 
-    if (current.clazz.includes('oit-argument-for-reliability') && this.af) {
+    if (
+      current.clazz.includes('oit-argument-for-reliability') &&
+      this.af &&
+      !this.argEmpty
+    ) {
       let val: string;
       if (current.data.text) {
         // doc version >= 1.1.0
@@ -151,7 +183,11 @@ class OitHtmlParserContext implements Partial<Handler> {
       }
       this.af.reliability = stringToReliability(val);
     }
-    if (current.clazz.includes('oit-argument-against-reliability') && this.aa) {
+    if (
+      current.clazz.includes('oit-argument-against-reliability') &&
+      this.aa &&
+      !this.argEmpty
+    ) {
       let val: string;
       if (current.data.text) {
         // doc version >= 1.1.0
