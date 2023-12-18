@@ -1,3 +1,10 @@
+# [15.2.0-rc.9](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.8...v15.2.0-rc.9) (2023-12-18)
+
+
+### Bug Fixes
+
+* use esm build of vite's node api ([9ce9cc4](https://github.com/online-inquiry-tool/oit/commit/9ce9cc452eaafff4f8b614f556fcc372a738fe6c)), closes [#62](https://github.com/online-inquiry-tool/oit/issues/62)
+
 # [15.2.0-rc.8](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.7...v15.2.0-rc.8) (2023-12-18)
 
 
