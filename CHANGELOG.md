@@ -1,3 +1,10 @@
+# [15.2.0-rc.4](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.3...v15.2.0-rc.4) (2023-12-18)
+
+
+### Bug Fixes
+
+* handle undefined arguments correctly when de-/serializing ([3e12c8b](https://github.com/online-inquiry-tool/oit/commit/3e12c8babe6ff7fdb554ffcbd91d4aa3e5facabc)), closes [#52](https://github.com/online-inquiry-tool/oit/issues/52)
+
 # [15.2.0-rc.3](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.2...v15.2.0-rc.3) (2023-12-14)
 
 
