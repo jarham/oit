@@ -4,7 +4,7 @@ import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
 import {string} from 'rollup-plugin-string';
 import yaml from '@rollup/plugin-yaml';
 import * as path from 'path';
-import * as fg from 'fast-glob';
+import fg from 'fast-glob';
 import {configFilter, translationFilter} from './tools/file-filters';
 
 function getAppVersion(env: Record<string, string>): string {
@@ -47,7 +47,7 @@ export default defineConfig(({mode}) => {
   // which uses separate `include` and `exclude` options but vueI18n only
   // hasn `include`. Use fast-glob to find actual translation files first.
   const translationFiles = fg
-    .sync(translationFilter)
+    .globSync(translationFilter)
     .map((f) => path.resolve(__dirname, f));
 
   return {

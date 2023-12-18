@@ -5,8 +5,8 @@ import fg from 'fast-glob';
 import Joi from 'joi';
 import yargs from 'yargs';
 import {hideBin} from 'yargs/helpers';
-import {configFilter, translationFilter} from './file-filters';
-import {I18nConfig, I18nFallbackMapping} from '../src/lib/i18n-config';
+import {configFilter, translationFilter} from './file-filters.js';
+import {I18nConfig, I18nFallbackMapping} from '../src/lib/i18n-config.js';
 import mustache from 'mustache';
 
 // Workaround to get types out of EcmaScript module
