@@ -35,7 +35,7 @@
         @input='$emit("modified")'
       )
     .d-flex.flex-column.claim-perspective-column
-      Sortable(
+      Sortable.claim-argument-list(
         :list='perspective.argumentsFor'
         tag='div'
         item-key='id'
@@ -56,7 +56,7 @@
         @click='$emit("add-argument-for")'
       ) {{ tc('btn.argument-for-add.text') }}
     .d-flex.flex-column.claim-perspective-column
-      Sortable(
+      Sortable.claim-argument-list(
         :list='perspective.argumentsAgainst'
         tag='div'
         item-key='id'
@@ -156,6 +156,12 @@ const titles = computed(() =>
     (prs) => tc(`text.heading.${prs}`),
   ),
 );
+
+// we need quotation marks because the value is assigned to
+// in css to ::before pseudo element's content.
+const txtNoArguments = computed(
+  () => `"${t('component.argument-editor.placeholder.no-arguments')}"`,
+);
 </script>
 
 <style lang="scss">
@@ -175,6 +181,29 @@ const titles = computed(() =>
   }
   &:not(:last-child) {
     padding-right: calc(map-get(bs.$spacers, 1) + 1px);
+  }
+}
+.claim-argument-list:empty {
+  border-radius: var(--bs-border-radius-sm);
+  margin-bottom: 0.25rem;
+  padding: 4px 8px;
+  border: 1px dashed var(--bs-secondary);
+  position: relative;
+  opacity: 0.65;
+  &::before {
+    position: absolute;
+    display: block;
+    align-items: center;
+    justify-content: center;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: block;
+    content: v-bind(txtNoArguments);
+    font-size: 0.875rem;
+    text-align: center;
+    color: var(--bs-secondary);
   }
 }
 </style>

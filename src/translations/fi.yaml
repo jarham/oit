@@ -244,6 +244,7 @@ component:
       perspective: Kirjoita näkökulma tähän
       questions: Tähän voit kirjoittaa apukysymyksiä itsellesi
       synthesis: Kirjoita synteesi näkökulmasta tähän
+      no-perspectives: Ei näkökulmia
   argument-editor:
     btn:
       argument-for-remove:
@@ -257,6 +258,7 @@ component:
       argument-against: Kirjoita väitettä kumoava perustelu vastaan tähän
       source-for: Laita lähde tähän
       source-against: Laita lähde tähän
+      no-arguments: Ei perusteluja
   traffic-lights:
     btn:
       source-evaluation-questionable:

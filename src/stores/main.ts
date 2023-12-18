@@ -61,15 +61,6 @@ export const useStore = defineStore('main', {
         // Reset ids taking parsed data into account
         resetIds(data);
         this.$patch((state) => {
-          // Ensure that all perspectives' arguments lists have at least
-          // one default (empty) argument. Perspectives w/o any arguments
-          // are saved with empty argument table so parsed data may have
-          // empty arrays.
-          data.perspectives.forEach((p) => {
-            [p.argumentsFor, p.argumentsAgainst].forEach((args) => {
-              if (args.length === 0) args.push(getDefaultArgument());
-            });
-          });
           state.data = {...data};
           state.dirty = false;
           state.filename = filenameToChartname(filename);
