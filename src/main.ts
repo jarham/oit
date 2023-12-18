@@ -42,6 +42,11 @@ const getNavigatorLanguage = (): string => {
 };
 
 const getLocale = (): string => {
+  // See if we can get usable locale from host
+  // (fi.onlineinquirytool.org -> fi, for example).
+  const host = window.location.host.split('.')[0];
+  if (supportedLocales.includes(host)) return host;
+
   const localeParts = getNavigatorLanguage().toLowerCase().split('-');
   for (let i = localeParts.length - 1; i >= 0; i--) {
     const tryLocale = localeParts.join('-');
