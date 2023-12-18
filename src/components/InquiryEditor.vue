@@ -9,11 +9,12 @@ section.inquiry-editor
     @update:model-value='store.updateClaim($event)'
   )
   section
-    Draggable(
-      v-model='data.perspectives'
-      group='perspectives'
+    Sortable(
+      :list='data.perspectives'
+      tag='div'
       item-key='id'
-      handle='.drag-handle'
+      :options='sortableOptions'
+      @end='onSortableEnd'
     )
       template(#item='{element: p}')
         PerspectiveEditor(
@@ -26,6 +27,7 @@ section.inquiry-editor
           @remove='onRemovePerspective(p)'
           @edit-argument-for='onEditArgument("for", $event)'
           @edit-argument-against='onEditArgument("against", $event)'
+          @move-argument='onMoveArgument'
           @modified='dirty = true'
         )
   button.btn.btn-sm.btn-oit-add.w-100.mb-2(
@@ -48,21 +50,27 @@ section.inquiry-editor
 
 <script setup lang="ts">
 import {useI18n} from 'vue-i18n';
-import {useStore} from '@/stores/main';
+import {type MoveArgumentOpts, useStore} from '@/stores/main';
 import {storeToRefs} from 'pinia';
-import Draggable from 'vuedraggable';
 import PerspectiveEditor from '@/components/PerspectiveEditor.vue';
 import TitledNotes from '@/components/TitledNotes.vue';
 import ModalArgumentEditor from '@/components/ModalArgumentEditor.vue';
 import {ref} from 'vue';
 import type {Argument, ArgumentKind, Perspective} from '@/model';
 import {useConfirmDialog} from '@/vue-plugins/plugin-confirm-dialog';
+import {Sortable} from 'sortablejs-vue3';
+import {type SortableEvent, type SortableOptions} from 'sortablejs';
 
 const {t} = useI18n();
 const tc = (s: string) => t(`component.inquiry-editor.${s}`);
 
 const store = useStore();
 const {data, dirty} = storeToRefs(store);
+
+const sortableOptions = ref<SortableOptions>({
+  group: 'perspectives',
+  handle: '.drag-handle',
+});
 
 const mdlArgEditor = ref<InstanceType<typeof ModalArgumentEditor>>();
 
@@ -84,6 +92,10 @@ const onEditArgument = (kind: ArgumentKind, argument: Argument) => {
   mdlArgEditor.value?.show();
 };
 
+const onMoveArgument = (moveOpts: MoveArgumentOpts) => {
+  store.moveArgument(moveOpts);
+};
+
 const onRemovePerspective = async (p: Perspective) => {
   const confirmed = await dlgConfirm.confirm('perspective-remove');
   if (!confirmed) return;
@@ -98,5 +110,18 @@ const onRemoveArgument = async (
   const confirmed = await dlgConfirm.confirm(`argument-${kind}-remove`);
   if (!confirmed) return;
   store.removeArgument(target, kind, arg);
+};
+
+const onSortableEnd = (event: SortableEvent) => {
+  const fromIndex = event.oldIndex;
+  const toIndex = event.newIndex;
+
+  if (typeof fromIndex === 'number' && typeof toIndex === 'number') {
+    // Remove the dragged element to prevent duplicates. We force Vue
+    // to refresh the list by changing moved perspectives's id but Vue
+    // may not / will not take care of elements moved outside Vue.
+    event.item.remove();
+    store.movePerspective(fromIndex, toIndex);
+  }
 };
 </script>

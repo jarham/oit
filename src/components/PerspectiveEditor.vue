@@ -1,7 +1,9 @@
 <!-- SPDX-License-Identifier: BSD-2-Clause
      Copyright (c) 2022, Jari Hämäläinen, Carita Kiili and Julie Coiro -->
 <template lang="pug">
-.d-flex.flex-column.claim-perspective.mb-2.tabbed-box
+.d-flex.flex-column.claim-perspective.mb-2.tabbed-box(
+  :data-perspective-id='perspective.id'
+)
   .d-flex.justify-content-between.claim-perspective-titles.px-2
     .d-block.tabbed-box-tab.p-1.claim-perspective-title.flex-grow-1.w-100.me-2-last-0.position-relative(
       v-for='(title, i) in titles'
@@ -33,11 +35,14 @@
         @input='$emit("modified")'
       )
     .d-flex.flex-column.claim-perspective-column
-      Draggable(
-        v-model='perspective.argumentsFor'
-        group='arguments'
+      Sortable(
+        :list='perspective.argumentsFor'
+        tag='div'
         item-key='id'
-        handle='.drag-handle'
+        :options='sortableOptions'
+        :data-perspective-id='props.perspective.id'
+        :data-argument-list='"for"'
+        @end='onSortableEnd'
       )
         template(#item='{element: argument}')
           ArgumentEditor(
@@ -51,11 +56,14 @@
         @click='$emit("add-argument-for")'
       ) {{ tc('btn.argument-for-add.text') }}
     .d-flex.flex-column.claim-perspective-column
-      Draggable(
-        v-model='perspective.argumentsAgainst'
-        group='arguments'
+      Sortable(
+        :list='perspective.argumentsAgainst'
+        tag='div'
         item-key='id'
-        handle='.drag-handle'
+        :options='sortableOptions'
+        :data-perspective-id='props.perspective.id'
+        :data-argument-list='"against"'
+        @end='onSortableEnd'
       )
         template(#item='{element: argument}')
           ArgumentEditor(
@@ -78,26 +86,66 @@
 </template>
 
 <script setup lang="ts">
-import {computed} from 'vue';
+import {computed, ref} from 'vue';
 import {useI18n} from 'vue-i18n';
-import type {Perspective, Argument} from '../model';
-import Draggable from 'vuedraggable';
+import {isArgumentKind, type Argument, type Perspective} from '../model';
 import ArgumentEditor from '@/components/ArgumentEditor.vue';
+import {Sortable} from 'sortablejs-vue3';
+import {type SortableEvent, type Options as SortableOptions} from 'sortablejs';
+import {type MoveArgumentOpts} from '@/stores/main';
 
 interface Props {
   perspective: Perspective;
 }
-defineProps<Props>();
-defineEmits<{
+const props = defineProps<Props>();
+
+const emit = defineEmits<{
   (event: 'add-argument-for'): void;
   (event: 'add-argument-against'): void;
   (event: 'remove-argument-for', argument: Argument): void;
   (event: 'remove-argument-against', argument: Argument): void;
   (event: 'edit-argument-for', argument: Argument): void;
   (event: 'edit-argument-against', argument: Argument): void;
+  (event: 'move-argument', opts: MoveArgumentOpts): void;
   (event: 'remove'): void;
   (event: 'modified'): void;
 }>();
+
+const sortableOptions = ref<SortableOptions>({
+  group: 'arguments',
+  handle: '.drag-handle',
+});
+
+const onSortableEnd = (event: SortableEvent) => {
+  const fromPrsId = event.from.dataset.perspectiveId;
+  const fromArgKind = event.from.dataset.argumentList;
+  const fromIndex = event.oldIndex;
+  const toPrsId = event.to.dataset.perspectiveId;
+  const toArgKind = event.to.dataset.argumentList;
+  const toIndex = event.newIndex;
+
+  if (
+    typeof fromPrsId === 'string' &&
+    typeof toPrsId === 'string' &&
+    isArgumentKind(fromArgKind) &&
+    isArgumentKind(toArgKind) &&
+    typeof fromIndex === 'number' &&
+    typeof toIndex === 'number'
+  ) {
+    // Remove the dragged element to prevent duplicates. We force Vue
+    // to refresh the list by changing moved argument's id but Vue
+    // may not / will not take care of elements moved outside Vue.
+    event.item.remove();
+    emit('move-argument', {
+      fromPrsId,
+      fromArgKind,
+      fromIndex,
+      toPrsId,
+      toArgKind,
+      toIndex,
+    });
+  }
+};
 
 const {t} = useI18n();
 const tc = (s: string) => t(`component.perspective-editor.${s}`);

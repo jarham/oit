@@ -17,6 +17,10 @@ export interface Argument {
 
 export type ArgumentKind = 'for' | 'against';
 
+export function isArgumentKind(o: any): o is ArgumentKind {
+  return o === 'for' || o === 'against';
+}
+
 export interface Perspective {
   name: string;
   questions: string;
