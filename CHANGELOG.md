@@ -1,3 +1,11 @@
+# [15.2.0-rc.6](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.5...v15.2.0-rc.6) (2023-12-18)
+
+
+### Bug Fixes
+
+* make drag item positions changes animated ([2d7c4ca](https://github.com/online-inquiry-tool/oit/commit/2d7c4cad5047ff67d621b73c0b8554fe0861bb88)), closes [#56](https://github.com/online-inquiry-tool/oit/issues/56)
+* replace vuedraggable with sortablejs-vue3 ([ac8b452](https://github.com/online-inquiry-tool/oit/commit/ac8b45284a9a7c35606ca7e4ffb3d4723d585544)), closes [#51](https://github.com/online-inquiry-tool/oit/issues/51)
+
 # [15.2.0-rc.5](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.4...v15.2.0-rc.5) (2023-12-18)
 
 
