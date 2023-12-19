@@ -1,3 +1,31 @@
+# [15.2.0](https://github.com/online-inquiry-tool/oit/compare/v15.1.4...v15.2.0) (2023-12-19)
+
+
+### Bug Fixes
+
+* add placeholders for empty perspective and argument lists ([9808eab](https://github.com/online-inquiry-tool/oit/commit/9808eabda1ffb564bb5ebead830f15d9b3831ca7)), closes [#58](https://github.com/online-inquiry-tool/oit/issues/58)
+* change primary color to a shade of purple ([c4a7bb7](https://github.com/online-inquiry-tool/oit/commit/c4a7bb77c65ed1506989571720a7d8f0d373bf9d))
+* **ci:** correct deprecated usage of set-output in workflows ([af0a18f](https://github.com/online-inquiry-tool/oit/commit/af0a18f4d963a5c2f4b85902ac3005b52f141dbb))
+* **ci:** correct multiline outputs with $GITHUB_OUTPUT ([9ba474a](https://github.com/online-inquiry-tool/oit/commit/9ba474ab552eaebf5543ee70a0ac226c2bb72306))
+* correct id reset on chart deserialization ([f7162dd](https://github.com/online-inquiry-tool/oit/commit/f7162dd41d3d2c7a011a634da5ba673e572a8f06)), closes [#53](https://github.com/online-inquiry-tool/oit/issues/53)
+* correct language names in language selection dialog ([e180504](https://github.com/online-inquiry-tool/oit/commit/e180504fd435e277ddaf8bd81f3a2428f414dd56)), closes [#47](https://github.com/online-inquiry-tool/oit/issues/47)
+* ensure perspectives have at least empty default arguments ([2c9444d](https://github.com/online-inquiry-tool/oit/commit/2c9444db4d87a8e56581e6f624e47b45a4d43b0f)), closes [#49](https://github.com/online-inquiry-tool/oit/issues/49)
+* handle undefined arguments correctly when de-/serializing ([3e12c8b](https://github.com/online-inquiry-tool/oit/commit/3e12c8babe6ff7fdb554ffcbd91d4aa3e5facabc)), closes [#52](https://github.com/online-inquiry-tool/oit/issues/52)
+* **i18n:** use newer version of intlify's vite plugin ([adbceb5](https://github.com/online-inquiry-tool/oit/commit/adbceb57f4e53d7abf1b62f93a5c601dbef73d44))
+* make drag item positions changes animated ([2d7c4ca](https://github.com/online-inquiry-tool/oit/commit/2d7c4cad5047ff67d621b73c0b8554fe0861bb88)), closes [#56](https://github.com/online-inquiry-tool/oit/issues/56)
+* make titled notes title responsive ([c18af48](https://github.com/online-inquiry-tool/oit/commit/c18af4826994a5f05879d1d65310c60ea8739a2c)), closes [#67](https://github.com/online-inquiry-tool/oit/issues/67)
+* place sortable fallback element on body ([16e0b7b](https://github.com/online-inquiry-tool/oit/commit/16e0b7bcd202dee1901f006d4e4e63ef906713b2)), closes [#64](https://github.com/online-inquiry-tool/oit/issues/64)
+* replace vuedraggable with sortablejs-vue3 ([ac8b452](https://github.com/online-inquiry-tool/oit/commit/ac8b45284a9a7c35606ca7e4ffb3d4723d585544)), closes [#51](https://github.com/online-inquiry-tool/oit/issues/51)
+* **tools:** correct import of flat in lang-check ([0a2031b](https://github.com/online-inquiry-tool/oit/commit/0a2031be75f9122d7cc4ea6d3db4dffac856500e))
+* use esm build of vite's node api ([9ce9cc4](https://github.com/online-inquiry-tool/oit/commit/9ce9cc452eaafff4f8b614f556fcc372a738fe6c)), closes [#62](https://github.com/online-inquiry-tool/oit/issues/62)
+* use primary color in chart's add buttons ([a708fcd](https://github.com/online-inquiry-tool/oit/commit/a708fcdad6311c5eb25e85afac81018ffd59213d))
+
+
+### Features
+
+* add perspective palette ([07ef5d7](https://github.com/online-inquiry-tool/oit/commit/07ef5d70cb107e119c35c858375610a81df4754a)), closes [#31](https://github.com/online-inquiry-tool/oit/issues/31)
+* try using host part of fqdn as locale ([395c039](https://github.com/online-inquiry-tool/oit/commit/395c039dbf3aaa1987a5b2bd284591bb789f5d4f)), closes [#60](https://github.com/online-inquiry-tool/oit/issues/60)
+
 # [15.2.0-rc.11](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.10...v15.2.0-rc.11) (2023-12-19)
 
 
