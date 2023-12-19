@@ -1,3 +1,10 @@
+# [15.2.0-rc.11](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.10...v15.2.0-rc.11) (2023-12-19)
+
+
+### Bug Fixes
+
+* make titled notes title responsive ([c18af48](https://github.com/online-inquiry-tool/oit/commit/c18af4826994a5f05879d1d65310c60ea8739a2c)), closes [#67](https://github.com/online-inquiry-tool/oit/issues/67)
+
 # [15.2.0-rc.10](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.9...v15.2.0-rc.10) (2023-12-19)
 
 
