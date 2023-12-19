@@ -1,3 +1,10 @@
+# [15.2.0-rc.10](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.9...v15.2.0-rc.10) (2023-12-19)
+
+
+### Bug Fixes
+
+* place sortable fallback element on body ([16e0b7b](https://github.com/online-inquiry-tool/oit/commit/16e0b7bcd202dee1901f006d4e4e63ef906713b2)), closes [#64](https://github.com/online-inquiry-tool/oit/issues/64)
+
 # [15.2.0-rc.9](https://github.com/online-inquiry-tool/oit/compare/v15.2.0-rc.8...v15.2.0-rc.9) (2023-12-18)
 
 
