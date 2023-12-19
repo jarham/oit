@@ -23,6 +23,8 @@ component:
         text: Save chart
       about:
         text: About
+      perspective-palette-show:
+        text: Palette of perspectives
       instructions:
         text: Instructions
       language:
@@ -121,6 +123,35 @@ component:
     btn:
       close:
         aria-label: Close instructions dialog
+        text: Close
+  modal-perspective-palette:
+    text:
+      title: Palette of perspectives
+      perspectives: |
+        artistic
+        cultural
+        educational
+        educational policy
+        environmental
+        equality
+        ethical
+        financial
+        global
+        historical
+        ideological
+        individual
+        international
+        judicial
+        medical
+        multicultural
+        political
+        professional
+        psychological
+        religious
+        social
+    btn:
+      close:
+        aria-label: Close palette of perspectives
         text: Close
   modal-confirm:
     # Translations action confirmations
@@ -233,6 +264,7 @@ component:
       perspective: Add perspective here
       questions: Add questions that may help you to explore the issue
       synthesis: Write synthesis on the perspective here
+      no-perspectives: No perspectives
   argument-editor:
     btn:
       argument-for-remove:
@@ -246,6 +278,7 @@ component:
       argument-against: Add argument against the claim here
       source-for: Insert source information here
       source-against: Insert source information here
+      no-arguments: No arguments
   traffic-lights:
     btn:
       source-evaluation-questionable:

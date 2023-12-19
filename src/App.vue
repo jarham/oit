@@ -7,6 +7,7 @@ section.app
     TopBar.mb-3(
       @show-languages='showLanguages'
       @show-about='showAbout'
+      @show-perspective-palette='showPerspectivePalette'
       @show-instructions='showInstructions'
       @chart-new='onChartNew'
       @chart-save='onChartSave'
@@ -22,6 +23,7 @@ section.app
       ref='mdlAbout'
     )
     ModalInstructions(ref='mdlInstructions')
+    ModalPerspectivePalette(ref='mdlPerspectivePalette')
     ModalConfirm
     ModalChartSave(
       ref='mdlSave'
@@ -40,6 +42,7 @@ import TopBar from '@/components/TopBar.vue';
 import ModalAbout from '@/components/ModalAbout.vue';
 import ModalLanguages from '@/components/ModalLanguages.vue';
 import ModalInstructions from '@/components/ModalInstructions.vue';
+import ModalPerspectivePalette from '@/components/ModalPerspectivePalette.vue';
 import ModalConfirm from '@/components/ModalConfirm.vue';
 import ModalChartSave from '@/components/ModalChartSave.vue';
 import MainView from '@/views/MainView.vue';
@@ -61,13 +64,20 @@ const {languages} = useModalLanguages(
     .sort()
     .map((locale) => ({
       locale,
-      name: t(`language.${locale}`, {locale: 'en'}),
+      // Composition api of vue-i18n has only 1 and 3 argument
+      // versions. Use "plural" version with plural set to 1
+      // to get language names in locale 'en' (language names
+      // are special: 'en' translation has language names in
+      // their "translated state").
+      name: t(`language.${locale}`, 1, {locale: 'en'}),
     })),
 );
 
 const mdlLanguages = ref<InstanceType<typeof ModalLanguages>>();
 const mdlAbout = ref<InstanceType<typeof ModalAbout>>();
 const mdlInstructions = ref<InstanceType<typeof ModalInstructions>>();
+const mdlPerspectivePalette =
+  ref<InstanceType<typeof ModalPerspectivePalette>>();
 const mdlSave = ref<InstanceType<typeof ModalChartSave>>();
 
 onMounted(() => {
@@ -92,6 +102,9 @@ const showAbout = () => {
 };
 const showInstructions = () => {
   mdlInstructions.value?.show();
+};
+const showPerspectivePalette = () => {
+  mdlPerspectivePalette.value?.show();
 };
 
 const onChartNew = async () => {
@@ -141,8 +154,11 @@ watch(dirty, (dirty) => {
 </script>
 
 <style lang="scss">
-@use '../node_modules/bootstrap' as bs;
 @import '../node_modules/bootstrap-icons/font/bootstrap-icons.css';
+// Customize bootstrap primary color.
+@import '../node_modules/bootstrap/scss/functions';
+$primary: #6c3d71;
+@import '../node_modules/bootstrap';
 
 .me-2-last-0 {
   @extend .me-2;
@@ -179,6 +195,52 @@ watch(dirty, (dirty) => {
     @extend .border;
     @extend .border-dark;
     @extend .rounded;
+  }
+}
+
+.btn-oit-add {
+  @extend .btn-primary;
+}
+
+.claim-perspective-list:empty {
+  height: 52px;
+}
+
+@include media-breakpoint-up(md) {
+  .claim-perspective-list:empty {
+    height: 30px;
+  }
+}
+
+.claim-argument-list:empty {
+  height: 72px;
+}
+
+@include media-breakpoint-up(md) {
+  .claim-argument-list:empty {
+    height: 52px;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  .claim-argument-list:empty {
+    height: 30px;
+  }
+}
+
+.titled-notes .title {
+  min-width: 15ch;
+}
+
+@include media-breakpoint-up(md) {
+  .titled-notes .title {
+    min-width: 30ch;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  .titled-notes .title {
+    min-width: 40ch;
   }
 }
 </style>

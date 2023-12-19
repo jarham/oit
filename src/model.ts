@@ -17,6 +17,10 @@ export interface Argument {
 
 export type ArgumentKind = 'for' | 'against';
 
+export function isArgumentKind(o: any): o is ArgumentKind {
+  return o === 'for' || o === 'against';
+}
+
 export interface Perspective {
   name: string;
   questions: string;
@@ -87,17 +91,20 @@ export function resetIds(data?: Model) {
   idStore.perspectiveId = 0;
   idStore.argumentId = 0;
   if (!data) return;
+
+  // idStore has the next available id so take that into account
+  // when checking existing ids (use `>=` and `+ 1`)
   data.perspectives.forEach((p) => {
     try {
       const n = getIdNumber(p.id);
-      if (n > idStore.perspectiveId) idStore.perspectiveId = n;
+      if (n >= idStore.perspectiveId) idStore.perspectiveId = n + 1;
     } catch (_) {
       // Ignore
     }
     p.argumentsFor.forEach((r) => {
       try {
         const n = getIdNumber(r.id);
-        if (n > idStore.argumentId) idStore.argumentId = n;
+        if (n >= idStore.argumentId) idStore.argumentId = n + 1;
       } catch (_) {
         // Ignore
       }
@@ -105,7 +112,7 @@ export function resetIds(data?: Model) {
     p.argumentsAgainst.forEach((r) => {
       try {
         const n = getIdNumber(r.id);
-        if (n > idStore.argumentId) idStore.argumentId = n;
+        if (n >= idStore.argumentId) idStore.argumentId = n + 1;
       } catch (_) {
         // Ignore
       }

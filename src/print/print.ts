@@ -16,7 +16,9 @@ import {
 // 1.1.0: added reliabilityOrig to PrintArgument to store Reliability value in
 //        data-text attribute of oit-argument-for-reliability and
 //        oit-argument-against-reliability elements.
-const docVersion = '1.1.0';
+// 1.1.1: Added oit-undefined-false and oit-undefined-true classes to arguments
+//        to mark if original document actually had argument (oit-undefined-false).
+const docVersion = '1.1.1';
 
 export interface PrintTranslations {
   [key: string]: PrintTranslations | string | (() => string);
@@ -24,6 +26,7 @@ export interface PrintTranslations {
 
 interface PrintArgument extends Omit<Argument, 'reliability'> {
   empty: boolean;
+  undefined: boolean;
   reliability: Reliability | null | string;
   reliabilityOrig: Reliability | '[not-set]';
   argumentOrig: string;
@@ -59,6 +62,7 @@ function argumentToPrintArgument(
   if (!a || argumentIsEmpty(a)) {
     return {
       empty: true,
+      undefined: !a,
       argument: '\xa0',
       id: '\xa0',
       justification: '\xa0',
@@ -72,6 +76,7 @@ function argumentToPrintArgument(
   }
   return {
     empty: false,
+    undefined: false,
     argument: a.argument.trim() || tEmpty,
     argumentOrig: a.argument,
     id: a.id.trim() || '\xa0',
@@ -97,13 +102,13 @@ function perpectiveToPrintPerspective(
     paf = argumentToPrintArgument(p.argumentsFor[i], tEmpty, tRel);
     paa = argumentToPrintArgument(p.argumentsAgainst[i], tEmpty, tRel);
     i++;
-    if (!paf.empty || !paa.empty) {
+    if (!paf.undefined || !paa.undefined) {
       args.push({
         for: paf,
         against: paa,
       });
     }
-  } while (!paf.empty || !paa.empty);
+  } while (!paf.undefined || !paa.undefined);
 
   return {
     id: p.id.trim() || '\xa0',

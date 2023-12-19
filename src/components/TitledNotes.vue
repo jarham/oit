@@ -37,9 +37,6 @@ const onInput = (evt: Event) => {
 
 <style lang="scss">
 .titled-notes {
-  .title {
-    min-width: 40ch;
-  }
   .notes {
     resize: none;
     &.notes-resizable {

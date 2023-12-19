@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0
           # Don't persist credentials or semantic-release will use them
@@ -22,11 +22,11 @@ jobs:
           # possible solutions, see: https://github.com/semantic-release/git/issues/196.
           persist-credentials: false
       - name: Setup Node.js
-        uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd
+        uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
         with:
           node-version: lts/*
       - name: Install pnpm
-        uses: pnpm/action-setup@d882d12c64e032187b2edb46d3a0d003b7a43598
+        uses: pnpm/action-setup@d882d12c64e032187b2edb46d3a0d003b7a43598 # v2.4.0
         with:
           version: latest
       - name: Install bsdtar (and friends)
@@ -47,7 +47,7 @@ jobs:
           # Make sure .version.local exists or fail
           test -f .version.local
           VERSION="$(cat .version.local)"
-          if [ -z "${VERSION}" ]; then echo "::set-output name=new-version::false"; else echo "::set-output name=new-version::true"; fi
+          if [ -z "${VERSION}" ]; then echo "new-version=false" >> $GITHUB_OUTPUT; else echo "new-version=true" >> $GITHUB_OUTPUT; fi
       - name: Build
         # Run only if new version is made
         if: ${{ steps.check-version.outputs.new-version == 'true' }}
@@ -89,7 +89,7 @@ jobs:
       - name: Configure AWS credentials for S3 deployment
         # Run only if new version is made
         if: ${{ steps.check-version.outputs.new-version == 'true' }}
-        uses: aws-actions/configure-aws-credentials@05b148adc31e091bafbaf404f745055d4d3bc9d2
+        uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

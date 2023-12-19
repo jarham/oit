@@ -1,10 +1,10 @@
 import {defineConfig, loadEnv} from 'vite';
 import vue from '@vitejs/plugin-vue';
-import vueI18n from '@intlify/vite-plugin-vue-i18n';
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
 import {string} from 'rollup-plugin-string';
 import yaml from '@rollup/plugin-yaml';
 import * as path from 'path';
-import * as fg from 'fast-glob';
+import fg from 'fast-glob';
 import {configFilter, translationFilter} from './tools/file-filters';
 
 function getAppVersion(env: Record<string, string>): string {
@@ -25,7 +25,7 @@ function getAppLink(env: Record<string, string>): string {
 }
 
 // https://vitejs.dev/config/
-// https://github.com/intlify/bundle-tools/tree/main/packages/vite-plugin-vue-i18n#vite-config
+// https://github.com/intlify/bundle-tools/tree/main/packages/unplugin-vue-i18n#-options
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, process.cwd(), '');
   // Use app version instead of generated hash in filenames
@@ -47,13 +47,13 @@ export default defineConfig(({mode}) => {
   // which uses separate `include` and `exclude` options but vueI18n only
   // hasn `include`. Use fast-glob to find actual translation files first.
   const translationFiles = fg
-    .sync(translationFilter)
+    .globSync(translationFilter)
     .map((f) => path.resolve(__dirname, f));
 
   return {
     plugins: [
       vue(),
-      vueI18n({include: translationFiles}),
+      VueI18nPlugin({include: translationFiles}),
       yaml({include: configFilter}),
       string({
         include: ['LICENSE'],

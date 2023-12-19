@@ -1,14 +1,23 @@
 import {parse as parsePath} from 'path';
 import {readFile, writeFile} from 'fs/promises';
 import {parse} from 'yaml';
-import {flatten} from 'flat';
 import fg from 'fast-glob';
 import Joi from 'joi';
 import yargs from 'yargs';
 import {hideBin} from 'yargs/helpers';
-import {configFilter, translationFilter} from './file-filters';
-import {I18nConfig, I18nFallbackMapping} from '../src/lib/i18n-config';
+import {configFilter, translationFilter} from './file-filters.js';
+import {I18nConfig, I18nFallbackMapping} from '../src/lib/i18n-config.js';
 import mustache from 'mustache';
+
+// Workaround to get types out of EcmaScript module
+// See: https://github.com/microsoft/TypeScript/issues/52529#issuecomment-1450916886
+async function importFlat() {
+  return await import('flat');
+}
+type FlatModule = Awaited<ReturnType<typeof importFlat>>;
+type FlattenFn = FlatModule['flatten'];
+
+let flatten: FlattenFn;
 
 const langRe = /^[a-zA-Z]+(?:-(?:[a-zA-Z]+|\d+))*$/;
 
@@ -16,7 +25,7 @@ const template = `<details>
 <summary><h3>Translation check problems (click to expand)</h3></summary>
 
 {{#notes}}
-### ℹ Notes ℹ
+### 📝 Notes 📝
 
 {{#items}}
 - {{text}}
@@ -497,7 +506,11 @@ const indent = (s: string, c = 4, start = 1) => {
 const errors: string[] = [];
 const warnings: string[] = [];
 const notes: string[] = [];
-main(errors, warnings, notes)
+importFlat()
+  .then((flat) => {
+    flatten = flat.flatten;
+    return main(errors, warnings, notes);
+  })
   .catch((e) => errors.push(e.message))
   .finally(() => {
     let c = notes.length;

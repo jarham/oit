@@ -23,6 +23,8 @@ component:
         text: Tallenna kaavio
       about:
         text: Tietoja sovelluksesta
+      perspective-palette-show:
+        text: Näkökulmapaletti
       instructions:
         text: Ohjeet
       language:
@@ -93,6 +95,43 @@ component:
     btn:
       close:
         aria-label: Sulje ohjeet
+        text: Sulje
+  modal-perspective-palette:
+    text:
+      title: Näkökulmapaletti
+      perspectives: |
+        ammatillinen
+        eettinen
+        globaali
+        historiallinen
+        hyvinvointi
+        ideologinen
+        juridinen
+        kansainvälinen
+        kasvatuksellinen
+        koulutuspoliittinen
+        kulttuurinen
+        monikulttuurinen
+        oppimisen
+        poliittinen
+        psykologinen
+        sivistyksellinen
+        sosiaalinen
+        suvaitsevaisuus
+        taiteellinen
+        taloudellinen
+        terveydellinen
+        työllisyys
+        uskonnollinen
+        yhdenvertaisuuden
+        yhteiskunnallinen
+        yhteisöllinen
+        yksilöllinen
+        ympäristösuojelullinen
+
+    btn:
+      close:
+        aria-label: Sulje näkökulmapaletti
         text: Sulje
   modal-confirm:
     # Translations action confirmations
@@ -205,6 +244,7 @@ component:
       perspective: Kirjoita näkökulma tähän
       questions: Tähän voit kirjoittaa apukysymyksiä itsellesi
       synthesis: Kirjoita synteesi näkökulmasta tähän
+      no-perspectives: Ei näkökulmia
   argument-editor:
     btn:
       argument-for-remove:
@@ -218,6 +258,7 @@ component:
       argument-against: Kirjoita väitettä kumoava perustelu vastaan tähän
       source-for: Laita lähde tähän
       source-against: Laita lähde tähän
+      no-arguments: Ei perusteluja
   traffic-lights:
     btn:
       source-evaluation-questionable:

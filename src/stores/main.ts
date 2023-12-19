@@ -14,6 +14,15 @@ import {
   IdStore,
 } from '../model';
 
+export interface MoveArgumentOpts {
+  fromPrsId: string;
+  fromArgKind: ArgumentKind;
+  fromIndex: number;
+  toPrsId: string;
+  toArgKind: ArgumentKind;
+  toIndex: number;
+}
+
 interface StoreState {
   data: Model;
   dirty: boolean;
@@ -75,6 +84,18 @@ export const useStore = defineStore('main', {
         state.dirty = true;
       });
     },
+    movePerspective(fromIndex: number, toIndex: number) {
+      this.$patch((state) => {
+        const prs = state.data.perspectives.splice(fromIndex, 1)[0];
+        state.data.perspectives.splice(toIndex, 0, prs);
+
+        // Set new id for moved perspective so that html gets reactively updated.
+        const tmp = getDefaultPerspective();
+        prs.id = tmp.id;
+
+        state.dirty = true;
+      });
+    },
     addArgument(target: Perspective, kind: ArgumentKind) {
       this.$patch((state) => {
         const t = state.data.perspectives.find((p) => p.id === target.id);
@@ -98,6 +119,28 @@ export const useStore = defineStore('main', {
         state.dirty = true;
       });
     },
+    moveArgument(opts: MoveArgumentOpts) {
+      this.$patch((state) => {
+        const from = getArgumentList(
+          state.data,
+          opts.fromPrsId,
+          opts.fromArgKind,
+        );
+        const to = getArgumentList(state.data, opts.toPrsId, opts.toArgKind);
+        if (!from || !to) return;
+
+        const arg = from.splice(opts.fromIndex, 1)[0];
+        to.splice(opts.toIndex, 0, arg);
+
+        // Set new id for moved argument so that html gets reactively updated
+        // (we remove dragged element after drag finishes because otherwise
+        // dragging from one list to another would cause duplicates).
+        const tmp = getDefaultArgument();
+        arg.id = tmp.id;
+
+        state.dirty = true;
+      });
+    },
     updateClaim(claim: string) {
       this.$patch((state) => {
         state.data.claim = claim;
@@ -114,3 +157,13 @@ export const useStore = defineStore('main', {
 });
 
 export type MainStore = ReturnType<typeof useStore>;
+
+function getArgumentList(
+  model: Model,
+  prsId: string,
+  argKind: ArgumentKind,
+): Argument[] | undefined {
+  const prs = model.perspectives.find((p) => p.id === prsId);
+  if (!prs) return undefined;
+  return argKind === 'for' ? prs.argumentsFor : prs.argumentsAgainst;
+}

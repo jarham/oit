@@ -9,11 +9,12 @@ section.inquiry-editor
     @update:model-value='store.updateClaim($event)'
   )
   section
-    Draggable(
-      v-model='data.perspectives'
-      group='perspectives'
+    Sortable.claim-perspective-list(
+      :list='data.perspectives'
+      tag='div'
       item-key='id'
-      handle='.drag-handle'
+      :options='sortableOptions'
+      @end='onSortableEnd'
     )
       template(#item='{element: p}')
         PerspectiveEditor(
@@ -26,9 +27,10 @@ section.inquiry-editor
           @remove='onRemovePerspective(p)'
           @edit-argument-for='onEditArgument("for", $event)'
           @edit-argument-against='onEditArgument("against", $event)'
+          @move-argument='onMoveArgument'
           @modified='dirty = true'
         )
-  button.btn.btn-sm.btn-success.w-100.mb-2(
+  button.btn.btn-sm.btn-oit-add.w-100.mb-2(
     @click='store.addPerspective()'
   ) {{ tc('btn.perspective-add.text') }}
   TitledNotes(
@@ -48,21 +50,35 @@ section.inquiry-editor
 
 <script setup lang="ts">
 import {useI18n} from 'vue-i18n';
-import {useStore} from '@/stores/main';
+import {type MoveArgumentOpts, useStore} from '@/stores/main';
 import {storeToRefs} from 'pinia';
-import Draggable from 'vuedraggable';
 import PerspectiveEditor from '@/components/PerspectiveEditor.vue';
 import TitledNotes from '@/components/TitledNotes.vue';
 import ModalArgumentEditor from '@/components/ModalArgumentEditor.vue';
-import {ref} from 'vue';
+import {computed, ref} from 'vue';
 import type {Argument, ArgumentKind, Perspective} from '@/model';
 import {useConfirmDialog} from '@/vue-plugins/plugin-confirm-dialog';
+import {Sortable} from 'sortablejs-vue3';
+import {type SortableEvent, type SortableOptions} from 'sortablejs';
 
 const {t} = useI18n();
 const tc = (s: string) => t(`component.inquiry-editor.${s}`);
 
 const store = useStore();
 const {data, dirty} = storeToRefs(store);
+
+const sortableOptions = ref<SortableOptions>({
+  animation: 300,
+  group: 'perspectives',
+  handle: '.drag-handle',
+  // Sortable uses its "fallback" on mobile and by default it
+  // appends "fallback element" to the list causing `:empty`
+  // css selector to fail during drag. Place "fallback element"
+  // on body instead. NOTE: Not exactly necessary on perspective
+  // list as it cannot become empty while dragging but using
+  // this anyway to keep behavior similar to argument lists.
+  fallbackOnBody: true,
+});
 
 const mdlArgEditor = ref<InstanceType<typeof ModalArgumentEditor>>();
 
@@ -84,6 +100,10 @@ const onEditArgument = (kind: ArgumentKind, argument: Argument) => {
   mdlArgEditor.value?.show();
 };
 
+const onMoveArgument = (moveOpts: MoveArgumentOpts) => {
+  store.moveArgument(moveOpts);
+};
+
 const onRemovePerspective = async (p: Perspective) => {
   const confirmed = await dlgConfirm.confirm('perspective-remove');
   if (!confirmed) return;
@@ -99,4 +119,48 @@ const onRemoveArgument = async (
   if (!confirmed) return;
   store.removeArgument(target, kind, arg);
 };
+
+const onSortableEnd = (event: SortableEvent) => {
+  const fromIndex = event.oldIndex;
+  const toIndex = event.newIndex;
+
+  if (typeof fromIndex === 'number' && typeof toIndex === 'number') {
+    // Remove the dragged element to prevent duplicates. We force Vue
+    // to refresh the list by changing moved perspectives's id but Vue
+    // may not / will not take care of elements moved outside Vue.
+    event.item.remove();
+    store.movePerspective(fromIndex, toIndex);
+  }
+};
+
+// we need quotation marks because the value is assigned to
+// in css to ::before pseudo element's content.
+const txtNoPerspectives = computed(
+  () => `"${t('component.perspective-editor.placeholder.no-perspectives')}"`,
+);
 </script>
+<style lang="scss">
+.claim-perspective-list:empty {
+  border-radius: var(--bs-border-radius-sm);
+  margin-bottom: 0.25rem;
+  padding: 4px 8px;
+  border: 1px dashed var(--bs-secondary);
+  position: relative;
+  opacity: 0.65;
+  &::before {
+    position: absolute;
+    display: block;
+    align-items: center;
+    justify-content: center;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: block;
+    content: v-bind(txtNoPerspectives);
+    font-size: 0.875rem;
+    text-align: center;
+    color: var(--bs-secondary);
+  }
+}
+</style>
