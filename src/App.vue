@@ -227,4 +227,20 @@ $primary: #6c3d71;
     height: 30px;
   }
 }
+
+.titled-notes .title {
+  min-width: 15ch;
+}
+
+@include media-breakpoint-up(md) {
+  .titled-notes .title {
+    min-width: 30ch;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  .titled-notes .title {
+    min-width: 40ch;
+  }
+}
 </style>
