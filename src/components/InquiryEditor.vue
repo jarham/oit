@@ -71,6 +71,13 @@ const sortableOptions = ref<SortableOptions>({
   animation: 300,
   group: 'perspectives',
   handle: '.drag-handle',
+  // Sortable uses its "fallback" on mobile and by default it
+  // appends "fallback element" to the list causing `:empty`
+  // css selector to fail during drag. Place "fallback element"
+  // on body instead. NOTE: Not exactly necessary on perspective
+  // list as it cannot become empty while dragging but using
+  // this anyway to keep behavior similar to argument lists.
+  fallbackOnBody: true,
 });
 
 const mdlArgEditor = ref<InstanceType<typeof ModalArgumentEditor>>();

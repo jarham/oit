@@ -115,6 +115,11 @@ const sortableOptions = ref<SortableOptions>({
   animation: 300,
   group: 'arguments',
   handle: '.drag-handle',
+  // Sortable uses its "fallback" on mobile and by default it
+  // appends "fallback element" to the list causing `:empty`
+  // css selector to fail during drag. Place "fallback element"
+  // on body instead.
+  fallbackOnBody: true,
 });
 
 const onSortableEnd = (event: SortableEvent) => {
